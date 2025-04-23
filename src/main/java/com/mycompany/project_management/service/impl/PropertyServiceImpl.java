@@ -26,5 +26,6 @@ public class PropertyServiceImpl implements PropertyService {
 
         propertyRepository.save(pe);
         return null;
+
     }
 }
