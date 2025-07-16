@@ -1,9 +1,11 @@
 package com.citi.olympus.nura.api.scheduler;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
 import java.util.List;
 import java.util.Map;
@@ -14,18 +16,66 @@ public class BulkRetryScheduler {
     @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    @Scheduled(fixedRate = 30000)  // runs every 30 seconds
-    public void fetchAuditData() {
-        String sql = "SELECT * FROM OM_NURAFLOW_AUDIT_DATA WHERE ROWNUM <= 10"; // limit for testing
+    private static final String HEALTH_CHECK_URL = "https://dummyurl.com/health";
+    private static final String PROCESS_URL = "https://dummyurl.com/process";
 
-        List<Map<String, Object>> results = jdbcTemplate.queryForList(sql);
+    private final RestTemplate restTemplate = new RestTemplate();
 
-        for (Map<String, Object> row : results) {
-            System.out.println("Row Data: " + row);
+    @Scheduled(fixedRate = 30000) // every 30 seconds
+    public void processFailedRequests() {
+        String sql = "SELECT * FROM OM_NURAFLOW_AUDIT_DATA WHERE STATUS = 'FAILED'";
+
+        List<Map<String, Object>> failedRecords = jdbcTemplate.queryForList(sql);
+
+        for (Map<String, Object> row : failedRecords) {
+            try {
+                // 1. Health check
+                ResponseEntity<String> healthResponse = restTemplate.getForEntity(HEALTH_CHECK_URL, String.class);
+
+                if (healthResponse.getStatusCode() == HttpStatus.OK) {
+                    // 2. Extract payload
+                    String payload = (String) row.get("REQUEST_PAYLOAD");
+                    Long id = ((Number) row.get("ID")).longValue();
+
+                    // 3. Send request payload to GET URL (mocked with query param for this example)
+                    HttpHeaders headers = new HttpHeaders();
+                    headers.setContentType(MediaType.APPLICATION_JSON);
+
+                    HttpEntity<String> entity = new HttpEntity<>(payload, headers);
+
+                    // Assuming the payload is passed as a query param, else modify this part
+                    String requestUrl = PROCESS_URL + "?data=" + java.net.URLEncoder.encode(payload, "UTF-8");
+
+                    ResponseEntity<String> response = restTemplate.exchange(
+                            requestUrl,
+                            HttpMethod.GET,
+                            entity,
+                            String.class
+                    );
+
+                    // 4. Check response status
+                    if (response.getStatusCode() == HttpStatus.OK) {
+                        updateStatus(id, "SUCCESS");
+                        System.out.println("Updated record " + id + " as SUCCESS");
+                    } else {
+                        updateStatus(id, "FAILED");
+                        System.out.println("Record " + id + " failed with response: " + response.getStatusCode());
+                    }
+                } else {
+                    System.out.println("Health check failed. Skipping processing.");
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
         }
     }
-}
 
+    private void updateStatus(Long id, String newStatus) {
+        String updateSql = "UPDATE OM_NURAFLOW_AUDIT_DATA SET STATUS = ? WHERE ID = ?";
+        jdbcTemplate.update(updateSql, newStatus, id);
+    }
+}
 
 
 @EnableScheduling
