@@ -1,14 +1,7 @@
-StreamNameDto streamNameDto = new StreamNameDto();
-        streamNameDto.setReport("Report");
-        streamNameDto.setProduct("test");
-        streamNameDto.setEntity("A");
-
-        // Create ConsumerDto with dummy data
-        ConsumerDto consumerDto = new ConsumerDto();
-        consumerDto.setConsumer("A");
-        consumerDto.setGlobalTransactionId("txn-001-xyz");
-        consumerDto.setReportStreamName(Collections.singletonList(streamNameDto));
-        consumerDto.setRunDate(Arrays.asList(20240718, 20240719));
-
-        // You can now use consumerDto as needed
-        System.out.println(consumerDto);
+Map<String, String> headersMap = Arrays.stream(headers.replaceAll("[{}]", "").split(","))
+    .map(s -> s.split("=", 2))
+    .filter(arr -> arr.length == 2)
+    .collect(Collectors.toMap(
+        arr -> arr[0].trim(),
+        arr -> arr[1].trim()
+    ));
