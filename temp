@@ -5,3 +5,8 @@ Map<String, String> headersMap = Arrays.stream(headers.replaceAll("[{}]", "").sp
         arr -> arr[0].trim(),
         arr -> arr[1].trim()
     ));
+@PostConstruct
+    public void initRateLimiter() {
+        this.rateLimiter = RateLimiter.create(rateLimit);
+        LOG.info("RateLimiter initialized with rate = " + rateLimit + " requests/second");
+    }
