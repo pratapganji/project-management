@@ -8,67 +8,26 @@ Map<String, String> headersMap = Arrays.stream(headers.replaceAll("[{}]", "").sp
 
 
 
-@ExtendWith(MockitoExtension.class)
-class BulkRetrySchedulerTest {
+import com.citi.olympus.nura.api.scheduler.BulkRetryScheduler;
+import com.citi.olympus.nura.api.service.RestTemplateService;
+import com.google.common.util.concurrent.RateLimiter;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.web.client.RestTemplate;
 
-    @InjectMocks
-    private BulkRetryScheduler scheduler;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
-    @Mock
-    private JdbcTemplate jdbcTemplate;
-
-    @Mock
-    private RestTemplateService restTemplateService;
-
-    @Mock
-    private RateLimiter rateLimiter;
-
-    @Mock
-    private RestTemplate restTemplate;
-
-    @BeforeEach
-    void setUp() {
-        ReflectionTestUtils.setField(scheduler, "rateLimit", 5.0);
-        ReflectionTestUtils.setField(scheduler, "HEALTH_CHECK_URL", "https://dummy-url.com/health");
-        ReflectionTestUtils.setField(scheduler, "restTemplate", restTemplate);
-    }
-   @Test
-    void testProcessFailedRequests_withSuccessFlow() {
-        // Arrange
-        Map<String, Object> row = new HashMap<>();
-        row.put("ID", 1L);
-        row.put("REQUEST_PAYLOAD", "{\"key\":\"value\"}");
-        row.put("API_ENDPOINT", "http://dummy-endpoint.com");
-        row.put("HEADERS", "Content-Type: application/json");
-
-        List<Map<String, Object>> failedRecords = Collections.singletonList(row);
-
-        when(jdbcTemplate.queryForList(anyString())).thenReturn(failedRecords);
-
-        ResponseEntity<String> healthCheckResponse = new ResponseEntity<>("OK", HttpStatus.OK);
-        when(restTemplate.getForEntity(eq("https://dummy-url.com/health"), eq(String.class)))
-                .thenReturn(healthCheckResponse);
-
-        doNothing().when(rateLimiter).acquire();
-
-        ResponseEntity<String> apiResponse = new ResponseEntity<>("Success Body", HttpStatus.OK);
-        when(restTemplateService.sendRequest(
-                eq("http://dummy-endpoint.com"),
-                eq(HttpMethod.POST),
-                eq("{\"key\":\"value\"}"),
-                anyMap()
-        )).thenReturn(apiResponse);
-
-        when(jdbcTemplate.update(anyString(), any(), any(), any())).thenReturn(1);
-// Act
-        scheduler.processFailedRequests();
-
-        // Assert
-        verify(jdbcTemplate).queryForList(anyString());
-        verify(restTemplate).getForEntity(anyString(), eq(String.class));
-        verify(rateLimiter).acquire();
-        verify(restTemplateService).sendRequest(anyString(), any(), anyString(), anyMap());
-        verify(jdbcTemplate).update(anyString(), eq("SUCCESS"), eq("Success Body"), eq(1L));
-    }
-}
-
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
