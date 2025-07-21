@@ -1,3 +1,12 @@
+private final RowMapper<RequestPayload> requestRowMapper = (rs, rowNum) -> {
+    RequestPayload payload = new RequestPayload();
+    payload.setId(rs.getLong("ID"));
+    payload.setPayload(rs.getString("REQUEST_PAYLOAD"));
+    payload.setApiEndpoint(rs.getString("API_ENDPOINT"));
+    payload.setHeaders(rs.getString("HEADERS"));
+    return payload;
+};
+
 class RequestPayload {
     private Long id;
     private String payload;
