@@ -11,21 +11,46 @@ Map<String, String> headersMap = Arrays.stream(headers.replaceAll("[{}]", "").sp
         LOG.info("RateLimiter initialized with rate = " + rateLimit + " requests/second");
     }
 INSERT INTO OM_NURAFLOW_AUDIT_DATA (
-    ID, API_ENDPOINT, REQUEST_PAYLOAD, HEADERS, STATUS
+    API_ENDPOINT, REQUEST_PAYLOAD, HEADERS, STATUS
 ) VALUES (
-    101,
     'https://olympus.api.bulk.uat.cloudgsl.nam.nsroot.net/v2/olympus/service/bulkapi/executeSQLQuery',
-    '{"dataSource":"SPARKYAML", "runDate":["20250718"]}',
+    '{"dataSource":"SPARKYAML", "runDate":["20250719"]}',
     '{x-api-key=abc123, content-type=application/json}',
     'FAILED'
 );
 
 INSERT INTO OM_NURAFLOW_AUDIT_DATA (
-    ID, API_ENDPOINT, REQUEST_PAYLOAD, HEADERS, STATUS
+    API_ENDPOINT, REQUEST_PAYLOAD, HEADERS, STATUS
 ) VALUES (
-    102,
     'https://olympus.api.bulk.uat.cloudgsl.nam.nsroot.net/v2/olympus/service/bulkapi/executeSQLQuery',
-    '{"dataSource":"SPARKYAML", "runDate":["20250719"]}',
-    '{x-api-key=abc123, content-type=application/json}',
+    '{"dataSource":"SPARKYAML", "runDate":["20250718"], "fileName":"Deposits_20250718"}',
+    '{x-api-key=abc456, content-type=application/json}',
+    'FAILED'
+);
+
+INSERT INTO OM_NURAFLOW_AUDIT_DATA (
+    API_ENDPOINT, REQUEST_PAYLOAD, HEADERS, STATUS
+) VALUES (
+    'https://olympus.api.bulk.uat.cloudgsl.nam.nsroot.net/v2/olympus/service/bulkapi/executeSQLQuery',
+    '{"dataSource":"SPARKYAML", "sql":"SELECT * FROM users"}',
+    '{x-api-key=abc789, content-type=application/json}',
+    'FAILED'
+);
+
+INSERT INTO OM_NURAFLOW_AUDIT_DATA (
+    API_ENDPOINT, REQUEST_PAYLOAD, HEADERS, STATUS
+) VALUES (
+    'https://olympus.api.bulk.uat.cloudgsl.nam.nsroot.net/v2/olympus/service/bulkapi/executeSQLQuery',
+    '{"dataSource":"SPARKYAML", "runDate":["20250720"], "sql":"SELECT * FROM account_balances"}',
+    '{x-api-key=xyz123, content-type=application/json}',
+    'FAILED'
+);
+
+INSERT INTO OM_NURAFLOW_AUDIT_DATA (
+    API_ENDPOINT, REQUEST_PAYLOAD, HEADERS, STATUS
+) VALUES (
+    'https://olympus.api.bulk.uat.cloudgsl.nam.nsroot.net/v2/olympus/service/bulkapi/executeSQLQuery',
+    '{"dataSource":"SPARKYAML", "runDate":["20250717"], "fileName":"Recon_20250717"}',
+    '{x-api-key=xyz789, content-type=application/json}',
     'FAILED'
 );
