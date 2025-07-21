@@ -5,52 +5,70 @@ Map<String, String> headersMap = Arrays.stream(headers.replaceAll("[{}]", "").sp
         arr -> arr[0].trim(),
         arr -> arr[1].trim()
     ));
-@PostConstruct
-    public void initRateLimiter() {
-        this.rateLimiter = RateLimiter.create(rateLimit);
-        LOG.info("RateLimiter initialized with rate = " + rateLimit + " requests/second");
+
+
+
+@ExtendWith(MockitoExtension.class)
+class BulkRetrySchedulerTest {
+
+    @InjectMocks
+    private BulkRetryScheduler scheduler;
+
+    @Mock
+    private JdbcTemplate jdbcTemplate;
+
+    @Mock
+    private RestTemplateService restTemplateService;
+
+    @Mock
+    private RateLimiter rateLimiter;
+
+    @Mock
+    private RestTemplate restTemplate;
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(scheduler, "rateLimit", 5.0);
+        ReflectionTestUtils.setField(scheduler, "HEALTH_CHECK_URL", "https://dummy-url.com/health");
+        ReflectionTestUtils.setField(scheduler, "restTemplate", restTemplate);
     }
-INSERT INTO OM_NURAFLOW_AUDIT_DATA (
-    API_ENDPOINT, REQUEST_PAYLOAD, HEADERS, STATUS
-) VALUES (
-    'https://olympus.api.bulk.uat.cloudgsl.nam.nsroot.net/v2/olympus/service/bulkapi/executeSQLQuery',
-    '{"dataSource":"SPARKYAML", "runDate":["20250719"]}',
-    '{x-api-key=abc123, content-type=application/json}',
-    'FAILED'
-);
+   @Test
+    void testProcessFailedRequests_withSuccessFlow() {
+        // Arrange
+        Map<String, Object> row = new HashMap<>();
+        row.put("ID", 1L);
+        row.put("REQUEST_PAYLOAD", "{\"key\":\"value\"}");
+        row.put("API_ENDPOINT", "http://dummy-endpoint.com");
+        row.put("HEADERS", "Content-Type: application/json");
 
-INSERT INTO OM_NURAFLOW_AUDIT_DATA (
-    API_ENDPOINT, REQUEST_PAYLOAD, HEADERS, STATUS
-) VALUES (
-    'https://olympus.api.bulk.uat.cloudgsl.nam.nsroot.net/v2/olympus/service/bulkapi/executeSQLQuery',
-    '{"dataSource":"SPARKYAML", "runDate":["20250718"], "fileName":"Deposits_20250718"}',
-    '{x-api-key=abc456, content-type=application/json}',
-    'FAILED'
-);
+        List<Map<String, Object>> failedRecords = Collections.singletonList(row);
 
-INSERT INTO OM_NURAFLOW_AUDIT_DATA (
-    API_ENDPOINT, REQUEST_PAYLOAD, HEADERS, STATUS
-) VALUES (
-    'https://olympus.api.bulk.uat.cloudgsl.nam.nsroot.net/v2/olympus/service/bulkapi/executeSQLQuery',
-    '{"dataSource":"SPARKYAML", "sql":"SELECT * FROM users"}',
-    '{x-api-key=abc789, content-type=application/json}',
-    'FAILED'
-);
+        when(jdbcTemplate.queryForList(anyString())).thenReturn(failedRecords);
 
-INSERT INTO OM_NURAFLOW_AUDIT_DATA (
-    API_ENDPOINT, REQUEST_PAYLOAD, HEADERS, STATUS
-) VALUES (
-    'https://olympus.api.bulk.uat.cloudgsl.nam.nsroot.net/v2/olympus/service/bulkapi/executeSQLQuery',
-    '{"dataSource":"SPARKYAML", "runDate":["20250720"], "sql":"SELECT * FROM account_balances"}',
-    '{x-api-key=xyz123, content-type=application/json}',
-    'FAILED'
-);
+        ResponseEntity<String> healthCheckResponse = new ResponseEntity<>("OK", HttpStatus.OK);
+        when(restTemplate.getForEntity(eq("https://dummy-url.com/health"), eq(String.class)))
+                .thenReturn(healthCheckResponse);
 
-INSERT INTO OM_NURAFLOW_AUDIT_DATA (
-    API_ENDPOINT, REQUEST_PAYLOAD, HEADERS, STATUS
-) VALUES (
-    'https://olympus.api.bulk.uat.cloudgsl.nam.nsroot.net/v2/olympus/service/bulkapi/executeSQLQuery',
-    '{"dataSource":"SPARKYAML", "runDate":["20250717"], "fileName":"Recon_20250717"}',
-    '{x-api-key=xyz789, content-type=application/json}',
-    'FAILED'
-);
+        doNothing().when(rateLimiter).acquire();
+
+        ResponseEntity<String> apiResponse = new ResponseEntity<>("Success Body", HttpStatus.OK);
+        when(restTemplateService.sendRequest(
+                eq("http://dummy-endpoint.com"),
+                eq(HttpMethod.POST),
+                eq("{\"key\":\"value\"}"),
+                anyMap()
+        )).thenReturn(apiResponse);
+
+        when(jdbcTemplate.update(anyString(), any(), any(), any())).thenReturn(1);
+// Act
+        scheduler.processFailedRequests();
+
+        // Assert
+        verify(jdbcTemplate).queryForList(anyString());
+        verify(restTemplate).getForEntity(anyString(), eq(String.class));
+        verify(rateLimiter).acquire();
+        verify(restTemplateService).sendRequest(anyString(), any(), anyString(), anyMap());
+        verify(jdbcTemplate).update(anyString(), eq("SUCCESS"), eq("Success Body"), eq(1L));
+    }
+}
+
