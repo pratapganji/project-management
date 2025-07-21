@@ -1,3 +1,23 @@
+class RequestPayload {
+    private Long id;
+    private String payload;
+    private String apiEndpoint;
+    private String headers;
+
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+
+    public String getPayload() { return payload; }
+    public void setPayload(String payload) { this.payload = payload; }
+
+    public String getApiEndpoint() { return apiEndpoint; }
+    public void setApiEndpoint(String apiEndpoint) { this.apiEndpoint = apiEndpoint; }
+
+    public String getHeaders() { return headers; }
+    public void setHeaders(String headers) { this.headers = headers; }
+}
+
+
 <dependency>
   <groupId>io.github.resilience4j</groupId>
   <artifactId>resilience4j-ratelimiter</artifactId>
