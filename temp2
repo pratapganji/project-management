@@ -114,3 +114,59 @@ public class ScheduledProcessor {
         return payload;
     };
 }
+----------------------------------
+
+
+
+
+@Component
+@ConfigurationProperties(prefix = "bulkapiconfig")
+public class BulkApiConfig {
+
+    private String url;
+    private String healthCheckUrl;
+    private String dataSource;
+    private double rateLimit;
+    private long scheduleFixedRate;
+
+    // Getters and Setters
+    public String getUrl() {
+        return url;
+    }
+
+    public void setUrl(String url) {
+        this.url = url;
+    }
+
+    public String getHealthCheckUrl() {
+        return healthCheckUrl;
+    }
+
+    public void setHealthCheckUrl(String healthCheckUrl) {
+        this.healthCheckUrl = healthCheckUrl;
+    }
+
+    public String getDataSource() {
+        return dataSource;
+    }
+
+    public void setDataSource(String dataSource) {
+        this.dataSource = dataSource;
+    }
+
+    public double getRateLimit() {
+        return rateLimit;
+    }
+
+    public void setRateLimit(double rateLimit) {
+        this.rateLimit = rateLimit;
+    }
+
+    public long getScheduleFixedRate() {
+        return scheduleFixedRate;
+    }
+
+    public void setScheduleFixedRate(long scheduleFixedRate) {
+        this.scheduleFixedRate = scheduleFixedRate;
+    }
+}
