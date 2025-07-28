@@ -170,3 +170,112 @@ public class BulkApiConfig {
         this.scheduleFixedRate = scheduleFixedRate;
     }
 }
+---------------------------------------------------
+
+
+
+
+package com.citi.olympus.nura.api.scheduler;
+
+import com.citi.olympus.nura.api.service.RestTemplateService;
+import com.citi.olympus.nura.utility.config.BulkApiConfig;
+import com.google.common.util.concurrent.RateLimiter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.PostConstruct;
+import java.util.*;
+import java.util.stream.Collectors;
+
+@Component
+public class BulkRetryScheduler {
+
+    private static final Logger LOG = LoggerFactory.getLogger(BulkRetryScheduler.class);
+    private static final String FAILED_AUDIT_QUERY = "SELECT * FROM OM_NURAFLOW_AUDIT_DATA WHERE STATUS = 'FAILED'";
+    private static final String UPDATE_AUDIT_QUERY = "UPDATE OM_NURAFLOW_AUDIT_DATA SET STATUS = ?, RESPONSE_PAYLOAD = ? WHERE ID = ?";
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @Autowired
+    private RestTemplateService restTemplateService;
+
+    @Autowired
+    private BulkApiConfig bulkApiConfig;
+
+    private RateLimiter rateLimiter;
+
+    @PostConstruct
+    public void initRateLimiter() {
+        this.rateLimiter = RateLimiter.create(bulkApiConfig.getRateLimit());
+        LOG.info("RateLimiter initialized with rate = {} requests/second", bulkApiConfig.getRateLimit());
+    }
+
+    @Scheduled(fixedRateString = "#{@bulkApiConfig.scheduleFixedRate}")
+    public void processFailedRequests() {
+        try {
+            List<Map<String, Object>> failedRecords = jdbcTemplate.queryForList(FAILED_AUDIT_QUERY);
+
+            for (Map<String, Object> row : failedRecords) {
+                ResponseEntity<String> healthResponse = new org.springframework.web.client.RestTemplate()
+                        .getForEntity(bulkApiConfig.getHealthCheckUrl(), String.class);
+
+                if (healthResponse.getStatusCode() == HttpStatus.OK) {
+                    LOG.info("Bulk API status is UP");
+
+                    Long id = ((Number) row.get("ID")).longValue();
+                    String payload = (String) row.get("REQUEST_PAYLOAD");
+                    String headers = (String) row.get("HEADERS");
+
+                    Map<String, String> headersMap = Arrays.stream(headers.replaceAll("[{}]", "").split(",", 2))
+                            .map(s -> s.split("=", 2))
+                            .filter(arr -> arr.length == 2)
+                            .collect(Collectors.toMap(
+                                    arr -> arr[0].trim(),
+                                    arr -> arr[1].trim()
+                            ));
+
+                    rateLimiter.acquire();
+                    LOG.info("Permit acquired. Sending request...");
+
+                    ResponseEntity<String> response = restTemplateService.sendRequest(
+                            bulkApiConfig.getUrl(), HttpMethod.POST, payload, headersMap
+                    );
+
+                    if (response.getStatusCode() == HttpStatus.OK) {
+                        updateStatus(id, "SUCCESS", response.getBody());
+                        LOG.info("Updated record {} as SUCCESS", id);
+                    } else {
+                        LOG.error("Record {} failed with response: {}", id, response.getStatusCode());
+                    }
+                } else {
+                    LOG.info("Health check failed. Skipping processing.");
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    private void updateStatus(Long id, String newStatus, String responseBody) {
+        jdbcTemplate.update(UPDATE_AUDIT_QUERY, newStatus, responseBody, id);
+    }
+}
+
+
+
+
+-----------------------------------
+
+bulkapiconfig:
+  url: https://olympus.api.bulk.uat.cloudqsl.nam.nsroot.net/v2/olympus/bulk
+  healthCheckUrl: https://olympus.api.bulk.uat.cloudqsl.nam.nsroot.net/olympus/service/health
+  rateLimit: 2.0
+  scheduleFixedRate: 30000
