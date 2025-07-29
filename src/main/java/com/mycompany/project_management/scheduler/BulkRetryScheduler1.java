@@ -5,7 +5,7 @@ import com.mycompany.project_management.constants.NuraSqlConstants;
 import java.util.concurrent.TimeUnit;
 
 @Component
-public class BulkRetryScheduler {
+public class BulkRetryScheduler1 {
 
     @Autowired
     private JdbcTemplate jdbcTemplate;
