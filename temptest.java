@@ -129,9 +129,13 @@ public class BulkRetrySchedulerTest {
                 any(Object[].class), eq(String.class)))
                 .thenReturn("{\"ENVIRONMENT\":\"" + env + "\"}");
 
-        when(propertyConstants.getNjurl()).thenReturn("http://mock-nj-url");
-        when(propertyConstants.getNyurl()).thenReturn("http://mock-ny-url");
-        when(propertyConstants.getUrl()).thenReturn("http://default-url");
+        if ("PRODNJ".equalsIgnoreCase(env)) {
+    when(propertyConstants.getNjurl()).thenReturn(url);
+} else if ("PRODNY".equalsIgnoreCase(env)) {
+    when(propertyConstants.getNyurl()).thenReturn(url);
+} else {
+    when(propertyConstants.getUrl()).thenReturn(url);
+}
     }
 
     private void mockDBAndRequest(Map<String, Object> record, HttpStatus status, String responseBody) {
