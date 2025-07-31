@@ -222,4 +222,15 @@ String id = resultSet.getString(ID); // Line 80
 Clob requestPayloadClob = resultSet.getClob(REQUEST_PAYLOAD); // Line 81
 String globalTransactionId = resultSet.getString(GLOBAL_TRANSACTION_ID); // Line 82
 Clob headersClob = resultSet.getClob(HEADERS); // Line 83
+-----------------------------------------------------------------------
+else if (response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR ||
+         response.getStatusCode() == HttpStatus.NOT_FOUND) {
+    LOG.warn("Retryable error occurred: " + response.getStatusCode() + ". Retrying...");
+    // do nothing here — loop will retry
+} else {
+    LOG.error("Non-retryable error for record " + id + " with status: " + response.getStatusCode());
+    break;
+}
+
+    
 
