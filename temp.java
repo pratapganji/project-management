@@ -231,6 +231,20 @@ else if (response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR ||
     LOG.error("Non-retryable error for record " + id + " with status: " + response.getStatusCode());
     break;
 }
+------------------------------------------------------
 
+    private String clobToString(Clob clob) {
+    try (Reader reader = clob.getCharacterStream()) {
+        StringBuilder sb = new StringBuilder();
+        char[] buffer = new char[2048];
+        int bytesRead;
+        while ((bytesRead = reader.read(buffer)) != -1) {
+            sb.append(buffer, 0, bytesRead);
+        }
+        return sb.toString();
+    } catch (Exception e) {
+        throw new RuntimeException("Error converting CLOB to String", e);
+    }
+}
     
 
