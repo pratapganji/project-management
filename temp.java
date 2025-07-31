@@ -246,5 +246,53 @@ else if (response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR ||
         throw new RuntimeException("Error converting CLOB to String", e);
     }
 }
-    
+
+
+
+--------------------------------------------------
+    @Test
+void testProcessFailedRequests_updatesStatusWithTimestamp() {
+    // Arrange
+    Map<String, Object> row = new HashMap<>();
+    row.put("ID", 1L);
+    row.put("REQUEST_PAYLOAD", "{\"key\":\"value\"}");
+    row.put("API_ENDPOINT", "http://dummy-endpoint.com");
+    row.put("HEADERS", "Content-Type: application/json");
+
+    List<Map<String, Object>> failedRecords = Collections.singletonList(row);
+
+    // Health check returns 200 OK
+    ResponseEntity<String> healthCheckResponse = new ResponseEntity<>("OK", HttpStatus.OK);
+    when(restTemplate.getForEntity(eq("https://dummy-url.com/health"), eq(String.class)))
+        .thenReturn(healthCheckResponse);
+
+    // Failed records from DB
+    when(jdbcTemplate.queryForList(anyString())).thenReturn(failedRecords);
+
+    // Allow permit for rate limiter
+    when(rateLimiter.acquire()).thenReturn(1.0);
+
+    // Mock API response with HTTP 200 OK
+    ResponseEntity<String> apiResponse = new ResponseEntity<>("Success Body", HttpStatus.OK);
+    when(restTemplateService.sendRequest(
+            eq("http://dummy-endpoint.com"),
+            eq(HttpMethod.POST),
+            eq("{\"key\":\"value\"}"),
+            anyMap()))
+        .thenReturn(apiResponse);
+
+    when(jdbcTemplate.update(anyString(), anyString(), anyString(), anyLong())).thenReturn(1);
+
+    // Act
+    scheduler.processFailedRequests();
+
+    // Assert
+    verify(jdbcTemplate).update(
+        eq(NuraQueryConstants.UPDATE_AUDIT_QUERY_WITH_TIMESTAMP),
+        eq("SUCCESS"),
+        eq("Success Body"),
+        eq(1L)
+    );
+}
+
 
