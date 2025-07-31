@@ -18,6 +18,7 @@ import org.springframework.test.util.ReflectionTestUtils;
 
 import java.util.*;
 
+
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 
@@ -130,11 +131,11 @@ public class BulkRetrySchedulerTest {
                 .thenReturn("{\"ENVIRONMENT\":\"" + env + "\"}");
 
      if ("PRODNJ".equalsIgnoreCase(env)) {
-    when(propertyConstants.getNjurl()).thenReturn(url);
+    Mockito.lenient().when(propertyConstants.getNjurl()).thenReturn(url);
 } else if ("PRODNY".equalsIgnoreCase(env)) {
-    when(propertyConstants.getNyurl()).thenReturn(url);
+    Mockito.lenient().when(propertyConstants.getNyurl()).thenReturn(url);
 } else {
-    when(propertyConstants.getUrl()).thenReturn(url);
+    Mockito.lenient().when(propertyConstants.getUrl()).thenReturn(url);
 }
     }
 
