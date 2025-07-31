@@ -129,7 +129,7 @@ public class BulkRetrySchedulerTest {
                 any(Object[].class), eq(String.class)))
                 .thenReturn("{\"ENVIRONMENT\":\"" + env + "\"}");
 
-        if ("PRODNJ".equalsIgnoreCase(env)) {
+     if ("PRODNJ".equalsIgnoreCase(env)) {
     when(propertyConstants.getNjurl()).thenReturn(url);
 } else if ("PRODNY".equalsIgnoreCase(env)) {
     when(propertyConstants.getNyurl()).thenReturn(url);
