@@ -201,3 +201,25 @@ LOG.info("Updated record " + id + " as SUCCESS");
 •	✅ No overwhelming downstream API (rate limited)
 •	✅ Easily configurable
 •	✅ Logs for debugging
+
+
+    --------------------------------------------
+
+
+    public class AuditTableConstants {
+    public static final String ID = "ID";
+    public static final String REQUEST_PAYLOAD = "REQUEST_PAYLOAD";
+    public static final String GLOBAL_TRANSACTION_ID = "GLOBAL_TRANSACTION_ID";
+    public static final String HEADERS = "HEADERS";
+}
+
+
+import static com.citi.olympus.nura.api.constants.AuditTableConstants.*;
+
+...
+
+String id = resultSet.getString(ID); // Line 80
+Clob requestPayloadClob = resultSet.getClob(REQUEST_PAYLOAD); // Line 81
+String globalTransactionId = resultSet.getString(GLOBAL_TRANSACTION_ID); // Line 82
+Clob headersClob = resultSet.getClob(HEADERS); // Line 83
+
