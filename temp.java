@@ -201,3 +201,98 @@ LOG.info("Updated record " + id + " as SUCCESS");
 •	✅ No overwhelming downstream API (rate limited)
 •	✅ Easily configurable
 •	✅ Logs for debugging
+
+
+    --------------------------------------------
+
+
+    public class AuditTableConstants {
+    public static final String ID = "ID";
+    public static final String REQUEST_PAYLOAD = "REQUEST_PAYLOAD";
+    public static final String GLOBAL_TRANSACTION_ID = "GLOBAL_TRANSACTION_ID";
+    public static final String HEADERS = "HEADERS";
+}
+
+
+import static com.citi.olympus.nura.api.constants.AuditTableConstants.*;
+
+...
+
+String id = resultSet.getString(ID); // Line 80
+Clob requestPayloadClob = resultSet.getClob(REQUEST_PAYLOAD); // Line 81
+String globalTransactionId = resultSet.getString(GLOBAL_TRANSACTION_ID); // Line 82
+Clob headersClob = resultSet.getClob(HEADERS); // Line 83
+-----------------------------------------------------------------------
+else if (response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR ||
+         response.getStatusCode() == HttpStatus.NOT_FOUND) {
+    LOG.warn("Retryable error occurred: " + response.getStatusCode() + ". Retrying...");
+    // do nothing here — loop will retry
+} else {
+    LOG.error("Non-retryable error for record " + id + " with status: " + response.getStatusCode());
+    break;
+}
+------------------------------------------------------
+
+    private String clobToString(Clob clob) {
+    try (Reader reader = clob.getCharacterStream()) {
+        StringBuilder sb = new StringBuilder();
+        char[] buffer = new char[2048];
+        int bytesRead;
+        while ((bytesRead = reader.read(buffer)) != -1) {
+            sb.append(buffer, 0, bytesRead);
+        }
+        return sb.toString();
+    } catch (Exception e) {
+        throw new RuntimeException("Error converting CLOB to String", e);
+    }
+}
+
+
+
+--------------------------------------------------
+    @Test
+void testProcessFailedRequests_updatesStatusWithTimestamp() {
+    // Arrange
+    Map<String, Object> row = new HashMap<>();
+    row.put("ID", 1L);
+    row.put("REQUEST_PAYLOAD", "{\"key\":\"value\"}");
+    row.put("API_ENDPOINT", "http://dummy-endpoint.com");
+    row.put("HEADERS", "Content-Type: application/json");
+
+    List<Map<String, Object>> failedRecords = Collections.singletonList(row);
+
+    // Health check returns 200 OK
+    ResponseEntity<String> healthCheckResponse = new ResponseEntity<>("OK", HttpStatus.OK);
+    when(restTemplate.getForEntity(eq("https://dummy-url.com/health"), eq(String.class)))
+        .thenReturn(healthCheckResponse);
+
+    // Failed records from DB
+    when(jdbcTemplate.queryForList(anyString())).thenReturn(failedRecords);
+
+    // Allow permit for rate limiter
+    when(rateLimiter.acquire()).thenReturn(1.0);
+
+    // Mock API response with HTTP 200 OK
+    ResponseEntity<String> apiResponse = new ResponseEntity<>("Success Body", HttpStatus.OK);
+    when(restTemplateService.sendRequest(
+            eq("http://dummy-endpoint.com"),
+            eq(HttpMethod.POST),
+            eq("{\"key\":\"value\"}"),
+            anyMap()))
+        .thenReturn(apiResponse);
+
+    when(jdbcTemplate.update(anyString(), anyString(), anyString(), anyLong())).thenReturn(1);
+
+    // Act
+    scheduler.processFailedRequests();
+
+    // Assert
+    verify(jdbcTemplate).update(
+        eq(NuraQueryConstants.UPDATE_AUDIT_QUERY_WITH_TIMESTAMP),
+        eq("SUCCESS"),
+        eq("Success Body"),
+        eq(1L)
+    );
+}
+
+
