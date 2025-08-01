@@ -4,159 +4,177 @@ import com.citi.olympus.nura.api.constants.AuditTableConstants;
 import com.citi.olympus.nura.api.constants.NuraQueryConstants;
 import com.citi.olympus.nura.api.constants.PropertyConstants;
 import com.citi.olympus.nura.api.service.RestTemplateService;
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
+import com.google.common.util.concurrent.RateLimiter;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.util.ReflectionTestUtils;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+import org.springframework.web.client.RestTemplate;
 
+import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
+import static com.citi.olympus.nura.api.constants.NuraQueryConstants.PRODNJ;
+import static com.citi.olympus.nura.api.constants.NuraQueryConstants.PRODNY;
 
-import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.*;
+@Component
+public class BulkRetryScheduler {
 
-@ExtendWith(MockitoExtension.class)
-public class BulkRetrySchedulerTest {
+    private static final Logger LOG = LoggerFactory.getLogger(BulkRetryScheduler.class);
 
-    @InjectMocks
-    private BulkRetryScheduler scheduler;
-
-    @Mock
+    @Autowired
     private JdbcTemplate jdbcTemplate;
 
-    @Mock
+    @Autowired
     private RestTemplateService restTemplateService;
 
-    @Mock
+    @Autowired
     private PropertyConstants propertyConstants;
 
-    @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
-        ReflectionTestUtils.setField(scheduler, "maxRetries", 2);
-        ReflectionTestUtils.setField(scheduler, "rateLimit", 5.0);
-        ReflectionTestUtils.setField(scheduler, "burstTime", 1L);
-        ReflectionTestUtils.setField(scheduler, "healthCheckURL", "http://mock-health-url.com");
-        scheduler.initRateLimiter();
+    @Value("${bulkapiconfig.rateLimit}")
+    private double rateLimit;
+
+    @Value("${bulkapiconfig.burstTime}")
+    private long burstTime;
+
+    @Value("${bulkapiconfig.healthCheckUrl}")
+    private String healthCheckUrl;
+
+    @Value("${bulkapiconfig.bulkApiRetry}")
+    private int maxRetries;
+
+    private RateLimiter rateLimiter;
+
+    private final RestTemplate restTemplate = new RestTemplate();
+
+    long backoffMillis = 1000; // 1 second
+
+    @PostConstruct
+    public void initRateLimiter() {
+        this.rateLimiter = RateLimiter.create(rateLimit, burstTime, TimeUnit.SECONDS);
+        LOG.info("RateLimiter initialized with rate = " + rateLimit + " requests/second with burst time " + burstTime);
     }
 
-    @Test
-    public void testProcessFailedRequests_successfulRetry_PRODNJ() {
-        mockEnvironment("PRODNJ", "http://mock-nj-url");
+    @Scheduled(fixedRateString = "${bulkapiconfig.scheduleFixedRate}")
+    public void processFailedRequests() {
+        LOG.info("Starting Bulk Retry Scheduler...");
 
-        Map<String, Object> record = createRecord("1", "txn123", "{\"key\":\"value\"}");
-        mockDBAndRequest(record, HttpStatus.OK, "Success Body");
+        ResponseEntity<String> healthResponse = restTemplate.getForEntity(healthCheckUrl, String.class);
 
-        scheduler.processFailedRequests();
+        if (healthResponse.getStatusCode() == HttpStatus.OK) {
+            LOG.info("Bulk API Status is UP");
 
-        verify(jdbcTemplate).update(eq(NuraQueryConstants.UPDATE_AUDIT_QUERY_WITH_TIMESTAMP),
-                eq("Success"), eq("Success Body"), eq(1L));
+            List<Map<String, Object>> failedRecords = jdbcTemplate.queryForList(NuraQueryConstants.FAILED_AUDIT_QUERY);
+            LOG.info("Number of failed records to process: " + failedRecords.size());
+
+            for (Map<String, Object> row : failedRecords) {
+                try {
+                    String id = (String) row.get(AuditTableConstants.ID);
+                    String requestPayload = (String) row.get(AuditTableConstants.REQUEST_PAYLOAD);
+                    String globalTransactionId = (String) row.get(AuditTableConstants.GLOBAL_TRANSACTION_ID);
+                    String headers = (String) row.get(AuditTableConstants.HEADERS);
+
+                    Map<String, String> headersMap = processHeaders(headers);
+
+                    String templateApiHeaders = jdbcTemplate.queryForObject(
+                            NuraQueryConstants.GET_TEMPLATEAPI_HEADERS_QUERY,
+                            new Object[]{globalTransactionId},
+                            String.class
+                    );
+
+                    String environment = getJsonElement(templateApiHeaders, AuditTableConstants.ENVIRONMENT);
+
+                    String serviceURL = propertyConstants.getUrl();
+                    if (environment != null && PRODNJ.equalsIgnoreCase(environment)) {
+                        serviceURL = propertyConstants.getNjurl();
+                    } else if (environment != null && PRODNY.equalsIgnoreCase(environment)) {
+                        serviceURL = propertyConstants.getNyurl();
+                    }
+
+                    rateLimiter.acquire();
+                    LOG.info("Permit acquired");
+
+                    int attempt = 0;
+                    ResponseEntity<String> response = null;
+
+                    while (attempt < maxRetries) {
+                        attempt++;
+                        try {
+                            response = restTemplateService.sendRequest(serviceURL, HttpMethod.POST, requestPayload, headersMap);
+
+                            if (response.getStatusCode() == HttpStatus.OK) {
+                                updateStatusWithTimestamp(Long.parseLong(id), "Success", response.getBody());
+                                LOG.info("Updated record " + id + " as SUCCESS");
+                                break;
+                            } else if (response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR ||
+                                       response.getStatusCode() == HttpStatus.NOT_FOUND) {
+                                LOG.warn("Retryable error occurred: " + response.getStatusCode() + ". Retrying...");
+                            } else {
+                                LOG.error("Non-retryable error for record " + id + " with status: " + response.getStatusCode());
+                                break;
+                            }
+                        } catch (Exception ex) {
+                            LOG.error("Attempt " + attempt + ": Exception while sending request for record " + id, ex);
+                        }
+
+                        if (attempt < maxRetries) {
+                            try {
+                                Thread.sleep(backoffMillis);
+                            } catch (InterruptedException ie) {
+                                Thread.currentThread().interrupt();
+                                break;
+                            }
+                        } else {
+                            LOG.error("All retry attempts failed for record " + id);
+                            updateStatus(Long.parseLong(id), "Failed", response != null ? response.getBody() : null);
+                        }
+                    }
+
+                } catch (Exception ex) {
+                    LOG.error("Error processing record: ", ex);
+                }
+            }
+        } else {
+            LOG.error("Bulk API Status is DOWN. Skipping retry processing.");
+        }
     }
 
-    @Test
-    public void testProcessFailedRequests_successfulRetry_PRODNY() {
-        mockEnvironment("PRODNY", "http://mock-ny-url");
-
-        Map<String, Object> record = createRecord("10", "txn321", "{\"k\":\"v\"}");
-        mockDBAndRequest(record, HttpStatus.OK, "Success");
-
-        scheduler.processFailedRequests();
-
-        verify(jdbcTemplate).update(eq(NuraQueryConstants.UPDATE_AUDIT_QUERY_WITH_TIMESTAMP),
-                eq("Success"), eq("Success"), eq(1L));
+    private String getJsonElement(String request, String key) {
+        Map<String, String> result = Arrays.stream(request.replaceAll("[{}]", "")
+                        .split(","))
+                .map(s -> s.split(":", 2))
+                .filter(arr -> arr.length == 2)
+                .collect(Collectors.toMap(
+                        arr -> arr[0].trim(),
+                        arr -> arr[1].trim()
+                ));
+        return result.get(key);
     }
 
-    @Test
-    public void testProcessFailedRequests_successfulRetry_defaultEnv() {
-        mockEnvironment("UAT", "http://default-url");
-
-        Map<String, Object> record = createRecord("100", "txn999", "{\"x\":\"z\"}");
-        mockDBAndRequest(record, HttpStatus.OK, "Success");
-
-        scheduler.processFailedRequests();
-
-        verify(jdbcTemplate).update(eq(NuraQueryConstants.UPDATE_AUDIT_QUERY_WITH_TIMESTAMP),
-                eq("Success"), eq("Success"), eq(1L));
+    private void updateStatus(Long id, String newStatus, String responseBody) {
+        jdbcTemplate.update(NuraQueryConstants.UPDATE_AUDIT_QUERY_WITH_TIMESTAMP, newStatus, responseBody, id);
     }
 
-    @Test
-    public void testProcessFailedRequests_retryableFailure() {
-        mockEnvironment("PRODNJ", "http://mock-nj-url");
-
-        Map<String, Object> record = createRecord("2", "txn124", "{\"key\":\"value\"}");
-        mockDBAndRequest(record, HttpStatus.INTERNAL_SERVER_ERROR, "Retryable");
-
-        scheduler.processFailedRequests();
-
-        verify(jdbcTemplate, never()).update(anyString(), anyString(), anyString(), anyLong());
+    private void updateStatusWithTimestamp(Long id, String newStatus, String responseBody) {
+        jdbcTemplate.update(NuraQueryConstants.UPDATE_AUDIT_QUERY_WITH_TIMESTAMP, newStatus, responseBody, id);
     }
 
-    @Test
-    public void testProcessFailedRequests_nonRetryableFailure() {
-        mockEnvironment("PRODNJ", "http://mock-nj-url");
-
-        Map<String, Object> record = createRecord("3", "txn125", "{\"key\":\"value\"}");
-        mockDBAndRequest(record, HttpStatus.BAD_REQUEST, "Bad Request");
-
-        scheduler.processFailedRequests();
-
-        verify(jdbcTemplate, never()).update(anyString(), anyString(), anyString(), anyLong());
-    }
-
-    @Test
-    public void testProcessFailedRequests_healthCheckDown() {
-        ResponseEntity<String> healthDown = new ResponseEntity<>("Down", HttpStatus.SERVICE_UNAVAILABLE);
-        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.GET), anyMap())).thenReturn(healthDown);
-
-        ReflectionTestUtils.setField(scheduler, "healthCheckURL", "http://health");
-
-        scheduler.processFailedRequests();
-
-        verify(jdbcTemplate, never()).update(anyString(), any(), any(), any());
-    }
-
-    private void mockEnvironment(String env, String url) {
-        when(jdbcTemplate.queryForList(eq(NuraQueryConstants.FAILED_AUDIT_QUERY)))
-                .thenReturn(Collections.singletonList(createRecord("1", "txn", "{\"key\":\"v\"}")));
-
-        when(jdbcTemplate.queryForObject(eq(NuraQueryConstants.GET_TEMPLATEAPI_HEADERS_QUERY),
-                any(Object[].class), eq(String.class)))
-                .thenReturn("{\"ENVIRONMENT\":\"" + env + "\"}");
-
-     if ("PRODNJ".equalsIgnoreCase(env)) {
-    Mockito.lenient().when(propertyConstants.getNjurl()).thenReturn(url);
-} else if ("PRODNY".equalsIgnoreCase(env)) {
-    Mockito.lenient().when(propertyConstants.getNyurl()).thenReturn(url);
-} else {
-    Mockito.lenient().when(propertyConstants.getUrl()).thenReturn(url);
-}
-    }
-
-    private void mockDBAndRequest(Map<String, Object> record, HttpStatus status, String responseBody) {
-        when(jdbcTemplate.queryForList(eq(NuraQueryConstants.FAILED_AUDIT_QUERY)))
-                .thenReturn(Collections.singletonList(record));
-
-        when(jdbcTemplate.queryForObject(eq(NuraQueryConstants.GET_TEMPLATEAPI_HEADERS_QUERY),
-                any(Object[].class), eq(String.class)))
-                .thenReturn("{\"ENVIRONMENT\":\"" + record.get("ENVIRONMENT") + "\"}");
-
-        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), anyMap()))
-                .thenReturn(new ResponseEntity<>(responseBody, status));
-    }
-
-    private Map<String, Object> createRecord(String id, String txnId, String payload) {
-        Map<String, Object> record = new HashMap<>();
-        record.put(AuditTableConstants.ID, id);
-        record.put(AuditTableConstants.GLOBAL_TRANSACTION_ID, txnId);
-        record.put(AuditTableConstants.REQUEST_PAYLOAD, payload);
-        record.put(AuditTableConstants.HEADERS, "Content-Type: application/json");
-        return record;
+    private Map<String, String> processHeaders(String headers) {
+        return Arrays.stream(headers.replaceAll("[{}]", "")
+                        .split(","))
+                .map(s -> s.split(":", 2))
+                .filter(arr -> arr.length == 2)
+                .collect(Collectors.toMap(
+                        arr -> arr[0].trim(),
+                        arr -> arr[1].trim()
+                ));
     }
 }
