@@ -158,6 +158,7 @@ public class BulkretrySchedulerTest {
 
     @Test
     public void testSendRequestThrowsException_retries_thenFails() {
+        // Arrange
         Map<String, Object> record = buildRecord("PRODNJ", "{Authorization:Bearer}");
         when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
         when(jdbcTemplate.queryForObject(anyString(), any(), eq(String.class)))
@@ -167,19 +168,20 @@ public class BulkretrySchedulerTest {
         when(restTemplate.getForEntity(anyString(), eq(String.class)))
                 .thenReturn(new ResponseEntity<>("OK", HttpStatus.OK));
 
+        // Simulate failure for all retry attempts
         when(restTemplateService.sendRequest(any(), any(), any(), any()))
                 .thenThrow(new RuntimeException("test failure"));
 
-        // Spy the scheduler to verify internal method call
-        BulkRetryScheduler spyScheduler = Mockito.spy(scheduler);
+        // Act
+        scheduler.processFailedRequests();
 
-        doNothing().when(spyScheduler).updateStatusWithTimestamp(
-                eq(RECORD_ID), eq("Failed"), isNull());
-
-        spyScheduler.processFailedRequests();
-
-        verify(spyScheduler).updateStatusWithTimestamp(
-                eq(RECORD_ID), eq("Failed"), isNull());
+        // Assert: Verify that jdbcTemplate.update was called with "Failed" status
+        verify(jdbcTemplate).update(
+                anyString(),
+                eq("Failed"),
+                isNull(),
+                eq(RECORD_ID)
+        );
     }
 
     @Test

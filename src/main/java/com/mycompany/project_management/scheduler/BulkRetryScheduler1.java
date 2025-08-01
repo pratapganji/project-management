@@ -135,7 +135,7 @@ public class BulkRetryScheduler1 {
                             }
                         } else {
                             LOG.error("All retry attempts failed for record " + id);
-                            updateStatus(Long.parseLong(id), "Failed", response != null ? response.getBody() : null);
+                            updateStatusWithTimestamp(Long.parseLong(id), "Failed", response != null ? response.getBody() : null);
                         }
                     }
 
@@ -158,10 +158,6 @@ public class BulkRetryScheduler1 {
                         arr -> arr[1].trim()
                 ));
         return result.get(key);
-    }
-
-    private void updateStatus(Long id, String newStatus, String responseBody) {
-        jdbcTemplate.update(NuraQueryConstants.UPDATE_AUDIT_QUERY_WITH_TIMESTAMP, newStatus, responseBody, id);
     }
 
     private void updateStatusWithTimestamp(Long id, String newStatus, String responseBody) {
