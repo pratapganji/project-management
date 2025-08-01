@@ -158,7 +158,6 @@ public class BulkretrySchedulerTest {
 
     @Test
     public void testSendRequestThrowsException_retries_thenFails() {
-        // Arrange
         Map<String, Object> record = buildRecord("PRODNJ", "{Authorization:Bearer}");
         when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
         when(jdbcTemplate.queryForObject(anyString(), any(), eq(String.class)))
@@ -168,19 +167,21 @@ public class BulkretrySchedulerTest {
         when(restTemplate.getForEntity(anyString(), eq(String.class)))
                 .thenReturn(new ResponseEntity<>("OK", HttpStatus.OK));
 
-        // Simulate failure for all retry attempts
+        // Simulate all retries throwing an exception
         when(restTemplateService.sendRequest(any(), any(), any(), any()))
                 .thenThrow(new RuntimeException("test failure"));
 
-        // Act
+        // This is important — mock update to prevent actual NPE in your test
+        when(jdbcTemplate.update(anyString(), any(), any(), any())).thenReturn(1);
+
         scheduler.processFailedRequests();
 
-        // Assert: Verify that jdbcTemplate.update was called with "Failed" status
+        // Verify jdbcTemplate.update() was called for marking failure
         verify(jdbcTemplate).update(
                 anyString(),
                 eq("Failed"),
                 isNull(),
-                eq(RECORD_ID)
+                eq(Long.parseLong(RECORD_ID))
         );
     }
 
