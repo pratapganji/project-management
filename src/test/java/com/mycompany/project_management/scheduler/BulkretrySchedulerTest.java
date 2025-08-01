@@ -3,7 +3,6 @@ import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.*;
 import java.util.concurrent.TimeUnit;
-
 import com.google.common.util.concurrent.RateLimiter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -181,8 +180,11 @@ public class BulkretrySchedulerTest {
 
     @Test
     public void testGetJsonElement_withValidJsonLikeString() {
-        String input = "{ENVIRONMENT:PRODNY}";
-        String result = ReflectionTestUtils.invokeMethod(scheduler, "getJsonElement", input, "ENVIRONMENT");
+        String input = "{environment:PRODNY}";
+        String key = "environment";
+        String result = (String) ReflectionTestUtils.invokeMethod(scheduler, "getJsonElement", input, key);
+
+        System.out.println("Result: " + result);
         assertEquals("PRODNY", result);
     }
 
