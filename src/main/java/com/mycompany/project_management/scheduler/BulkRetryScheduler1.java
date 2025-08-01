@@ -119,6 +119,7 @@ public class BulkRetryScheduler1 {
                                 LOG.warn("Retryable error occurred: " + response.getStatusCode() + ". Retrying...");
                             } else {
                                 LOG.error("Non-retryable error for record " + id + " with status: " + response.getStatusCode());
+                                updateStatusWithTimestamp(Long.parseLong(id), "Failed", null != response ? response.getBody() : null);
                                 break;
                             }
                         } catch (Exception ex) {

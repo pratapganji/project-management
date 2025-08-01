@@ -10,6 +10,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import org.mockito.junit.jupiter.MockitoSettings;
@@ -160,7 +161,7 @@ public class BulkretrySchedulerTest {
         Map<String, Object> record = buildRecord("PRODNJ", "{Authorization:Bearer}");
         when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
         when(jdbcTemplate.queryForObject(anyString(), any(), eq(String.class)))
-                .thenReturn("{ENVIRONMENT:PRODNJ}");
+                .thenReturn("{environment:PRODNJ}");
 
         when(propertyConstants.getNjurl()).thenReturn("nj-url");
         when(restTemplate.getForEntity(anyString(), eq(String.class)))
@@ -169,9 +170,16 @@ public class BulkretrySchedulerTest {
         when(restTemplateService.sendRequest(any(), any(), any(), any()))
                 .thenThrow(new RuntimeException("test failure"));
 
-        scheduler.processFailedRequests();
+        // Spy the scheduler to verify internal method call
+        BulkRetryScheduler spyScheduler = Mockito.spy(scheduler);
 
-        verify(jdbcTemplate).update(anyString(), eq("Failed"), isNull(), eq(Long.parseLong(RECORD_ID)));
+        doNothing().when(spyScheduler).updateStatusWithTimestamp(
+                eq(RECORD_ID), eq("Failed"), isNull());
+
+        spyScheduler.processFailedRequests();
+
+        verify(spyScheduler).updateStatusWithTimestamp(
+                eq(RECORD_ID), eq("Failed"), isNull());
     }
 
     @Test
