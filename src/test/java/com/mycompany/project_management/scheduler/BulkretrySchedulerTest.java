@@ -111,17 +111,36 @@ class BulkRetrySchedulerTest {
 
         verify(jdbcTemplate, never()).update(anyString(), any(), any(), any());
     }
+    
     @Test
-    void testProcessFailedRequests_UnexpectedStatus() {
-        simulateOneRecord();
-
+    void testProcessFailedRequests_UnexpectedStatus_ShouldFailRecord() {
+        // Setup mock to return one failed record
+        List<Map<String, Object>> failedRecords = List.of(Map.of(
+            "GLOBAL_TRANSACTION_ID", "txn123",
+            "ID", 1L
+        ));
+    
+        when(jdbcTemplate.queryForList(anyString()))
+            .thenReturn(failedRecords);
+    
+        when(jdbcTemplate.queryForObject(anyString(), any(Object[].class), eq(String.class)))
+            .thenReturn("{Authorization=Bearer token}");
+    
         when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
-                .thenReturn(new ResponseEntity<>("Something weird", HttpStatus.I_AM_A_TEAPOT));
-
+            .thenReturn(new ResponseEntity<>("Something weird", HttpStatus.I_AM_A_TEAPOT));
+    
+        // Call method under test
         bulkRetryScheduler.processFailedRequests();
-
-        verify(jdbcTemplate).update(anyString(), eq("FAILED"), eq("Something weird"), eq(1L));
+    
+        // Verify the update was triggered with status = FAILED
+        verify(jdbcTemplate).update(
+            anyString(),
+            eq("FAILED"),
+            eq("Something weird"),
+            eq(1L)
+        );
     }
+
 
     @Test
     void testProcessFailedRequests_ExceptionHandling() {
