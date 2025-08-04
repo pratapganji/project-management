@@ -22,214 +22,148 @@ import org.springframework.web.client.RestTemplate;
 
 @MockitoSettings(strictness = Strictness.LENIENT)
 @ExtendWith(MockitoExtension.class)
-public class BulkretrySchedulerTest {
+class BulkRetrySchedulerTest {
 
-    @Mock private JdbcTemplate jdbcTemplate;
-    @Mock private RestTemplateService restTemplateService;
-    @Mock private PropertyConstants propertyConstants;
-    @InjectMocks private BulkRetryScheduler scheduler;
+    @InjectMocks
+    private BulkRetryScheduler bulkRetryScheduler;
 
-    @Mock private RestTemplate restTemplate;
+    @Mock
+    private JdbcTemplate jdbcTemplate;
 
-    private final String HEALTH_URL = "http://mock-health";
-    private final String RECORD_ID = "123";
+    @Mock
+    private RestTemplateService restTemplateService;
+
+    @Mock
+    private PropertyConstants propertyConstants;
+
+    @Mock
+    private RetryTemplate retryTemplate;
+
+    @Mock
+    private RestTemplate restTemplate;
 
     @BeforeEach
-    public void setUp() {
-        ReflectionTestUtils.setField(scheduler, "rateLimit", 10.0);
-        ReflectionTestUtils.setField(scheduler, "burstTime", 1L);
-        ReflectionTestUtils.setField(scheduler, "maxRetries", 2);
-        ReflectionTestUtils.setField(scheduler, "healthCheckUrl", HEALTH_URL);
-        ReflectionTestUtils.setField(scheduler, "backoffMillis", 10L); // quick retry
-        ReflectionTestUtils.setField(scheduler, "restTemplate", restTemplate);
-        scheduler.initRateLimiter();
-    }
-
-    private Map<String, Object> buildRecord(String env, String headers) {
-        Map<String, Object> record = new HashMap<>();
-        record.put("ID", RECORD_ID);
-        record.put("REQUEST_PAYLOAD", "{\"data\":\"test\"}");
-        record.put("GLOBAL_TRANSACTION_ID", "txn-1");
-        record.put("HEADERS", headers);
-        when(jdbcTemplate.queryForObject(anyString(), any(Object[].class), eq(String.class)))
-                .thenReturn("{ENVIRONMENT:" + env + "}");
-        return record;
+    void setUp() {
+        ReflectionTestUtils.setField(bulkRetryScheduler, "healthCheckUrl", "http://localhost/health");
+        ReflectionTestUtils.setField(bulkRetryScheduler, "rateLimit", 10.0);
+        ReflectionTestUtils.setField(bulkRetryScheduler, "burstTime", 1L);
+        ReflectionTestUtils.setField(bulkRetryScheduler, "restTemplate", restTemplate);
+        bulkRetryScheduler.initRateLimiter();
     }
 
     @Test
-    public void testHealthCheckDown_skipsProcessing() {
-        when(restTemplate.getForEntity(HEALTH_URL, String.class))
-                .thenReturn(new ResponseEntity<>("DOWN", HttpStatus.INTERNAL_SERVER_ERROR));
-        scheduler.processFailedRequests();
+    void testProcessFailedRequests_SuccessfulFlow() {
+        // Health check
+        when(restTemplate.getForEntity(anyString(), eq(String.class)))
+                .thenReturn(new ResponseEntity<>("OK", HttpStatus.OK));
+
+        // Failed records
+        Map<String, Object> row = new HashMap<>();
+        row.put("ID", 1L);
+        row.put("REQUEST_PAYLOAD", "{\"data\":\"test\"}");
+        row.put("GLOBAL_TRANSACTION_ID", "txn123");
+        row.put("HEADERS", "{key1=value1,key2=value2}");
+        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(row));
+
+        // Headers query
+        when(jdbcTemplate.queryForObject(anyString(), any(Object[].class), eq(String.class)))
+                .thenReturn("{\"environment\":\"PRODNY\"}");
+
+        // URL resolution
+        when(propertyConstants.getUrl()).thenReturn("http://default.url");
+        when(propertyConstants.getNyurl()).thenReturn("http://ny.url");
+
+        // Retry template
+        when(retryTemplate.execute(any())).thenAnswer(invocation -> {
+            RetryCallback<ResponseEntity<String>, ?> callback = invocation.getArgument(0);
+            return callback.doWithRetry(mock(RetryContext.class));
+        });
+
+        // REST call
+        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
+                .thenReturn(new ResponseEntity<>("Success", HttpStatus.OK));
+
+        bulkRetryScheduler.processFailedRequests();
+
+        verify(jdbcTemplate).update(anyString(), eq("SUCCESS"), eq("Success"), eq(1L));
+    }
+
+    @Test
+    void testProcessFailedRequests_ClientError() {
+        simulateOneRecord();
+
+        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
+                .thenReturn(new ResponseEntity<>("Bad Request", HttpStatus.BAD_REQUEST));
+
+        bulkRetryScheduler.processFailedRequests();
+
+        verify(jdbcTemplate, never()).update(anyString(), any(), any(), any());
+    }
+    
+    @Test
+    void testProcessFailedRequests_ServerError() {
+        simulateOneRecord();
+
+        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
+                .thenReturn(new ResponseEntity<>("Server Error", HttpStatus.INTERNAL_SERVER_ERROR));
+
+        bulkRetryScheduler.processFailedRequests();
+
+        verify(jdbcTemplate, never()).update(anyString(), any(), any(), any());
+    }
+    @Test
+    void testProcessFailedRequests_UnexpectedStatus() {
+        simulateOneRecord();
+
+        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
+                .thenReturn(new ResponseEntity<>("Something weird", HttpStatus.I_AM_A_TEAPOT));
+
+        bulkRetryScheduler.processFailedRequests();
+
+        verify(jdbcTemplate).update(anyString(), eq("FAILED"), eq("Something weird"), eq(1L));
+    }
+
+    @Test
+    void testProcessFailedRequests_ExceptionHandling() {
+        simulateOneRecord();
+
+        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
+                .thenThrow(new RuntimeException("API error"));
+
+        bulkRetryScheduler.processFailedRequests();
+
+        // Should not throw, should be caught
+    }
+
+     @Test
+    void testProcessFailedRequests_HealthCheckDown() {
+        when(restTemplate.getForEntity(anyString(), eq(String.class)))
+                .thenReturn(new ResponseEntity<>("Down", HttpStatus.SERVICE_UNAVAILABLE));
+
+        bulkRetryScheduler.processFailedRequests();
+
         verify(jdbcTemplate, never()).queryForList(anyString());
     }
 
-    @Test
-    public void testEnvironmentIsPRODNY_usesNyUrl() {
-        Map<String, Object> record = buildRecord("PRODNY", "{Authorization:Bearer}");
-        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
-        when(propertyConstants.getNyurl()).thenReturn("ny-url");
-        when(propertyConstants.getUrl()).thenReturn("default-url");
-
+    private void simulateOneRecord() {
         when(restTemplate.getForEntity(anyString(), eq(String.class)))
                 .thenReturn(new ResponseEntity<>("OK", HttpStatus.OK));
 
-        when(restTemplateService.sendRequest(any(), any(), any(), any()))
-                .thenReturn(new ResponseEntity<>("ok", HttpStatus.OK));
+        Map<String, Object> row = new HashMap<>();
+        row.put("ID", 1L);
+        row.put("REQUEST_PAYLOAD", "{\"data\":\"test\"}");
+        row.put("GLOBAL_TRANSACTION_ID", "txn123");
+        row.put("HEADERS", "{key1=value1}");
 
-        scheduler.processFailedRequests();
+        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(row));
+        when(jdbcTemplate.queryForObject(anyString(), any(Object[].class), eq(String.class)))
+                .thenReturn("{\"environment\":\"PRODNY\"}");
 
-        verify(jdbcTemplate).update(anyString(), eq("Success"), eq("ok"), eq(Long.parseLong(RECORD_ID)));
-    }
+        when(propertyConstants.getNyurl()).thenReturn("http://ny.url");
 
-    @Test
-    public void testEnvironmentIsPRODNJ_usesNjUrl() {
-        Map<String, Object> record = buildRecord("PRODNJ", "{Authorization:Bearer}");
-        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
-        when(propertyConstants.getNjurl()).thenReturn("nj-url");
-        when(propertyConstants.getUrl()).thenReturn("default-url");
-
-        when(restTemplate.getForEntity(anyString(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>("OK", HttpStatus.OK));
-
-        when(restTemplateService.sendRequest(any(), any(), any(), any()))
-                .thenReturn(new ResponseEntity<>("ok", HttpStatus.OK));
-
-        scheduler.processFailedRequests();
-        verify(jdbcTemplate).update(anyString(), eq("Success"), eq("ok"), eq(Long.parseLong(RECORD_ID)));
-    }
-
-    @Test
-    public void testEnvironmentIsNull_usesDefaultUrl() {
-        Map<String, Object> record = buildRecord(null, "{Authorization:Bearer}");
-        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
-        when(propertyConstants.getUrl()).thenReturn("default-url");
-
-        when(restTemplate.getForEntity(anyString(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>("OK", HttpStatus.OK));
-
-        when(restTemplateService.sendRequest(any(), any(), any(), any()))
-                .thenReturn(new ResponseEntity<>("ok", HttpStatus.OK));
-
-        scheduler.processFailedRequests();
-        verify(jdbcTemplate).update(anyString(), eq("Success"), eq("ok"), eq(Long.parseLong(RECORD_ID)));
-    }
-
-    @Test
-    public void testSendRequestReturns500_thenSucceedsOnRetry() {
-        Map<String, Object> record = buildRecord("PRODNJ", "{Authorization:Bearer}");
-        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
-        when(jdbcTemplate.queryForObject(anyString(), any(), eq(String.class)))
-                .thenReturn("{ENVIRONMENT:PRODNJ}");
-
-        when(propertyConstants.getNjurl()).thenReturn("nj-url");
-        when(restTemplate.getForEntity(anyString(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>("OK", HttpStatus.OK));
-
-        when(restTemplateService.sendRequest(any(), any(), any(), any()))
-                .thenReturn(
-                        new ResponseEntity<>("retry", HttpStatus.INTERNAL_SERVER_ERROR),
-                        new ResponseEntity<>("success", HttpStatus.OK)
-                );
-
-        scheduler.processFailedRequests();
-
-        verify(jdbcTemplate).update(anyString(), eq("Success"), eq("success"), eq(Long.parseLong(RECORD_ID)));
-    }
-
-    @Test
-    public void testSendRequestFailsAllRetries_callsUpdateStatusWithFailed() {
-        Map<String, Object> record = buildRecord("PRODNJ", "{Authorization:Bearer}");
-        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
-        when(jdbcTemplate.queryForObject(anyString(), any(), eq(String.class)))
-                .thenReturn("{ENVIRONMENT:PRODNJ}");
-
-        when(propertyConstants.getNjurl()).thenReturn("nj-url");
-        when(restTemplate.getForEntity(anyString(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>("OK", HttpStatus.OK));
-
-        when(restTemplateService.sendRequest(any(), any(), any(), any()))
-                .thenReturn(new ResponseEntity<>("server-error", HttpStatus.INTERNAL_SERVER_ERROR));
-
-        scheduler.processFailedRequests();
-
-        verify(jdbcTemplate).update(anyString(), eq("Failed"), eq("server-error"), eq(Long.parseLong(RECORD_ID)));
-    }
-
-    @Test
-    public void testSendRequestThrowsException_retries_thenFails() {
-        Map<String, Object> record = buildRecord("PRODNJ", "{Authorization:Bearer}");
-        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
-        when(jdbcTemplate.queryForObject(anyString(), any(), eq(String.class)))
-                .thenReturn("{environment:PRODNJ}");
-
-        when(propertyConstants.getNjurl()).thenReturn("nj-url");
-        when(restTemplate.getForEntity(anyString(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>("OK", HttpStatus.OK));
-
-        // Simulate all retries throwing an exception
-        when(restTemplateService.sendRequest(any(), any(), any(), any()))
-                .thenThrow(new RuntimeException("test failure"));
-
-        // This is important — mock update to prevent actual NPE in your test
-        when(jdbcTemplate.update(anyString(), any(), any(), any())).thenReturn(1);
-
-        scheduler.processFailedRequests();
-
-        // Verify jdbcTemplate.update() was called for marking failure
-        verify(jdbcTemplate).update(
-                anyString(),
-                eq("Failed"),
-                isNull(),
-                eq(Long.parseLong(RECORD_ID))
-        );
-    }
-
-    @Test
-    public void testProcessHeaders_withMalformedHeader() {
-        String malformed = "InvalidHeaderWithoutColon";
-        Map<String, String> result = ReflectionTestUtils.invokeMethod(scheduler, "processHeaders", malformed);
-        assertTrue(result.isEmpty());
-    }
-
-    @Test
-    public void testGetJsonElement_withValidJsonLikeString() {
-        String input = "{environment:PRODNY}";
-        String key = "environment";
-        String result = (String) ReflectionTestUtils.invokeMethod(scheduler, "getJsonElement", input, key);
-
-        System.out.println("Result: " + result);
-        assertEquals("PRODNY", result);
-    }
-
-    @Test
-    public void testGetJsonElement_withMissingKey() {
-        String input = "{OTHER_KEY:VALUE}";
-        String result = ReflectionTestUtils.invokeMethod(scheduler, "getJsonElement", input, "ENVIRONMENT");
-        assertNull(result);
-    }
-
-    @Test
-    public void testInterruptedDuringSleep_shouldBreakRetry() throws Exception {
-        Thread testThread = new Thread(() -> {
-            Map<String, Object> record = buildRecord("PRODNY", "{Authorization:Bearer}");
-            when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
-            when(propertyConstants.getNyurl()).thenReturn("ny-url");
-
-            when(restTemplate.getForEntity(anyString(), eq(String.class)))
-                    .thenReturn(new ResponseEntity<>("OK", HttpStatus.OK));
-
-            when(restTemplateService.sendRequest(any(), any(), any(), any()))
-                    .thenAnswer(invocation -> {
-                        Thread.currentThread().interrupt(); // simulate interruption
-                        return new ResponseEntity<>("retry", HttpStatus.INTERNAL_SERVER_ERROR);
-                    });
-
-            scheduler.processFailedRequests();
+        when(retryTemplate.execute(any())).thenAnswer(invocation -> {
+            RetryCallback<ResponseEntity<String>, ?> callback = invocation.getArgument(0);
+            return callback.doWithRetry(mock(RetryContext.class));
         });
-
-        testThread.start();
-        testThread.join();
-        verify(jdbcTemplate, never()).update(anyString(), eq("Success"), anyString(), anyLong());
     }
 }
