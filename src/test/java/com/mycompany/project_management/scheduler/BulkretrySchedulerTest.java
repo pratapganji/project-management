@@ -33,53 +33,51 @@ import java.util.*;
 @ExtendWith(MockitoExtension.class)
 class BulkRetryScheduler1Test {
 
-    @MockBean
-    private JdbcTemplate jdbcTemplate;
-
-    @MockBean
-    private RestTemplateService restTemplateService;
-
-    @MockBean
-    private UrlUtils urlUtils;
-
-    @Autowired
+    @InjectMocks
     private BulkRetryScheduler1 scheduler;
 
-    private Map<String, Object> sampleRecord;
+    @Mock
+    private JdbcTemplate jdbcTemplate;
+
+    @Mock
+    private RestTemplateService restTemplateService;
+
+    @Mock
+    private UrlUtils urlUtils;
 
     @BeforeEach
-    void setup() {
-        sampleRecord = Map.of(
+    void setUp() {
+        MockitoAnnotations.openMocks(this);
+        when(urlUtils.extractBaseUrl(anyString())).thenReturn("http://localhost");
+    }
+
+    @Test
+    void testProcessFailedRequests_HealthDown() {
+        Map<String, Object> record = Map.of(
                 "ID", 1L,
                 "API_ENDPOINT", "http://localhost/api",
                 "REQUEST_PAYLOAD", "{}",
                 "HEADERS", "{}"
         );
-
-        when(urlUtils.extractBaseUrl(anyString()))
-                .thenReturn("http://localhost");
-
-        when(jdbcTemplate.queryForList(anyString()))
-                .thenReturn(List.of(sampleRecord));
-    }
-
-    @Test
-    void testProcessFailedRequests_HealthDown() {
-        when(restTemplateService.getForEntity(
-                eq("http://localhost" + AuditTableConstants.HEALTH_CHECK_ENDPOINT),
-                eq(String.class)))
+        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
+        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
                 .thenReturn(new ResponseEntity<>("DOWN", HttpStatus.SERVICE_UNAVAILABLE));
 
         scheduler.processFailedRequests();
 
-        verify(restTemplateService).getForEntity(anyString(), eq(String.class));
+        verify(urlUtils).extractBaseUrl("http://localhost/api");
+        verify(restTemplateService).sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap());
     }
 
     @Test
     void testProcessFailedRequests_Success200() {
-        when(restTemplateService.getForEntity(anyString(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>("UP", HttpStatus.OK));
-
+        Map<String, Object> record = Map.of(
+                "ID", 2L,
+                "API_ENDPOINT", "http://localhost/api",
+                "REQUEST_PAYLOAD", "{}",
+                "HEADERS", "{}"
+        );
+        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
         when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
                 .thenReturn(new ResponseEntity<>("OK", HttpStatus.OK));
 
@@ -90,9 +88,13 @@ class BulkRetryScheduler1Test {
 
     @Test
     void testProcessFailedRequests_ClientError4xx() {
-        when(restTemplateService.getForEntity(anyString(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>("UP", HttpStatus.OK));
-
+        Map<String, Object> record = Map.of(
+                "ID", 3L,
+                "API_ENDPOINT", "http://localhost/api",
+                "REQUEST_PAYLOAD", "{}",
+                "HEADERS", "{}"
+        );
+        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
         when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
                 .thenReturn(new ResponseEntity<>("Bad Request", HttpStatus.BAD_REQUEST));
 
@@ -103,11 +105,15 @@ class BulkRetryScheduler1Test {
 
     @Test
     void testProcessFailedRequests_ServerError5xx() {
-        when(restTemplateService.getForEntity(anyString(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>("UP", HttpStatus.OK));
-
+        Map<String, Object> record = Map.of(
+                "ID", 4L,
+                "API_ENDPOINT", "http://localhost/api",
+                "REQUEST_PAYLOAD", "{}",
+                "HEADERS", "{}"
+        );
+        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
         when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
-                .thenReturn(new ResponseEntity<>("Server Error", HttpStatus.INTERNAL_SERVER_ERROR));
+                .thenReturn(new ResponseEntity<>("Internal Error", HttpStatus.INTERNAL_SERVER_ERROR));
 
         scheduler.processFailedRequests();
 
@@ -116,11 +122,15 @@ class BulkRetryScheduler1Test {
 
     @Test
     void testProcessFailedRequests_UnexpectedStatus() {
-        when(restTemplateService.getForEntity(anyString(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>("UP", HttpStatus.OK));
-
+        Map<String, Object> record = Map.of(
+                "ID", 5L,
+                "API_ENDPOINT", "http://localhost/api",
+                "REQUEST_PAYLOAD", "{}",
+                "HEADERS", "{}"
+        );
+        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
         when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
-                .thenReturn(new ResponseEntity<>("Weird", HttpStatus.I_AM_A_TEAPOT));
+                .thenReturn(new ResponseEntity<>("Strange", HttpStatus.I_AM_A_TEAPOT)); // 418
 
         scheduler.processFailedRequests();
 
@@ -129,12 +139,19 @@ class BulkRetryScheduler1Test {
 
     @Test
     void testProcessFailedRequests_Exception() {
-        when(restTemplateService.getForEntity(anyString(), eq(String.class)))
-                .thenThrow(new RuntimeException("Test Exception"));
+        Map<String, Object> record = Map.of(
+                "ID", 6L,
+                "API_ENDPOINT", "http://localhost/api",
+                "REQUEST_PAYLOAD", "{}",
+                "HEADERS", "{}"
+        );
+        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
+        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
+                .thenThrow(new RuntimeException("Something went wrong"));
 
         scheduler.processFailedRequests();
 
-        verify(restTemplateService).getForEntity(anyString(), eq(String.class));
+        verify(restTemplateService).sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap());
     }
 }
 
