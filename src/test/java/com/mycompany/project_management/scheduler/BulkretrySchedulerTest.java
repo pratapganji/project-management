@@ -95,12 +95,18 @@ public class BulkRetrySchedulerTest {
                 "HEADERS", "{}"
         );
         when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
-        when(restTemplate.getForEntity(contains("/health"), eq(String.class)))
-                .thenReturn(new ResponseEntity<>("DOWN", HttpStatus.SERVICE_UNAVAILABLE));
 
-        scheduler.processFailedRequests();
+        try (MockedStatic<UrlUtils> mockedStatic = mockStatic(UrlUtils.class)) {
+            mockedStatic.when(() -> UrlUtils.extractBaseUrl("http://localhost/api"))
+                    .thenReturn("http://localhost");
 
-        verify(restTemplate).getForEntity(anyString(), eq(String.class));
+            when(restTemplate.getForEntity(eq("http://localhost" + AuditTableConstants.HEALTH_CHECK_ENDPOINT), eq(String.class)))
+                    .thenReturn(new ResponseEntity<>("DOWN", HttpStatus.SERVICE_UNAVAILABLE));
+
+            scheduler.processFailedRequests();
+
+            verify(restTemplate).getForEntity(anyString(), eq(String.class));
+        }
     }
 
     @Test
