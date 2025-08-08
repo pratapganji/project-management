@@ -1,31 +1,24 @@
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
 import com.google.common.util.concurrent.RateLimiter;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
-import org.mockito.junit.jupiter.MockitoExtension;
-
-import org.mockito.junit.jupiter.MockitoSettings;
-import org.mockito.quality.Strictness;
+import org.mockito.*;
 import org.springframework.http.*;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.test.util.ReflectionTestUtils;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.retry.RetryCallback;
+import org.springframework.retry.RetryContext;
+import org.springframework.retry.support.RetryTemplate;
 
-@MockitoSettings(strictness = Strictness.LENIENT)
+import java.lang.reflect.Field;
+import java.util.*;
+
 @ExtendWith(MockitoExtension.class)
-class BulkRetrySchedulerTest {
+public class BulkRetrySchedulerTest {
 
     @InjectMocks
-    private BulkRetryScheduler bulkRetryScheduler;
+    private BulkRetryScheduler scheduler;
 
     @Mock
     private JdbcTemplate jdbcTemplate;
@@ -40,149 +33,202 @@ class BulkRetrySchedulerTest {
     private RetryTemplate retryTemplate;
 
     @Mock
-    private RestTemplate restTemplate;
+    private RateLimiter rateLimiterMock;
+
+    @Spy
+    private org.springframework.web.client.RestTemplate restTemplate = new org.springframework.web.client.RestTemplate();
 
     @BeforeEach
-    void setUp() {
-        ReflectionTestUtils.setField(bulkRetryScheduler, "healthCheckUrl", "http://localhost/health");
-        ReflectionTestUtils.setField(bulkRetryScheduler, "rateLimit", 10.0);
-        ReflectionTestUtils.setField(bulkRetryScheduler, "burstTime", 1L);
-        ReflectionTestUtils.setField(bulkRetryScheduler, "restTemplate", restTemplate);
-        bulkRetryScheduler.initRateLimiter();
+    void setUp() throws Exception {
+        MockitoAnnotations.openMocks(this);
+
+        // Set values for @Value fields
+        Field rateLimitField = BulkRetryScheduler.class.getDeclaredField("rateLimit");
+        rateLimitField.setAccessible(true);
+        rateLimitField.set(scheduler, 10.0);
+
+        Field burstTimeField = BulkRetryScheduler.class.getDeclaredField("burstTime");
+        burstTimeField.setAccessible(true);
+        burstTimeField.set(scheduler, 1L);
+
+        // Inject mock RateLimiter instead of real one
+        Field rateLimiterField = BulkRetryScheduler.class.getDeclaredField("rateLimiter");
+        rateLimiterField.setAccessible(true);
+        rateLimiterField.set(scheduler, rateLimiterMock);
+
+        // Avoid blocking
+        when(rateLimiterMock.acquire()).thenReturn(1.0);
     }
 
     @Test
-    void testProcessFailedRequests_SuccessfulFlow() {
-        // Health check
-        when(restTemplate.getForEntity(anyString(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>("OK", HttpStatus.OK));
+    void testInitRateLimiter() throws Exception {
+        BulkRetryScheduler newScheduler = new BulkRetryScheduler();
+        Field rateLimitField = BulkRetryScheduler.class.getDeclaredField("rateLimit");
+        rateLimitField.setAccessible(true);
+        rateLimitField.set(newScheduler, 5.0);
 
-        // Failed records
-        Map<String, Object> row = new HashMap<>();
-        row.put("ID", 1L);
-        row.put("REQUEST_PAYLOAD", "{\"data\":\"test\"}");
-        row.put("GLOBAL_TRANSACTION_ID", "txn123");
-        row.put("HEADERS", "{key1=value1,key2=value2}");
-        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(row));
+        Field burstTimeField = BulkRetryScheduler.class.getDeclaredField("burstTime");
+        burstTimeField.setAccessible(true);
+        burstTimeField.set(newScheduler, 2L);
 
-        // Headers query
-        when(jdbcTemplate.queryForObject(anyString(), any(Object[].class), eq(String.class)))
-                .thenReturn("{\"environment\":\"PRODNY\"}");
+        newScheduler.initRateLimiter();
 
-        // URL resolution
-        when(propertyConstants.getUrl()).thenReturn("http://default.url");
-        when(propertyConstants.getNyurl()).thenReturn("http://ny.url");
+        Field rateLimiterField = BulkRetryScheduler.class.getDeclaredField("rateLimiter");
+        rateLimiterField.setAccessible(true);
+        RateLimiter rl = (RateLimiter) rateLimiterField.get(newScheduler);
+        assert rl != null;
+    }
 
-        // Retry template
-        when(retryTemplate.execute(any())).thenAnswer(invocation -> {
-            RetryCallback<ResponseEntity<String>, ?> callback = invocation.getArgument(0);
-            return callback.doWithRetry(mock(RetryContext.class));
+    @Test
+    void testProcessFailedRequests_NoRecords() {
+        when(jdbcTemplate.queryForList(anyString())).thenReturn(Collections.emptyList());
+        scheduler.processFailedRequests();
+        verify(jdbcTemplate).queryForList(anyString());
+    }
+
+    @Test
+    void testProcessFailedRequests_HealthDown() {
+        Map<String, Object> record = Map.of(
+                "ID", 1L,
+                "API_ENDPOINT", "http://localhost/api",
+                "REQUEST_PAYLOAD", "{}",
+                "HEADERS", "{}"
+        );
+        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
+        when(restTemplate.getForEntity(contains("/health"), eq(String.class)))
+                .thenReturn(new ResponseEntity<>("DOWN", HttpStatus.SERVICE_UNAVAILABLE));
+
+        scheduler.processFailedRequests();
+
+        verify(restTemplate).getForEntity(anyString(), eq(String.class));
+    }
+
+    @Test
+    void testProcessFailedRequests_Success200() throws Exception {
+        Map<String, Object> record = Map.of(
+                "ID", 1L,
+                "API_ENDPOINT", "http://localhost/api",
+                "REQUEST_PAYLOAD", "{}",
+                "HEADERS", "{key:value}"
+        );
+
+        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
+        when(restTemplate.getForEntity(contains("/health"), eq(String.class)))
+                .thenReturn(new ResponseEntity<>("UP", HttpStatus.OK));
+
+        when(retryTemplate.execute(any())).thenAnswer(inv -> {
+            RetryCallback<ResponseEntity<String>, Exception> cb = inv.getArgument(0);
+            return cb.doWithRetry(mock(RetryContext.class));
         });
 
-        // REST call
-        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
-                .thenReturn(new ResponseEntity<>("Success", HttpStatus.OK));
+        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), anyString(), anyMap()))
+                .thenReturn(new ResponseEntity<>("OK", HttpStatus.OK));
 
-        bulkRetryScheduler.processFailedRequests();
+        scheduler.processFailedRequests();
 
-        verify(jdbcTemplate).update(anyString(), eq("SUCCESS"), eq("Success"), eq(1L));
+        verify(jdbcTemplate).update(anyString(), eq("SUCCESS"), eq("OK"), eq(1L));
     }
 
     @Test
-    void testProcessFailedRequests_ClientError() {
-        simulateOneRecord();
+    void testProcessFailedRequests_ClientError4xx() {
+        Map<String, Object> record = Map.of(
+                "ID", 1L,
+                "API_ENDPOINT", "http://localhost/api",
+                "REQUEST_PAYLOAD", "{}",
+                "HEADERS", "{key:value}"
+        );
 
-        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
+        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
+        when(restTemplate.getForEntity(contains("/health"), eq(String.class)))
+                .thenReturn(new ResponseEntity<>("UP", HttpStatus.OK));
+
+        when(retryTemplate.execute(any())).thenAnswer(inv -> {
+            RetryCallback<ResponseEntity<String>, Exception> cb = inv.getArgument(0);
+            return cb.doWithRetry(mock(RetryContext.class));
+        });
+
+        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), anyString(), anyMap()))
                 .thenReturn(new ResponseEntity<>("Bad Request", HttpStatus.BAD_REQUEST));
 
-        bulkRetryScheduler.processFailedRequests();
+        scheduler.processFailedRequests();
 
-        verify(jdbcTemplate, never()).update(anyString(), any(), any(), any());
+        verify(jdbcTemplate).update(anyString(), eq("FAILED"), eq("Bad Request"), eq(1L));
     }
-    
+
     @Test
-    void testProcessFailedRequests_ServerError() {
-        simulateOneRecord();
-
-        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
-                .thenReturn(new ResponseEntity<>("Server Error", HttpStatus.INTERNAL_SERVER_ERROR));
-
-        bulkRetryScheduler.processFailedRequests();
-
-        verify(jdbcTemplate, never()).update(anyString(), any(), any(), any());
-    }
-    
-    @Test
-    void testProcessFailedRequests_UnexpectedStatus_ShouldFailRecord() {
-        // Setup mock to return one failed record
-        List<Map<String, Object>> failedRecords = List.of(Map.of(
-            "GLOBAL_TRANSACTION_ID", "txn123",
-            "ID", 1L
-        ));
-    
-        when(jdbcTemplate.queryForList(anyString()))
-            .thenReturn(failedRecords);
-    
-        when(jdbcTemplate.queryForObject(anyString(), any(Object[].class), eq(String.class)))
-            .thenReturn("{Authorization=Bearer token}");
-    
-        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
-            .thenReturn(new ResponseEntity<>("Something weird", HttpStatus.I_AM_A_TEAPOT));
-    
-        // Call method under test
-        bulkRetryScheduler.processFailedRequests();
-    
-        // Verify the update was triggered with status = FAILED
-        verify(jdbcTemplate).update(
-            anyString(),
-            eq("FAILED"),
-            eq("Something weird"),
-            eq(1L)
+    void testProcessFailedRequests_ServerError5xx() {
+        Map<String, Object> record = Map.of(
+                "ID", 1L,
+                "API_ENDPOINT", "http://localhost/api",
+                "REQUEST_PAYLOAD", "{}",
+                "HEADERS", "{key:value}"
         );
-    }
 
+        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
+        when(restTemplate.getForEntity(contains("/health"), eq(String.class)))
+                .thenReturn(new ResponseEntity<>("UP", HttpStatus.OK));
+
+        when(retryTemplate.execute(any())).thenAnswer(inv -> {
+            RetryCallback<ResponseEntity<String>, Exception> cb = inv.getArgument(0);
+            return cb.doWithRetry(mock(RetryContext.class));
+        });
+
+        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), anyString(), anyMap()))
+                .thenReturn(new ResponseEntity<>("Error", HttpStatus.INTERNAL_SERVER_ERROR));
+
+        scheduler.processFailedRequests();
+
+        verify(jdbcTemplate, never()).update(anyString(), any(), any(), any());
+    }
 
     @Test
-    void testProcessFailedRequests_ExceptionHandling() {
-        simulateOneRecord();
+    void testProcessFailedRequests_UnexpectedStatus() {
+        Map<String, Object> record = Map.of(
+                "ID", 1L,
+                "API_ENDPOINT", "http://localhost/api",
+                "REQUEST_PAYLOAD", "{}",
+                "HEADERS", "{key:value}"
+        );
 
-        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), any(), anyMap()))
-                .thenThrow(new RuntimeException("API error"));
+        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
+        when(restTemplate.getForEntity(contains("/health"), eq(String.class)))
+                .thenReturn(new ResponseEntity<>("UP", HttpStatus.OK));
 
-        bulkRetryScheduler.processFailedRequests();
-
-        // Should not throw, should be caught
-    }
-
-     @Test
-    void testProcessFailedRequests_HealthCheckDown() {
-        when(restTemplate.getForEntity(anyString(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>("Down", HttpStatus.SERVICE_UNAVAILABLE));
-
-        bulkRetryScheduler.processFailedRequests();
-
-        verify(jdbcTemplate, never()).queryForList(anyString());
-    }
-
-    private void simulateOneRecord() {
-        when(restTemplate.getForEntity(anyString(), eq(String.class)))
-                .thenReturn(new ResponseEntity<>("OK", HttpStatus.OK));
-
-        Map<String, Object> row = new HashMap<>();
-        row.put("ID", 1L);
-        row.put("REQUEST_PAYLOAD", "{\"data\":\"test\"}");
-        row.put("GLOBAL_TRANSACTION_ID", "txn123");
-        row.put("HEADERS", "{key1=value1}");
-
-        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(row));
-        when(jdbcTemplate.queryForObject(anyString(), any(Object[].class), eq(String.class)))
-                .thenReturn("{\"environment\":\"PRODNY\"}");
-
-        when(propertyConstants.getNyurl()).thenReturn("http://ny.url");
-
-        when(retryTemplate.execute(any())).thenAnswer(invocation -> {
-            RetryCallback<ResponseEntity<String>, ?> callback = invocation.getArgument(0);
-            return callback.doWithRetry(mock(RetryContext.class));
+        when(retryTemplate.execute(any())).thenAnswer(inv -> {
+            RetryCallback<ResponseEntity<String>, Exception> cb = inv.getArgument(0);
+            return cb.doWithRetry(mock(RetryContext.class));
         });
+
+        when(restTemplateService.sendRequest(anyString(), eq(HttpMethod.POST), anyString(), anyMap()))
+                .thenReturn(new ResponseEntity<>("Weird", HttpStatus.I_AM_A_TEAPOT));
+
+        scheduler.processFailedRequests();
+
+        verify(jdbcTemplate).update(anyString(), eq("FAILED"), eq("Weird"), eq(1L));
+    }
+
+    @Test
+    void testProcessFailedRequests_Exception() {
+        Map<String, Object> record = Map.of(
+                "ID", 1L,
+                "API_ENDPOINT", "http://localhost/api",
+                "REQUEST_PAYLOAD", "{}",
+                "HEADERS", "{key:value}"
+        );
+
+        when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
+        when(restTemplate.getForEntity(anyString(), eq(String.class)))
+                .thenThrow(new RuntimeException("Boom"));
+
+        scheduler.processFailedRequests();
+    }
+
+    @Test
+    void testProcessHeaders() throws Exception {
+        var method = BulkRetryScheduler.class.getDeclaredMethod("processHeaders", String.class);
+        method.setAccessible(true);
+        Map<String, String> map = (Map<String, String>) method.invoke(scheduler, "{a:b, c:d}");
+        assert map.size() == 2;
+        assert map.get("a").equals("b");
     }
 }
