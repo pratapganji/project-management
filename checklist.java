@@ -1,32 +1,43 @@
-Here’s a clean, production‑ready checklist you can share with Ops/QE for the BulkRetryScheduler rollout. It’s specific to your job that retries rows from OM_NURAFLOW_AUDIT_DATA and calls the Olympus Bulk API only when the /olympus/service/health check returns 200.
+	•	Dry‑run IDs (if needed) identified with STATUS=‘Failed’ and valid Prod endpoints.
 
-Pre‑Deployment (Production)
+Rollback plan
+	•	Previous stable artifact tag recorded.
+	•	Harness “Redeploy previous” or “Rollback” path tested in non‑prod.
+	•	DB changes: none required for rollback (stateless deploy).
 
-Approvals & windows
-	•	Change/ROD raised, approved, and within Prod window.
-	•	Stakeholders notified (API owners, DBAs, QE, L2/L3 Ops), rollback owner named.
+⸻
 
-Artifact & branch
-	•	PRs merged to release branch; CI green.
-	•	Artifact/image tag to deploy recorded: olympus-nura-flow:<TAG>.
+Deployment (Production)
 
-Config & secrets
-	•	application-prod.yml reviewed:
-	•	bulkapiconfig.scheduleFixedRate (ms) = agreed cadence (e.g., 3600000 = 1h).
-	•	bulkapiconfig.rateLimit & burstTime match Bulk API rate policy.
-	•	Oracle/JDBC points to Prod; secrets pulled from vault/secret (no hardcoding).
-	•	AuditTableConstants.HEALTH_CHECK_ENDPOINT = "/olympus/service/health".
-	•	Java truststore / corporate truststore contains certificates for the Prod Bulk API host (no PKIX errors).
-	•	Outbound allow‑list/firewall rules permit calls from the scheduler pod to Bulk API and to Oracle.
+Harness steps
+	•	In Pipeline, confirm Service/Environment/Infra & artifact tag.
+	•	Review Helm diff/dry‑run (config/secret/name/namespace).
+	•	Execute Rollout.
 
-Environment targeting
-	•	Harness Service/Environment/Infrastructure points to Prod namespace & correct pod group (e.g., not UAT 23u/24u).
-	•	Helm values (ConfigMap/Secrets/namespace/replicas) verified.
-	•	Replicas set to 1 (or leader election enabled) to avoid double retries.
+Kubernetes health
+	•	Deployment Ready; no CrashLoopBackOff.
+	•	Liveness/readiness probes pass.
 
-Observability
-	•	Log level = INFO; logs flowing to Splunk/ELK.
-	•	Alerts configured: pod crash/restarts, non‑2xx spikes, consecutive health‑check failures, DB connection errors.
+Startup logs (first minute)
+	•	“Starting Bulk Retry Scheduler…”
+	•	“RateLimiter initialized with rate = X requests/second with burst time Y”
+	•	Hikari/Oracle pool up; no auth/network errors.
 
-Test data & queries ready (read‑only sanity)
-	•	Verify table exists and counts look normal:
+Connectivity smoke
+	•	On first tick (or manual trigger if you temporarily lowered schedule in a canary):
+	•	GET to …/olympus/service/health returns HTTP 200 (visible in logs).
+	•	No PKIX path building failed, DNS, or timeout errors.
+
+Change communication
+	•	Post “Deployed v to Prod; monitoring for N minutes” in team channel.
+
+⸻
+
+Post‑Deployment (Production Validation)
+
+Functional checks (use a tiny sample)
+	•	For 1–3 existing FAILED records (or those that naturally occur):
+	•	When Bulk API returns 2xx → row status changes to SUCCESS, response stored.
+	•	When 4xx → “Client error…” logged, row remains FAILED (will not flip to success).
+	•	When 5xx → “Server error…” logged, row remains FAILED (will retry next run).
+	•	Verify with:
