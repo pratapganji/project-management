@@ -1,0 +1,24 @@
+CRM (HTTP) -> VIP - 2 (local COB/Actual prod) -> WIP
+
+crm.xyz.net
+
+APIGEE -> WIP of PROD / WIP of COB
+
+
+CAS system - WIP is an endpoint (URI), VIP is an endpoint (URI)
+
+WIP of prod - > VIP of VM - PROD server
+WIP of COB - > VIP of VM - COB server
+
+
+Existing:
+APIGEE -> WIP of prod (http) -> VIP of prod (http) -> VM server code
+       -> WIP of COB (http) -> VIP of cob (http) -> VM server code
+	   
+Needs to be done:
+APIGEE -> WIP of prod (https) -> VIP of prod (https) -> VM server code (context path change)
+
+How do we do:
+Exitsing code -> https changes (feature branch) -> release branch -> commit -> build number -> Udeploy - existing DEV VM
+																									   - existing UAT VM
+																									   - NEW VM - PROD
