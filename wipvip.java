@@ -24,3 +24,49 @@ Target server URL vs VIP vs WIP
 	•	VIP/WIP are managed in the CAS portal (Rupesh/APIs team can help).
 	•	Timeline target: UAT by early Nov, PROD later via switch-over.
 	•	Immediate asks: coordinate with Kumar (ECS capacity), Shan & networking team for VIP/WIP, and Rohit for testing; Aparna for subscription follow-up.
+Exact plan you can execute
+
+1) DEV / UAT (this week)
+	1.	Update target server URLs to HTTPS on the VMs.
+	2.	In CAS portal: create/update VIPs (HTTPS) for DEV/UAT clusters.
+	3.	In CAS portal: create/update WIP (HTTPS) that fronts both VIPs.
+	4.	Update Apigee target(s) to point to the new WIP (HTTPS).
+	5.	Use the standalone protobuf client (from Sachin) to validate:
+	•	2xx responses,
+	•	records flow to Kafka,
+	•	no TLS errors.
+	6.	Have UAT consumers perform sample hits and confirm end-to-end.
+
+2) PROD (replica approach — safer)
+	1.	Create a replica API deployment (new name; no consumers yet).
+	2.	Configure new HTTPS target server URLs for that replica.
+	3.	In CAS portal: create new VIP-PROD(HTTPS) and new VIP-COB(HTTPS); then a new WIP(HTTPS) over those VIPs.
+	4.	Point the replica Apigee proxy (or a second revision) to the new WIP(HTTPS).
+	5.	Validate with the standalone client against UAT-like data (non-destructive checks).
+	6.	Green Zone cutover: flip Apigee routing from old WIP → new WIP.
+	7.	Monitor errors, latency, Kafka ingestion, and consumer KPIs.
+	8.	Rollback plan: if issues, immediately switch Apigee back to old WIP.
+
+3) Deliverables & owners
+	•	CAS portal configs (VIPs/WIP; dev/uat/prod/COB) — Rupesh / NetOps with you.
+	•	Apigee updates and revisions — API team (you + Sachin).
+	•	Standalone client & test script — Sachin to share.
+	•	Runbook: step-by-step cutover + rollback — you draft; review with lead.
+	•	Status emails (to Rohit, Aparna) — you to send.
+
+Risk & mitigation
+	•	Risk: Mixed HTTP/HTTPS hop causes alerts or TLS handshake failures.
+Mitigation: Convert bottom-up (targets → VIPs → WIP), test before Apigee switch.
+	•	Risk: No quick rollback after mutating live chain.
+Mitigation: Replica chain + Apigee pointer switch as reversible cutover.
+	•	Risk: Client incompatibility (protobuf shape).
+Mitigation: Validate with standalone client and sample data in UAT first.
+
+What to ask / confirm now
+	•	Access to CAS portal and who approves VIP/WIP changes.
+	•	Confirmation of server certificates on each VM (CN/SAN matches VIP/WIP FQDNs).
+	•	Cipher suites/TLS version policies that Apigee expects (avoid handshake issues).
+	•	Green Zone exact window and comms plan for stakeholders.
+	•	Receipt of standalone client from Sachin.
+
+If you want, I can draft the CAS portal change checklist and the Apigee cutover/rollback runbook next, aligned to your CRM Olympus naming conventions.
