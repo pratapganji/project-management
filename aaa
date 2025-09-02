@@ -1,0 +1,6 @@
+	The scheduler must pick failed requests from the OM_NURAFLOW_AUDIT_DATA table and re-trigger them to the Bulk API.
+	4.	When a re-trigger is successful:
+	•	Update the request’s Status, DWH_Modified_Timestamp, and Response_Payload in the audit table.
+	5.	When a re-trigger fails after a maximum of 3 retries:
+	•	Update the request’s Status, DWH_Modified_Timestamp, and Response_Payload in the audit table with the failure details.
+	6.	The scheduler must respect Bulk API rate limits and burst time while sending requests
