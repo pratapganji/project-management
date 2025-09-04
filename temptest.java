@@ -1,3 +1,35 @@
+1.	How JARs are versioned and released
+	•	Each time you generate a new JAR, you must increment the version number and update the build date inside configuration files (build_artifactory.xml, sometimes pom.xml).
+	•	This ensures every JAR is unique and traceable.
+	2.	Where to make changes
+	•	In Bitbucket, inside the repo citifix, branch feature/upgradeSpringOlyORAAS.
+	•	The file build_artifactory.xml contains conditions and properties for different modules (OES, EQRIOIntf8Oracle, Risk, DPMRIO, UMSR).
+	•	The file pom.xml may also require version bumps.
+	3.	What kind of changes
+	•	Change version: 3.120 → 3.121.
+	•	Change date: 20250806 → 20250812.
+Old: OESIntf-3.120-20250806
+New: OESIntf-3.121-20250812
+
+4.	How to commit changes
+	•	After updating files, commit with a standard message format like:
+OES, EQRIOIntf8OracleWithPOM, Risk, DPMRIO, UMSR prod jar generation
+	•	For quick fixes (pom.xml), use:
+qfix jar generation.
+	5.	How builds are triggered
+	•	Once changes are pushed, you go to TeamCity SWAYAM project.
+	•	Select builds (e.g., EQRIOIntf8Oracle, DPMRIOIntf8Oracle) and run them.
+	6.	How to check build results
+	•	TeamCity shows build history and status.
+	•	Green = success → JAR uploaded to Artifactory.
+	•	Red = failure → check logs and errors.
+	7.	Final Outcome
+	•	A new JAR is generated with updated version & date.
+	•	It is published to Artifactory where other teams/projects can use it
+In simple terms:
+He is explaining the end-to-end process of JAR release – starting from checking commits in Bitbucket, making version/date changes in configuration files, committing them with proper messages, triggering TeamCity builds, and finally verifying that new JARs are published to Artifactory.
+
+
 🚀 SOP – Citify JAR Generation Workflow  
 
 Step 1 – Open Repository
