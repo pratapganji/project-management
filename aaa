@@ -19,3 +19,92 @@ Okay, over here, if you see the CRM straight, don't make sure you don't destroy 
 relating, can we clone this and start modifying?
 No, no, you don't have to modify anything on this. When you will create a pipeline, right? This, this process will automatically create, will clone this component over there. This process alone in that okay, I will tell you all those details for that you might you can reach out to pretty PA to understand the DevOps side of it, right? But at least for now, you can just work on this. If you see what we are doing is we are running this start underscore app process is a part of our API only, right? Our project itself, right? We run this, and this will do the needful for us. It will create a process. It will host my API, all the all the attributes and things, right? So this is what I want to show you, right? So this you can just revisit and see what is it, right? And now on the W IP side, just hold on. We'll talk about it on Monday. I will give you all the details till then. Just work on all these things, right, and then be prepared on this, okay, on Monday and set up a call right away. Otherwise, what happens is, because of the priority of data, like, right, this is always delayed, and I don't want to do that, right, just set up a
 call on this. Yeah, yeah, thank you. Okay. Bye.
+
+
+
+
+1. HTTPS / VIP / WIP progress
+
+You have successfully configured HTTPS VIP in UAT.
+
+Your lead asked if you also did the WIP; you confirmed you created new VIP/WIP but DEV side still has VRO issues.
+
+They reminded you: you can check old WIPs in the CAS portal (to see details of how they were set up).
+
+2. Sharing DEV/UAT WIP details
+
+They asked you to ping them DEV and UAT WIP names.
+
+They will share back old emails when the WIPs were originally created for reference.
+
+3. New pipeline creation
+
+Current pipeline: CRM-olapas-API.
+
+Need to create new pipeline with naming convention like:
+
+CRM-olapas-API-new
+
+
+This new pipeline will:
+
+Use the same Bitbucket repo.
+
+Change component name, port number, and deployment folder path in shell scripts / config.
+
+Essentially clone the existing process but adjust naming + paths so it doesn’t clash.
+
+4. Homework before Monday call
+
+Check start/stop shell scripts (start.sh, stop.sh): understand what they do (stop process, untar, symlink, permissions, start API).
+
+Check application.properties and config import lines.
+
+Check assembly XML and pom.xml → understand how the jar is packaged.
+
+Check UDeploy component (CRM Olympus) → look at the process steps (stop, untar, symlink, start).
+
+This is to help you understand where code is deployed in VM and how the API is hosted.
+
+5. Support on Monday
+
+Monday 5 PM IST → detailed 1-hour session with your lead to walk through the pipeline creation and WIP side.
+
+✅ Your Update (to replace yesterday’s draft)
+
+2/9
+
+Verified UAT VIP (vs-tebf-qhhh) is working successfully over HTTPS. Endpoint /crm_olympus/clientMeetingProtoTemplate returns valid response.
+
+DEV VIP request still pending due to VRO error; request re-raised.
+
+In today’s sync, discussed WIP setup: need to check old WIP details in CAS portal, will share DEV/UAT WIP info with lead.
+
+Agreed action: create new pipeline CRM-olapas-API-new in Lightspeed with same Bitbucket repo, update component name/port/deployment path in shell scripts.
+
+Homework: review start/stop shell scripts, application.properties, pom.xml, and assembly.xml to understand build/deploy process.
+
+Next step: prepare changes by Monday, then deep-dive session scheduled (5 PM IST).
+
+📌 Your Action Items
+
+Ping DEV + UAT WIP names to your lead.
+
+In CAS portal, look up old WIP details → note DNS names, VIPs used.
+
+In Bitbucket:
+
+Review start.sh and stop.sh.
+
+Review application.properties.
+
+Review pom.xml and assembly.xml.
+
+Draft the new pipeline name:
+
+CRM-olapas-API-new
+
+
+and be ready to configure in Lightspeed.
+
+Be ready for Monday session (list your questions, e.g., how exactly to change deployment folder path, how to handle port numbers, etc.).
