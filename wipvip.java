@@ -1,10 +1,13 @@
-“I’m working on the HTTPS migration for CRM Olympus APIs. Specifically, I’m helping to update the target servers, VIPs, and WIP from HTTP to HTTPS, and validating the flow through Apigee to Kafka with the standalone client.”
+Subject: Jira details for HTTPS Migration – CRM Olympus API
 
+Hi Param,
 
-“Right now, my task is to prepare and test the replica deployment of CRM Olympus APIs with HTTPS enabled end-to-end — updating target server URLs, configuring new VIP/WIP in the CAS portal, and then validating with our protobuf client before we switch routing in PROD.”
+As discussed, please find the Jira documenting the HTTPS migration changes for CRM Olympus API:
+	•	Jira ID: C167969S-104428 – Target Server URL to HTTPS for CRM Olympus API
+	•	Scope: Updating CRM Olympus API endpoints to use HTTPS for VIP and WIP URLs.
+	•	Progress: VIP/WIP HTTPS URLs created and updated; deployment/configuration changes done; currently resolving Jenkins pipeline build issue.
+	•	Impacted CRM Flows: All CRM Olympus API flows using VIP/WIP endpoints.
 
+We will continue updating this Jira with build and deployment progress. Once the pipeline is unblocked, we’ll proceed with UAT deployment and QE validation.
 
-“I’m working on the CRM Olympus HTTPS cutover — setting up and testing the new HTTPS chain (target servers → VIPs → WIP → Apigee).”
-
-
-	“Kafka here is the downstream message bus where our CRM Olympus APIs publish events. My job is to test that when we hit the API via Apigee, the expected protobuf message gets published to Kafka correctly.”
+Thanks,
