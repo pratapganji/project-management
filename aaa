@@ -1,27 +1,20 @@
+#!/bin/sh
 
-public boolean sendMessageCallReport(CallReportProtos.CallReport message) {
-    try {
-        SendResult<String, CallReportProtos.CallReport> sendResult =
-            kafkaTemplateProto.send(topicCallReportProto, message)
-                              .get(5000, TimeUnit.MILLISECONDS);
+# Assign the environment variable (from Jenkins parameter)
+ENV_NAME="${p:environment.name}"
 
-        logger.info("CallReport Result: offset={}", sendResult.getRecordMetadata().offset());
-        return sendResult.getRecordMetadata().hasOffset();
+# Define base paths
+SOURCE_BASE="common"
+DESTINATION="/data/1/gfolybkb/bin/CRM_Olympus_Config/config"
 
-    } catch (InterruptedException ie) {
-        // ✅ Restore interrupt status to comply with S2142
-        Thread.currentThread().interrupt();
-        logger.error("Interrupted while sending Call Report to Kafka", ie);
-        return false;
-
-    } catch (TimeoutException te) {
-        logger.error("Timeout while sending Call Report to Kafka", te);
-        // Optional: attempt to cancel the send (won't interrupt if already running)
-        // kafkaTemplateProto.send(topicCallReportProto, message).cancel(true);
-        return false;
-
-    } catch (ExecutionException ee) {
-        logger.error("Failed to send Call Report to Kafka (execution error)", ee);
-        return false;
-    }
-}
+# Conditional logic based on environment
+if [ "$ENV_NAME" = "DEV" ]; then
+    echo "Environment is DEV. Copying DEV cacert.jks..."
+    cp "$SOURCE_BASE/DEV/cacert.jks" "$DESTINATION/"
+elif [ "$ENV_NAME" = "UAT" ]; then
+    echo "Environment is UAT. Copying UAT cacert.jks..."
+    cp "$SOURCE_BASE/UAT/cacert.jks" "$DESTINATION/"
+else
+    echo "Unknown environment: $ENV_NAME"
+    exit 1
+fi
