@@ -1,20 +1,15 @@
-Subject: Approval Required – Change Request CHG0000701354 (UAT VIP Activation – Window Today 5:00 PM EDT to Oct 10 4:50 PM EDT)
+Subject: RE: HTTPS via Apigee for CRM Olympus API – Region confirmation
 
-Hi Team,
+Hi Sachin / Team,
 
-A Change Request (CHG0000701354) has been raised to activate the UAT VIP for the Olympus → CRM integration go-live.
-The activity is scheduled within the following approved window:
+The 503 Service Unavailable error is expected at the moment since the UAT VIP activation is pending under Change Request CHG0000701354.
+The approved implementation window is:
+🕓 Start: Oct 9, 2025 – 5:00 PM EDT
+🕓 End: Oct 10, 2025 – 4:50 PM EDT
 
-🕓 Start: Thu Oct 09 2025 – 5:00 PM EDT
-🕓 End: Fri Oct 10 2025 – 4:50 PM EDT
+We’ll proceed with the VIP activation during that timeframe and revalidate the Apigee endpoint afterward.
+I’ll share an update once the service is available post-implementation.
 
-At present, the CR is pending approval under the CTI GLBL Software Defined Network Approval group.
-Kindly review and approve the request at your earliest convenience so that we can proceed within the scheduled implementation window.
-
-Please let me know if any additional details are needed.
-
-Thank you for your quick assistance.
-
-Regards,
+Thanks & Regards,
 [Your Full Name]
 CRM-Olympus Team
