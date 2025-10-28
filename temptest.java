@@ -1,15 +1,10 @@
-Subject: RE: HTTPS via Apigee for CRM Olympus API – Region confirmation
+Hi Team,
 
-Hi Sachin / Team,
+I am working for the CRM Olympus API application (Clientmeta: 1505970.crm-olympus.crm-olympus-api). We are migrating the application from HTTP to HTTPS as part of the ongoing enhancement.
 
-The 503 Service Unavailable error is expected at the moment since the UAT VIP activation is pending under Change Request CHG0000701354.
-The approved implementation window is:
-🕓 Start: Oct 9, 2025 – 5:00 PM EDT
-🕓 End: Oct 10, 2025 – 4:50 PM EDT
+While creating the VIP and WIP URLs for the application, we noticed that port 2005, used in DEV/UAT, is publicly accessible. To mitigate potential external exposure risks, I would like to block this port and instead use a port number accessible only within Citi’s internal network.
 
-We’ll proceed with the VIP activation during that timeframe and revalidate the Apigee endpoint afterward.
-I’ll share an update once the service is available post-implementation.
+Please confirm if I can proceed with this new internal port configuration for the PROD deployment. Once approved, I will configure the same port for both VIP and WIP environments.
 
 Thanks & Regards,
-[Your Full Name]
-CRM-Olympus Team
+Pratap Ganji
