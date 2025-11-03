@@ -1,21 +1,29 @@
-for (Map.Entry<String, byte[]> e : endpoints.entrySet()) {
-    String path     = e.getKey();
-    byte[] payload  = e.getValue();
-    if (payload == null) {
-        System.out.println("Skipping " + path + " (payload is null)");
-        continue;
-    }
+// ---- bases (leave as you already have) ----
+final String APIGEE_BASE = "https://uat.isg.icgservices.citigroup.net/isg/internal/crm/olympus";
+final String WIP_BASE    = "https://olympus.api.crmtoolympusnew.uat.cloudgs1.nam.nsroot.net:443";
+System.out.println("Target Server (WIP) URL: " + WIP_BASE);
 
-    System.out.println("=====================================================");
-    System.out.println("CAP VERIFICATION (UAT) - APIGEE & TARGET (WIP) HTTPS");
-    System.out.println("APIGEE Base URL        : " + APIGEE_BASE);
-    System.out.println("Target Server (WIP) URL: " + WIP_BASE);
-    System.out.println("Final Endpoint (Apigee): " + APIGEE_BASE + path);
-    System.out.println("=====================================================");
+// ======= choose ONE endpoint to call =======
+// e.g. Client Meeting:
+final String path    = "/publish/data/clientmeeting";
+final byte[] payload = clientMeetingbyte;
 
-    Mono<String> resultActionItem = WebClient.builder()
-        // (optional) comment this out since you're passing absolute URI below
-        // .baseUrl(WIP_BASE)
+// If you ever switch to another, just change the two lines above:
+// final String path = "/publish/data/callreport";           final byte[] payload = callReportbyte;
+// final String path = "/publish/data/clientactionitem";     final byte[] payload = actionItembyte;
+// final String path = "/publish/details/client/productivitymetrics"; final byte[] payload = productivityMetricsbyte;
+// ==========================================
+
+// CAP prints for the ONE endpoint you’re calling
+System.out.println("=====================================================");
+System.out.println("CAP VERIFICATION (UAT) - APIGEE & TARGET (WIP) HTTPS");
+System.out.println("APIGEE Base URL        : " + APIGEE_BASE);
+System.out.println("Final Endpoint (Apigee): " + APIGEE_BASE + path);
+System.out.println("=====================================================");
+
+Mono<String> resultActionItem = WebClient.builder()
+        // comment baseUrl out if you pass absolute URI below
+        // .baseUrl(APIGEE_BASE)
         .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
         .filter((request, next) -> {
             System.out.println("→ REQUEST " + request.method() + " " + request.url());
@@ -24,9 +32,9 @@ for (Map.Entry<String, byte[]> e : endpoints.entrySet()) {
         })
         .build()
         .post()
-        .uri(APIGEE_BASE + path)     // <-- was hard-coded; now uses map entry
-        .bodyValue(payload)          // <-- was clientMeetingbyte; now uses map entry
-        .exchangeToMono(response -> {   // <-- keep your existing code BELOW unchanged
+        .uri(APIGEE_BASE + path)     // <- use the selected path
+        .bodyValue(payload)          // <- use the selected payload
+        .exchangeToMono(response -> {   // keep your handler unchanged
             if (response.statusCode().equals(HttpStatus.OK)) {
                 return response.bodyToMono(String.class);
             } else if (response.statusCode().is4xxClientError()) {
@@ -38,6 +46,5 @@ for (Map.Entry<String, byte[]> e : endpoints.entrySet()) {
             }
         });
 
-    System.out.printf("Response Action Item: %s%n", resultActionItem.block());
-    System.out.println("End of WebClient\n");
-}
+System.out.printf("Response Action Item: %s%n", resultActionItem.block());
+System.out.println("End of WebClient");
