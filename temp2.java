@@ -3,12 +3,11 @@ final String WIP_BASE = "https://olympus.api.crmtoolympusnew.uat.cloudgs1.nam.ns
 final String APIGEE_BASE = "https://uat.isg.icgservices.citigroup.net/isg/internal/crm/olympus";
 
 // ---- Endpoints & Body Mapping ----
-Map<String, Object> endpoints = Map.of(
-    "/publish/data/clientmeeting", clientMeetingbyte,
-    "/publish/data/callreport", callReportbyte,
-    "/publish/data/clientactionitem", actionItembyte,
-    "/publish/details/client/productivitymetrics", productivityMetricsbyte
-);
+Map<String, Object> endpoints = new HashMap<>();
+endpoints.put("/publish/data/clientmeeting", clientMeetingbyte);
+endpoints.put("/publish/data/callreport", callReportbyte);
+endpoints.put("/publish/data/clientactionitem", actionItembyte);
+endpoints.put("/publish/details/client/productivitymetrics", productivityMetricsbyte);
 
 // ---- Create WebClient ----
 WebClient webClient = WebClient.builder()
@@ -24,6 +23,12 @@ WebClient webClient = WebClient.builder()
 for (Map.Entry<String, Object> entry : endpoints.entrySet()) {
     String path = entry.getKey();
     Object body = entry.getValue();
+
+    // Skip null bodies (if any endpoint byte array is not initialized)
+    if (body == null) {
+        System.out.println("Skipping endpoint " + path + " (no payload)");
+        continue;
+    }
 
     // Print CAP verification info for each endpoint
     System.out.println("=====================================================");
@@ -41,7 +46,7 @@ for (Map.Entry<String, Object> entry : endpoints.entrySet()) {
             .bodyToMono(String.class)
             .doOnNext(respBody -> System.out.println("Response Body: " + respBody));
 
-    // Block for each (so you get sequential logs)
+    // Block sequentially for each call
     String response = responseMono.block();
     System.out.println("Response for " + path + ": " + response);
     System.out.println("End of WebClient for " + path);
