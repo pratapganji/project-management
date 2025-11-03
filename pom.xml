@@ -1,79 +1,43 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-	<modelVersion>4.0.0</modelVersion>
-	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.4.4</version>
-		<relativePath/> <!-- lookup parent from repository -->
-	</parent>
-	<groupId>com.mycompany</groupId>
-	<artifactId>project-management</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
-	<name>project-management</name>
-	<description>property management system</description>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
-	<properties>
-		<java.version>17</java.version>
-	</properties>
-	<dependencies>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-data-jpa</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-web</artifactId>
-		</dependency>
+for (Map.Entry<String, byte[]> e : endpoints.entrySet()) {
+    String path     = e.getKey();
+    byte[] payload  = e.getValue();
+    if (payload == null) {
+        System.out.println("Skipping " + path + " (payload is null)");
+        continue;
+    }
 
-		<dependency>
-			<groupId>com.h2database</groupId>
-			<artifactId>h2</artifactId>
-			<scope>runtime</scope>
-		</dependency>
-		<dependency>
-			<groupId>org.projectlombok</groupId>
-			<artifactId>lombok</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>org.springframework.boot</groupId>
-			<artifactId>spring-boot-starter-test</artifactId>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
+    System.out.println("=====================================================");
+    System.out.println("CAP VERIFICATION (UAT) - APIGEE & TARGET (WIP) HTTPS");
+    System.out.println("APIGEE Base URL        : " + APIGEE_BASE);
+    System.out.println("Target Server (WIP) URL: " + WIP_BASE);
+    System.out.println("Final Endpoint (Apigee): " + APIGEE_BASE + path);
+    System.out.println("=====================================================");
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<configuration>
-					<annotationProcessorPaths>
-						<path>
-							<groupId>org.projectlombok</groupId>
-							<artifactId>lombok</artifactId>
-						</path>
-					</annotationProcessorPaths>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.springframework.boot</groupId>
-				<artifactId>spring-boot-maven-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
+    Mono<String> resultActionItem = WebClient.builder()
+        // (optional) comment this out since you're passing absolute URI below
+        // .baseUrl(WIP_BASE)
+        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
+        .filter((request, next) -> {
+            System.out.println("→ REQUEST " + request.method() + " " + request.url());
+            return next.exchange(request).doOnNext(resp ->
+                System.out.println("← RESPONSE " + resp.statusCode()));
+        })
+        .build()
+        .post()
+        .uri(APIGEE_BASE + path)     // <-- was hard-coded; now uses map entry
+        .bodyValue(payload)          // <-- was clientMeetingbyte; now uses map entry
+        .exchangeToMono(response -> {   // <-- keep your existing code BELOW unchanged
+            if (response.statusCode().equals(HttpStatus.OK)) {
+                return response.bodyToMono(String.class);
+            } else if (response.statusCode().is4xxClientError()) {
+                System.out.println("Response Status Code: " + response.statusCode());
+                System.out.println("Response Body: " + response.bodyToMono(String.class));
+                return Mono.just("Error response 400" + response.toString());
+            } else {
+                return response.createException().flatMap(Mono::error);
+            }
+        });
 
-</project>
+    System.out.printf("Response Action Item: %s%n", resultActionItem.block());
+    System.out.println("End of WebClient\n");
+}
