@@ -1,10 +1,6 @@
-Subject: RE: HTTPS via Apigee for CRM Olympus API
-
-Hi Nehal,
-
-This activity is part of the CRM Olympus API application (GitHub repository: 160970.crm-olympus.crm-olympus-api).
-
-We have performed a migration from HTTP to HTTPS across all endpoints as part of the security enhancement and infrastructure compliance.
-There are no functional or code-level changes — only protocol updates to use HTTPS.
-
-Please check if your team or any of your processes are using the below CRM Olympus API endpoints and help validate them in UAT:
+Application: CRM Olympus
+High-Level Tasks / Enhancements:
+	1.	Containerization and OCP migration for CRM application.
+	2.	Onboard Kafka credentials and configurations to NGS service.
+	3.	Code coverage improvement using JUnit.
+	4.	Schedule job configuration in OCP for Auto-Start and Auto-Stop.
