@@ -1,298 +1,35 @@
-@Component
-public class BulkRetryScheduler {
+# ========= Base Python image (replace with Citi-approved base later) =========
+FROM <PYTHON_BASE_IMAGE_FROM_INFRA>
 
-    @Autowired
-    private JdbcTemplate jdbcTemplate;
+# --------- Basic paths ---------
+ENV APP_HOME=/opt/olympus-sb-user-consumption
+WORKDIR ${APP_HOME}
 
-    @Autowired
-    RestTemplateService restTemplateService;
+# --------- Optional: Artifactory pip config (only if you have pip.conf) ------
+# If you don't have pip.conf, you can delete the next two lines.
+COPY pip.conf /etc/pip.conf
+ENV PIP_TRUSTED_HOST=www.artifactoryrepository.citigroup.net
 
-    @Value("${bulkapiconfig.rateLimit}")
-    private double rateLimit;
+# --------- Install Python dependencies ---------------------------------------
+COPY requirements.txt .
+RUN python -m venv /opt/venv && \
+    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+ENV PATH="/opt/venv/bin:${PATH}"
 
-    private RateLimiter rateLimiter;
+# Make sure Python can import "scripts.*"
+ENV PYTHONPATH="${APP_HOME}:${PYTHONPATH}"
 
-    private static final Logger LOG = LoggerFactory.getLogger(BulkRetryScheduler.class);
+# --------- Copy application code & config ------------------------------------
+# This will copy:
+# - scripts/gen_user_consumption.py
+# - scripts/config/constants.json
+# - scripts/config/gen_user_consumption.json
+# - any other modules
+COPY . .
 
-    private String HEALTH_CHECK_URL = "https://olympus.api.bulk.uat.cloudgsl.nam.nsroot.net/olympus/service/health";
+# Create folders used by the job (logs, data, tmp)
+RUN mkdir -p ${APP_HOME}/logs ${APP_HOME}/data ${APP_HOME}/tmp
 
-    private final RestTemplate restTemplate = new RestTemplate();
-
-    @PostConstruct
-    public void initRateLimiter() {
-        this.rateLimiter = RateLimiter.create(rateLimit);
-        LOG.info("RateLimiter initialized with rate = " + rateLimit + " requests/second");
-    }
-
-    @Scheduled(fixedRate = 30000) // every 30 seconds
-    public void processFailedRequests() {
-        String sql = "SELECT * FROM OM_NURAFLOW_AUDIT_DATA WHERE STATUS = 'FAILED'";
-        List<Map<String, Object>> failedRecords = jdbcTemplate.queryForList(sql);
-
-        for (Map<String, Object> row : failedRecords) {
-            try {
-                ResponseEntity<String> healthResponse = restTemplate.getForEntity(HEALTH_CHECK_URL, String.class);
-                if (healthResponse.getStatusCode() == HttpStatus.OK) {
-                    LOG.info("Bulk API Status is UP");
-
-                    Long id = ((Number) row.get("ID")).longValue();
-                    String payload = (String) row.get("REQUEST_PAYLOAD");
-                    String url = (String) row.get("API_ENDPOINT");
-                    String headers = (String) row.get("HEADERS");
-
-                    Map<String, String> headersMap = Arrays.stream(headers.replaceAll("[{}]", "").split(","))
-                        .map(s -> s.split("=", 2))
-                        .filter(arr -> arr.length == 2)
-                        .collect(Collectors.toMap(
-                            arr -> arr[0].trim(),
-                            arr -> arr[1].trim()
-                        ));
-
-                    rateLimiter.acquire();
-                    LOG.info("Permit acquired. Sending request...");
-
-                    ResponseEntity<String> response = restTemplateService.sendRequest(
-                        url, HttpMethod.POST, payload, headersMap);
-
-                    if (response.getStatusCode() == HttpStatus.OK) {
-                        updateStatus(id, "SUCCESS", response.getBody());
-                        LOG.info("Updated record " + id + " as SUCCESS");
-                    } else {
-                        LOG.error("Record " + id + " failed with response: " + response.getStatusCode());
-                    }
-                } else {
-                    LOG.info("Health check failed. Skipping processing.");
-                }
-            } catch (Exception ex) {
-                ex.printStackTrace();
-            }
-        }
-    }
-
-    private void updateStatus(Long id, String newStatus, String responseBody) {
-        String updateSql = "UPDATE OM_NURAFLOW_AUDIT_DATA SET STATUS = ?, RESPONSE_PAYLOAD = ? WHERE ID = ?";
-        jdbcTemplate.update(updateSql, newStatus, responseBody, id);
-    }
-}
-
-
-
-
-
-----------------------------------------------------------------------------------------------------------
-
-
-
-
-
-
-
-private final RowMapper<RequestPayload> requestRowMapper = (rs, rowNum) -> {
-    RequestPayload payload = new RequestPayload();
-    payload.setId(rs.getLong("ID"));
-    payload.setPayload(rs.getString("REQUEST_PAYLOAD"));
-    payload.setApiEndpoint(rs.getString("API_ENDPOINT"));
-    payload.setHeaders(rs.getString("HEADERS"));
-    return payload;
-};
-
-class RequestPayload {
-    private Long id;
-    private String payload;
-    private String apiEndpoint;
-    private String headers;
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getPayload() { return payload; }
-    public void setPayload(String payload) { this.payload = payload; }
-
-    public String getApiEndpoint() { return apiEndpoint; }
-    public void setApiEndpoint(String apiEndpoint) { this.apiEndpoint = apiEndpoint; }
-
-    public String getHeaders() { return headers; }
-    public void setHeaders(String headers) { this.headers = headers; }
-}
-
-
-<dependency>
-  <groupId>io.github.resilience4j</groupId>
-  <artifactId>resilience4j-ratelimiter</artifactId>
-  <version>2.0.2</version>
-</dependency>
-
-
-Map<String, String> headersMap = Arrays.stream(headers.replaceAll("[{}]", "").split(","))
-    .map(s -> s.split("=", 2))
-    .filter(arr -> arr.length == 2)
-    .collect(Collectors.toMap(
-        arr -> arr[0].trim(),
-        arr -> arr[1].trim()
-    ));
-
-
-
-POC Document: BulkRetryScheduler
-1. Objective
-To implement a Spring Scheduler that periodically retries failed bulk API requests by reading from an audit table, performing health checks, applying rate limiting with burst control, and updating the request status upon success.
-2. Requirements
-1.	1. Setup Spring Scheduler to run the process periodically (e.g., every 30 seconds).
-2.	2. Check Spark YAML health endpoint before retrying failed records.
-3.	3. If healthy, retry failed requests from the OM_NURAFLOW_AUDIT_DATA table.
-4.	4. Send each request to the Bulk API with appropriate headers and payload.
-5.	5. Update the status (SUCCESS/FAILED) and response in the audit table.
-6.	6. Apply rate limiting and burst control using Guava's RateLimiter.
-3. Components Involved
-Component	Description
-BulkRetryScheduler	Spring component with @Scheduled task
-JdbcTemplate	Used to query and update the Oracle audit table
-RestTemplateService	Sends POST requests to Bulk API
-RateLimiter	Controls throughput and prevents burst overload
-application-dev.yml	Stores API URL and rateLimit property
-4. Configuration Example (application-dev.yml)
-bulkapiconfig:
-  url: https://olympus.api.bulk.uat.cloudgsl.nam.nsroot.net/v2/olympus/service/bulkapi/executeSQLQuery
-  dataSource: SPARKYAML
-  rateLimit: 5.0
-5. Key Code Snippets
-@Scheduled Scheduler Setup
-@Scheduled(fixedRate = 30000)
-public void processFailedRequests() {
-    // Executes every 30 seconds
-}
-Health Check Logic
-ResponseEntity<String> healthResponse = restTemplate.getForEntity(HEALTH_CHECK_URL, String.class);
-if (healthResponse.getStatusCode() != HttpStatus.OK) {
-    LOG.info("❌ Spark Health Check Failed. Skipping...");
-    return;
-}
-Read Failed Records from Oracle
-String sql = "SELECT * FROM OM_NURAFLOW_AUDIT_DATA WHERE STATUS = 'FAILED'";
-List<Map<String, Object>> failedRecords = jdbcTemplate.queryForList(sql);
-RateLimiter Setup and Control
-@PostConstruct
-public void initRateLimiter() {
-    this.rateLimiter = RateLimiter.create(rateLimit);
-}
-Acquire Permit
-rateLimiter.acquire();  // waits for permit
-Headers Map Builder
-Map<String, String> headersMap = Arrays.stream(headers.replaceAll("[{}]", "").split(","))
-    .map(s -> s.split("=", 2))
-    .filter(arr -> arr.length == 2)
-    .collect(Collectors.toMap(arr -> arr[0].trim(), arr -> arr[1].trim()));
-Send Retry Request
-ResponseEntity<String> response = restTemplateService.sendRequest(url, HttpMethod.POST, payload, headersMap);
-Update Audit Table After Success
-private void updateStatus(Long id, String newStatus, String responseBody) {
-    String updateSql = "UPDATE OM_NURAFLOW_AUDIT_DATA SET STATUS = ?, RESPONSE_PAYLOAD = ? WHERE ID = ?";
-    jdbcTemplate.update(updateSql, newStatus, responseBody, id);
-}
-6. Logs for Monitoring
-LOG.info("row=" + row);
-LOG.info("Bulk API Status is UP");
-LOG.info("payload=" + payload);
-LOG.info("Permit acquired. Sending request...");
-LOG.info("Updated record " + id + " as SUCCESS");
-7. Benefits
-•	✅ Automated retries
-•	✅ Audit tracking and updates
-•	✅ No overwhelming downstream API (rate limited)
-•	✅ Easily configurable
-•	✅ Logs for debugging
-
-
-    --------------------------------------------
-
-
-    public class AuditTableConstants {
-    public static final String ID = "ID";
-    public static final String REQUEST_PAYLOAD = "REQUEST_PAYLOAD";
-    public static final String GLOBAL_TRANSACTION_ID = "GLOBAL_TRANSACTION_ID";
-    public static final String HEADERS = "HEADERS";
-}
-
-
-import static com.citi.olympus.nura.api.constants.AuditTableConstants.*;
-
-...
-
-String id = resultSet.getString(ID); // Line 80
-Clob requestPayloadClob = resultSet.getClob(REQUEST_PAYLOAD); // Line 81
-String globalTransactionId = resultSet.getString(GLOBAL_TRANSACTION_ID); // Line 82
-Clob headersClob = resultSet.getClob(HEADERS); // Line 83
------------------------------------------------------------------------
-else if (response.getStatusCode() == HttpStatus.INTERNAL_SERVER_ERROR ||
-         response.getStatusCode() == HttpStatus.NOT_FOUND) {
-    LOG.warn("Retryable error occurred: " + response.getStatusCode() + ". Retrying...");
-    // do nothing here — loop will retry
-} else {
-    LOG.error("Non-retryable error for record " + id + " with status: " + response.getStatusCode());
-    break;
-}
-------------------------------------------------------
-
-    private String clobToString(Clob clob) {
-    try (Reader reader = clob.getCharacterStream()) {
-        StringBuilder sb = new StringBuilder();
-        char[] buffer = new char[2048];
-        int bytesRead;
-        while ((bytesRead = reader.read(buffer)) != -1) {
-            sb.append(buffer, 0, bytesRead);
-        }
-        return sb.toString();
-    } catch (Exception e) {
-        throw new RuntimeException("Error converting CLOB to String", e);
-    }
-}
-
-
-
---------------------------------------------------
-    @Test
-void testProcessFailedRequests_updatesStatusWithTimestamp() {
-    // Arrange
-    Map<String, Object> row = new HashMap<>();
-    row.put("ID", 1L);
-    row.put("REQUEST_PAYLOAD", "{\"key\":\"value\"}");
-    row.put("API_ENDPOINT", "http://dummy-endpoint.com");
-    row.put("HEADERS", "Content-Type: application/json");
-
-    List<Map<String, Object>> failedRecords = Collections.singletonList(row);
-
-    // Health check returns 200 OK
-    ResponseEntity<String> healthCheckResponse = new ResponseEntity<>("OK", HttpStatus.OK);
-    when(restTemplate.getForEntity(eq("https://dummy-url.com/health"), eq(String.class)))
-        .thenReturn(healthCheckResponse);
-
-    // Failed records from DB
-    when(jdbcTemplate.queryForList(anyString())).thenReturn(failedRecords);
-
-    // Allow permit for rate limiter
-    when(rateLimiter.acquire()).thenReturn(1.0);
-
-    // Mock API response with HTTP 200 OK
-    ResponseEntity<String> apiResponse = new ResponseEntity<>("Success Body", HttpStatus.OK);
-    when(restTemplateService.sendRequest(
-            eq("http://dummy-endpoint.com"),
-            eq(HttpMethod.POST),
-            eq("{\"key\":\"value\"}"),
-            anyMap()))
-        .thenReturn(apiResponse);
-
-    when(jdbcTemplate.update(anyString(), anyString(), anyString(), anyLong())).thenReturn(1);
-
-    // Act
-    scheduler.processFailedRequests();
-
-    // Assert
-    verify(jdbcTemplate).update(
-        eq(NuraQueryConstants.UPDATE_AUDIT_QUERY_WITH_TIMESTAMP),
-        eq("SUCCESS"),
-        eq("Success Body"),
-        eq(1L)
-    );
-}
-
-
+# --------- Entry point: run the main process ---------------------------------
+# We call it as a module so imports like "from scripts.xxx import ..." work.
+CMD ["python", "-m", "scripts.gen_user_consumption"]
