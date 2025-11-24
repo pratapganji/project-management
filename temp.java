@@ -5,4 +5,4 @@ java -cp jasypt-1.9.3.jar \
   org.jasypt.intf.cli.JasyptPBEStringEncryptionCLI \
   input="changeit" \
   password="d7+t6OIhoif3G10hWHXj0VZeo0Nbtsu7NB7MitaUEtw=" \
-  algorithm=PBEWITHHMACSHA512ANDAES_256
+  algorithm=PBEWITHHMACSHA512ANDAES_128
