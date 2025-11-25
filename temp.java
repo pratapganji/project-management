@@ -1,4 +1,4 @@
-https://repo1.maven.org/maven2/org/jasypt/jasypt/3.0.5/jasypt-3.0.5-dist.zip
+https://github.com/ulisesbocchio/jasypt-spring-boot/releases/download/3.0.5/jasypt-3.0.5-dist.zip
 
 
 java -cp jasypt-1.9.3.jar \
