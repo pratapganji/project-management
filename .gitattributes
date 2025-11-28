@@ -1,2 +1,4 @@
-/mvnw text eol=lf
-*.cmd text eol=crlf
+jdbc:oracle:thin:@(DESCRIPTION=
+  (ADDRESS=(PROTOCOL=TCP)(HOST=OLYMDEV_oraas-gt-d096-4)(PORT=1568))
+  (CONNECT_DATA=(SERVICE_NAME=OLYMDEV))
+)
