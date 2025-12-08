@@ -1,28 +1,52 @@
-def read_input_params():
-    parser = argparse.ArgumentParser()
+DEBUG = True
 
-    # env: optional, default from environment variable "env"
-    parser.add_argument(
-        "--env",
-        required=False,
-        default=os.getenv("env") or os.getenv("ENVIRONMENT"),
-        help="Environment to run the script (dev, uat, prod)",
-    )
+try:
+    from .settings import *
+except ImportError as e:
+    raise Exception(f"Failed to import shared settings!! with error: {str(e)}")
 
-    parser.add_argument(
-        "--api_source",
-        required=False,
-        default="rest",          # we just use rest in Openshift
-        help="Environment to run the script (rest, jdbc, bulk)",
-    )
-    parser.add_argument("--from_date", required=False, help="Start date [yyyy-mm-dd]")
-    parser.add_argument("--to_date",   required=False, help="To date [yyyy-mm-dd]")
+import django.conf as conf
+import os
+from subprocess import PIPE, run
 
-    args = vars(parser.parse_args())
+# ------------------------------------------------------------
+# 1. CyberArk / NGC Secret Configuration
+# ------------------------------------------------------------
 
-    env = args["env"]
-    api_source = args["api_source"]
-    from_date = args["from_date"]
-    to_date = args["to_date"]
+# CSI ID from CMP (Olympus application CSI)
+CSI_ID = "167969"
 
-    return env, from_date, to_date, datetime.date.today().strftime("%Y-%m-%d"), api_source
+# Secret nickname injected by Helm (from dev-namicggtd41d-values.yaml)
+SECRET_NICKNAME = os.environ.get("SecretNickName")
+if not SECRET_NICKNAME:
+    raise Exception("Environment variable 'SecretNickName' is not set. "
+                    "Ensure Helm values have SecretNickName: olympus_sbuc_db_password")
+
+# ------------------------------------------------------------
+# 2. Fetch secret from CyberArk (FID DB password)
+# ------------------------------------------------------------
+
+cmd = f"fngp getSecret --SecretNickName={SECRET_NICKNAME} --csiid={CSI_ID}"
+process = run(cmd, stdout=PIPE, stderr=PIPE, shell=True, text=True)
+
+stdout_msg = process.stdout.strip()
+stderr_msg = process.stderr.strip()
+
+print(f"[NGC] stdout: {stdout_msg!r}")
+print(f"[NGC] stderr: {stderr_msg!r}")
+
+if process.returncode != 0 or "failed" in stderr_msg.lower():
+    raise Exception(f"Failed to fetch DB password from CyberArk. Details: {stderr_msg}")
+
+DB_PASSWORD = stdout_msg  # final password from CyberArk
+
+# ------------------------------------------------------------
+# 3. Put values into Django CONFIG so other modules can access
+# ------------------------------------------------------------
+
+conf.settings.CONFIG.update({
+    "env": "dev",
+    "db_pass": DB_PASSWORD,   # this is what gen_user_consumption.py will use
+})
+
+print("[NGC] Secret successfully loaded into CONFIG['db_pass']")
