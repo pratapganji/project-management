@@ -1,54 +1,33 @@
-// ---- Base URLs ----
-final String WIP_BASE = "https://olympus.api.crmtoolympusnew.uat.cloudgs1.nam.nsroot.net:443";
-final String APIGEE_BASE = "https://uat.isg.icgservices.citigroup.net/isg/internal/crm/olympus";
+from data import settings_dev as conf  # make sure this import is at the top of the file
+# (add it near your other imports if not already there)
 
-// ---- Endpoints & Body Mapping ----
-Map<String, Object> endpoints = new HashMap<>();
-endpoints.put("/publish/data/clientmeeting", clientMeetingbyte);
-endpoints.put("/publish/data/callreport", callReportbyte);
-endpoints.put("/publish/data/clientactionitem", actionItembyte);
-endpoints.put("/publish/details/client/productivitymetrics", productivityMetricsbyte);
+def get_db_details_impala(db_conf, env):
+    """
+    Build Impala/Starburst connection details.
 
-// ---- Create WebClient ----
-WebClient webClient = WebClient.builder()
-        .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_OCTET_STREAM_VALUE)
-        .filter((request, next) -> {
-            System.out.println("→ REQUEST " + request.method() + " " + request.url());
-            return next.exchange(request).doOnNext(resp ->
-                    System.out.println("← RESPONSE " + resp.statusCode()));
-        })
-        .build();
+    DB password is fetched in data/settings_dev.py from CyberArk/NGC
+    and stored in conf.settings.CONFIG["db_pass"].
+    """
+    base_path = os.path.join(os.environ["HOME"], ".schema_browser/config/")
+    api_env = "prod" if env in ["prod", "cob", "sb_prod", "sb_cob"] else env.split("_")[-1]
 
-// ---- Loop through all endpoints ----
-for (Map.Entry<String, Object> entry : endpoints.entrySet()) {
-    String path = entry.getKey();
-    Object body = entry.getValue();
+    db_password = conf.settings.CONFIG.get("db_pass")
+    if not db_password:
+        raise Exception(
+            "DB password not found in settings.CONFIG['db_pass']. "
+            "Check NGC secret fetch in data/settings_dev.py"
+        )
 
-    // Skip null bodies (if any endpoint byte array is not initialized)
-    if (body == null) {
-        System.out.println("Skipping endpoint " + path + " (no payload)");
-        continue;
+    return {
+        "properties": {
+            "username": db_conf.get("UID"),
+            "password": db_password,
+            "ENV": api_env,          # hard coding for copying prod data into uat
+            "datasource": "STARBURST",
+            "upperCaseColumns": "",
+            "queryTimeout": "3000",
+        },
+        "classname": "net.citi.olympus.jdbc.driver.OlympusDriver",
+        "url": "jdbc:olympus",
+        "jarfile": os.path.join(base_path, "olympus-jdbc-driver-2.0.10.jar"),
     }
-
-    // Print CAP verification info for each endpoint
-    System.out.println("=====================================================");
-    System.out.println("CAP VERIFICATION (UAT) - APIGEE & TARGET (WIP) HTTPS");
-    System.out.println("APIGEE Base URL        : " + APIGEE_BASE);
-    System.out.println("Target Server (WIP) URL: " + WIP_BASE);
-    System.out.println("Final Endpoint (Apigee): " + APIGEE_BASE + path);
-    System.out.println("=====================================================");
-
-    // Send the request
-    Mono<String> responseMono = webClient.post()
-            .uri(APIGEE_BASE + path)
-            .bodyValue(body)
-            .retrieve()
-            .bodyToMono(String.class)
-            .doOnNext(respBody -> System.out.println("Response Body: " + respBody));
-
-    // Block sequentially for each call
-    String response = responseMono.block();
-    System.out.println("Response for " + path + ": " + response);
-    System.out.println("End of WebClient for " + path);
-    System.out.println();
-}
