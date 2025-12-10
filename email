@@ -1,1 +1,11 @@
-The globalTransactionId variable must be refactored from a class-level variable to a thread-safe implementation to prevent race conditions. Each thread should maintain an isolated instance, ensuring correct ID association between request and response logs. Audit logging must update the proper record in the database, maintaining accuracy, consistency, and full traceability across concurrent executions.
+I would like to request deletion of the managed secret olympus_sbuc_db_password, which was created last week.
+Yesterday, I had requested an additional CSI ID to be added to this secret so it could be accessed from another application CSI.
+
+However, after further review with my lead, we need to create this credential as an unmanaged secret instead of a managed one.
+Therefore, I kindly request your assistance in removing/offboarding the existing managed secret, so that I can recreate it correctly as an unmanaged secret.
+
+Please let me know if you require any further approval or information.
+
+Thank you very much for your support.
+
+Regards,
