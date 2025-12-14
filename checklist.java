@@ -9,21 +9,28 @@ get_secret () {
 
   while [ "$retries" -lt "$max_retries" ]; do
     RAW_OUTPUT=$(ngc getSecret --secretNickname "$nick" --csiid "$CSIID" 2>&1)
+    rc=$?
+
+    if [ "$rc" -ne 0 ]; then
+      echo "ngc getSecret failed (rc=$rc) for nickname=$nick" >&2
+      echo "$RAW_OUTPUT" >&2
+      retries=$((retries+1))
+      echo "Retry $retries/$max_retries failed for nickname=$nick" >&2
+      sleep 10
+      continue
+    fi
 
     # take last non-empty line, trim CR + whitespace
     SA_CALL_SECRET=$(echo "$RAW_OUTPUT" | sed '/^[[:space:]]*$/d' | tail -n 1 | tr -d '\r' | xargs)
 
     if [ -n "$SA_CALL_SECRET" ]; then
-      # IMPORTANT:
-      # - log to stderr so it doesn't pollute command-substitution output
-      # - print ONLY the secret to stdout
       echo "Secret retrieved successfully for nickname=$nick" >&2
-      printf '%s' "$SA_CALL_SECRET"
+      printf "%s" "$SA_CALL_SECRET"
       return 0
     fi
 
     retries=$((retries+1))
-    echo "Retry $retries/$max_retries failed for nickname=$nick" >&2
+    echo "Retry $retries/$max_retries returned empty secret for nickname=$nick" >&2
     sleep 10
   done
 
@@ -42,16 +49,16 @@ if [ -z "$SecretNickName" ]; then
   exit 1
 fi
 
-# 1) Fetch ORAAS / Oracle secret
+# 1) Fetch ORAAS/Oracle secret (required)
 ORAAS_SECRET=$(get_secret "$SecretNickName") || exit 1
 export SECRET_NICK_NAME="$ORAAS_SECRET"
-echo "Exported: SECRET_NICK_NAME (length=${#SECRET_NICK_NAME})" >&2
+echo "Exported: SECRET_NICK_NAME (length=$(printf "%s" "$SECRET_NICK_NAME" | wc -c))" >&2
 
-# 2) Fetch Impala secret ONLY if nickname is provided
+# 2) Fetch Impala secret ONLY if nickname is provided (optional)
 if [ -n "$SecretImpalaNickName" ]; then
   IMPALA_SECRET=$(get_secret "$SecretImpalaNickName") || exit 1
   export SECRET_IMPALA_NICK_NAME="$IMPALA_SECRET"
-  echo "Exported: SECRET_IMPALA_NICK_NAME (length=${#SECRET_IMPALA_NICK_NAME})" >&2
+  echo "Exported: SECRET_IMPALA_NICK_NAME (length=$(printf "%s" "$SECRET_IMPALA_NICK_NAME" | wc -c))" >&2
 else
-  echo "SecretImpalaNickName not set -> skipping IMPALA secret fetch" >&2
+  echo "Skipping Impala secret fetch (SecretImpalaNickName is empty)" >&2
 fi
