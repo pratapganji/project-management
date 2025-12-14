@@ -1,24 +1,28 @@
-CRM (HTTP) -> VIP - 2 (local COB/Actual prod) -> WIP
+def get_db_details_impala(db_conf, env):
+    home_dir = os.environ["HOME"]
+    base_path = os.path.join(os.environ["HOME"], ".schema_browser/config/")
+    api_env = "prod" if env in ["prod", "cob", "sb_prod", "sb_cob"] else env.split("_")[-1]
 
-crm.xyz.net
+    # This should be the decrypted password exported by fetch_secret.sh
+    impala_password = os.getenv("SECRET_IMPALA_NICK_NAME")
 
-APIGEE -> WIP of PROD / WIP of COB
+    # If Impala is NOT being used, don't treat it as an error.
+    if not impala_password:
+        log.info("SECRET_IMPALA_NICK_NAME not set. Skipping Impala JDBC configuration.")
+        return None
 
-
-CAS system - WIP is an endpoint (URI), VIP is an endpoint (URI)
-
-WIP of prod - > VIP of VM - PROD server
-WIP of COB - > VIP of VM - COB server
-
-
-Existing:
-APIGEE -> WIP of prod (http) -> VIP of prod (http) -> VM server code
-       -> WIP of COB (http) -> VIP of cob (http) -> VM server code
-	   
-Needs to be done:
-APIGEE -> WIP of prod (https) -> VIP of prod (https) -> VM server code (context path change)
-
-How do we do:
-Exitsing code -> https changes (feature branch) -> release branch -> commit -> build number -> Udeploy - existing DEV VM
-																									   - existing UAT VM
-																									   - NEW VM - PROD
+    return {
+        "properties": {
+            # UID is your username/FID
+            "username": db_conf.get("UID"),
+            # Password must come from the secret (not UID)
+            "password": impala_password,
+            "ENV": api_env,
+            "datasource": "STARBURST",
+            "upperCaseColumns": "",
+            "queryTimeout": "3000",
+        },
+        "classname": "net.citi.olympus.jdbc.driver.OlympusDriver",
+        "url": "jdbc:olympus",
+        "jarFile": os.path.join(base_path, "olympus-jdbc-driver-2.0.10.jar"),
+    }
