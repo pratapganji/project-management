@@ -1,33 +1,51 @@
-Header parsing & rate limiting
-	•	Logs show headers parsed without exception.
-	•	“Permit acquired” appears before each outbound POST (rate limiter active).
-	•	No throttling/back‑pressure errors.
+#!/usr/bin/env sh
+echo "fetch secret script is going to execute!.........."
 
-Stability & metrics (first 30–60 min)
-	•	Pod restarts = 0.
-	•	CPU/Memory within normal envelope.
-	•	Error rate near baseline; health‑check failures = 0.
+max_retries=5
 
-Documentation & handover
-	•	Record: artifact tag, namespace, Helm values, timestamp, validation SQL/IDs, outcomes.
-	•	Update runbook with:
-	•	Health check URL pattern (built from API_ENDPOINT domain + /olympus/service/health).
-	•	How to pause (scale replicas to 0) and resume.
-	•	Rollback steps.
+get_secret () {
+  nick="$1"
+  retries=0
 
-Rollback triggers (execute if any hit)
-	•	Persistent PKIX/DNS/5xx bursts or DB pool exhaustion.
-	•	Rapid growth of FAILED with identical client error across many rows.
-	•	Unexpected load on Bulk API beyond agreed QPS.
+  while [ "$retries" -lt "$max_retries" ]; do
+    RAW_OUTPUT=$(ngc getSecret --secretNickname "$nick" --csiid "$CSIID" 2>&1)
 
-Rollback steps
-	•	Use Harness → Executions → select previous green → Rollback/Deploy Previous Artifact.
-	•	Confirm pod healthy, repeat quick validation.
+    SA_CALL_SECRET=$(echo "$RAW_OUTPUT" | sed '/^[[:space:]]*$/d' | tail -n 1 | tr -d '\r' | xargs)
 
-⸻
+    if [ -n "$SA_CALL_SECRET" ]; then
+      echo "Secret retrieved successfully for nickname=$nick"
+      echo "$SA_CALL_SECRET"
+      return 0
+    fi
 
-Notes tailored to this scheduler
-	•	The scheduler reads API_ENDPOINT, REQUEST_PAYLOAD, and HEADERS from OM_NURAFLOW_AUDIT_DATA.
-	•	It extracts the domain from API_ENDPOINT, appends HEALTH_CHECK_ENDPOINT (/olympus/service/health), and only retries when HTTP 200 is returned.
-	•	Outbound POST is executed through RestTemplateService.sendRequest(...) with the parsed headers.
-	•	rateLimit and burstTime enforce QPS and short spikes to remain within Bulk API SLOs.
+    retries=$((retries+1))
+    echo "Retry $retries/$max_retries failed for nickname=$nick"
+    sleep 10
+  done
+
+  echo "ERROR: Max retries reached for nickname=$nick"
+  return 1
+}
+
+# --- validate required inputs ---
+if [ -z "$CSIID" ]; then
+  echo "ERROR: CSIID is empty"
+  exit 1
+fi
+
+if [ -z "$SecretNickName" ]; then
+  echo "ERROR: SecretNickName is empty"
+  exit 1
+fi
+
+# 1) Fetch ORAAS/Oracle secret
+ORAAS_SECRET=$(get_secret "$SecretNickName") || exit 1
+export SECRET_NICK_NAME="$ORAAS_SECRET"
+
+# 2) Fetch Impala secret ONLY if nickname is provided
+if [ -n "$SecretImpalaNickName" ]; then
+  IMPALA_SECRET=$(get_secret "$SecretImpalaNickName") || exit 1
+  export SECRET_IMPALA_NICK_NAME="$IMPALA_SECRET"
+fi
+
+echo "Secrets exported: SECRET_NICK_NAME set, SECRET_IMPALA_NICK_NAME set=$( [ -n "$SECRET_IMPALA_NICK_NAME" ] && echo yes || echo no )"
