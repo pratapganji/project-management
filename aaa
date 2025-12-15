@@ -1,20 +1,23 @@
-#!/bin/sh
+#!/bin/bash
+set -e
 
-# Assign the environment variable (from Jenkins parameter)
-ENV_NAME="${p:environment.name}"
+cd /etc/pki/ca-trust/extracted/java
 
-# Define base paths
-SOURCE_BASE="common"
-DESTINATION="/data/1/gfolybkb/bin/CRM_Olympus_Config/config"
+src=$1
 
-# Conditional logic based on environment
-if [ "$ENV_NAME" = "DEV" ]; then
-    echo "Environment is DEV. Copying DEV cacert.jks..."
-    cp "$SOURCE_BASE/DEV/cacert.jks" "$DESTINATION/"
-elif [ "$ENV_NAME" = "UAT" ]; then
-    echo "Environment is UAT. Copying UAT cacert.jks..."
-    cp "$SOURCE_BASE/UAT/cacert.jks" "$DESTINATION/"
-else
-    echo "Unknown environment: $ENV_NAME"
-    exit 1
-fi
+# Oracle client libs (keep this from old script)
+export LD_LIBRARY_PATH="${LD_LIBRARY_PATH}:${HOME}/oracle/orahome"
+
+# Environment used by python code
+export env=dev
+
+# venv
+source /home/eqcdrpt/venv_consumption/bin/activate
+
+# Fetch secret + export SECRET_NICK_NAME in SAME shell
+source "${HOME}/citidigital/cd_user_consumption/bin/fetch_secret.sh"
+
+# Run the job
+python3 "${HOME}/citidigital/cd_user_consumption/bin/gen_user_consumption.py" \
+  --env dev \
+  --api_source "$src"
