@@ -1,11 +1,231 @@
-I would like to request deletion of the managed secret olympus_sbuc_db_password, which was created last week.
-Yesterday, I had requested an additional CSI ID to be added to this secret so it could be accessed from another application CSI.
+1. Overview
 
-However, after further review with my lead, we need to create this credential as an unmanaged secret instead of a managed one.
-Therefore, I kindly request your assistance in removing/offboarding the existing managed secret, so that I can recreate it correctly as an unmanaged secret.
+Purpose
+This document describes the migration of the SB User Consumption application from a standalone on-prem Linux deployment to a Docker-based OpenShift Container Platform (OCP). The migration improves scalability, security compliance, observability, and operational consistency.
 
-Please let me know if you require any further approval or information.
+Scope
+	•	Application Name: 176352.olympus-data.olympus-sb-user-consumption
+	•	Repository: <internal GitHub link>
+	•	Migration Type: On-prem → OpenShift (OCP)
+	•	Environments: Dev / QA / Prod
 
-Thank you very much for your support.
+⸻
 
-Regards,
+1.1 Migration Drivers
+	•	Legacy deployment tightly coupled to host machines
+	•	Secrets managed via ICP/CPP on servers (not cloud compatible)
+	•	No container standardization
+	•	Limited scalability and monitoring
+	•	Cloud migration mandate for Citi Digital workloads
+2. Application Details
+Item
+Description
+Application Type
+Batch / Scheduled Python Job
+Technology
+Python
+Python Version
+3.8+
+Runtime
+Docker (UBI base image)
+Deployment
+OpenShift
+Trigger
+CronJob / Manual
+Ports
+N/A (non-HTTP workload)
+3. Pre-Migration Architecture (Before OCP)
+
+3.1 Deployment Model
+	•	Application ran on on-prem Linux servers
+	•	Python virtual environment (venv)
+	•	Environment variables injected via shell scripts
+	•	Database credentials handled via ICP-based encryption/decryption
+	•	Logging written to local files
+
+3.2 Limitations
+	•	Host-dependent configuration
+	•	Manual scaling
+	•	No standardized secrets management
+	•	No centralized monitoring
+
+⸻
+
+4. Target Architecture (OCP)
+
+4.1 OpenShift Components Used
+	•	Namespace / Project
+	•	Deployment / CronJob
+	•	ConfigMap
+	•	Secret (NGC / CyberArk)
+	•	ImageStream
+	•	BuildConfig / Tekton (if applicable)
+
+4.2 Architecture Overview
+	•	Application runs as containerized workload
+	•	Secrets injected at runtime
+	•	Logs streamed to stdout
+	•	Resource usage controlled via quotas
+	•	Fully cloud-compliant
+
+⸻
+
+5. Containerization Details
+
+5.1 Dockerfile Overview
+
+Key design decisions:
+	•	Base image: ubi8/python-38 (Citi approved)
+	•	Non-root execution
+	•	Minimal attack surface
+	•	Dependencies installed via pip
+FROM registry.access.redhat.com/ubi8/python-38
+WORKDIR /app
+COPY requirements.txt .
+RUN pip install -r requirements.txt
+COPY . .
+USER 1001
+CMD ["python", "main.py"]
+For Java: use ubi8/openjdk-17 and ENTRYPOINT ["java","-jar","app.jar"]
+6. Configuration Management
+
+6.1 Environment Variables
+Variable
+Source
+ENV
+Deployment YAML
+DB_HOST
+ConfigMap
+DB_USER
+Secret
+DB_PASSWORD
+Secret (NGC)
+6.2 ConfigMaps
+	•	Application configs
+	•	Environment-specific parameters
+	•	Non-sensitive values only
+
+6.3 Secrets
+	•	Managed via NGC / CyberArk
+	•	Injected as env vars
+	•	No secrets in code or images
+
+⸻
+
+7. Deployment Process
+
+7.1 Build & Deploy Steps
+	1.	Build container image
+	2.	Push to internal registry
+	3.	Apply OpenShift manifests
+	4.	Verify pod startup
+	5.	Validate logs
+
+7.2 Commands
+oc apply -f deployment.yaml
+oc rollout status deployment/sb-user-consumption
+8. Application Startup & Runtime Behavior
+	•	Entry point executed on pod startup
+	•	Health checks (if applicable)
+	•	Logs written to stdout/stderr
+	•	No local file logging
+
+⸻
+
+9. Networking & Access
+	•	No external exposure
+	•	Internal DB access via approved routes
+	•	TLS handled at platform level
+
+⸻
+
+10. Monitoring & Logging
+	•	Logs available via oc logs
+	•	Integrated with centralized logging
+	•	Resource usage tracked via OCP metrics
+
+⸻
+
+11. Security Considerations
+	•	Non-root containers
+	•	Image vulnerability scanning
+	•	Secrets never stored in code
+	•	RBAC-based access
+
+⸻
+
+12. Rollback Strategy
+	•	Roll back by redeploying previous image tag
+oc rollout undo deployment/sb-user-consumption
+13. Issues Faced & Resolutions
+Issue
+Resolution
+Env vars not visible
+Used envFrom
+Logs not visible
+Switched to stdout
+Secrets not accessible
+Corrected NGC secret mapping
+DB connection failed
+Updated host and port
+14. Validation & Testing
+	•	Smoke tests
+	•	DB connectivity validation
+	•	Log verification
+	•	Resource usage checks
+
+⸻
+
+15. Lessons Learned & Best Practices
+	•	Always externalize configs
+	•	Use stdout logging
+	•	Avoid host-specific assumptions
+	•	Validate secrets early
+
+⸻
+
+16. References
+	•	OpenShift documentation
+	•	Internal GitHub repo
+	•	Migration guidelines
+
+⸻
+
+3️⃣ Images / Diagrams to Add (Very Important)
+
+Add only these 4 images — don’t overdo it.
+
+🖼️ Image 1: Architecture Diagram (Mandatory)
+
+📍 Section: 4.2 Architecture Diagram
+
+Use draw.io and show:
+CronJob → Pod → DB
+           ↓
+        Secrets (NGC)
+Image 2: Pre vs Post Migration (Optional but powerful)
+
+📍 Section: 3 vs 4
+
+Split diagram:
+	•	Left: On-prem server
+	•	Right: OCP pod
+Image 3: Resource Quotas Screenshot
+
+📍 Section: 10 Monitoring & Logging
+
+Use the screenshot you already have showing:
+	•	CPU limits
+	•	Memory limits
+	•	Pods
+
+This also supports the “10 CPU ≈ 60 cores” explanation
+Image 4: Logs in OpenShift
+
+📍 Section: 8 Runtime Behavior
+
+Screenshot of:
+oc logs <pod>
+
+
+
