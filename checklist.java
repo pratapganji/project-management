@@ -1,64 +1,51 @@
-#!/usr/bin/env sh
-echo "fetch secret script is going to execute!.........." >&2
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+import org.mockito.MockedStatic;
 
-max_retries=5
+import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.*;
 
-get_secret () {
-  nick="$1"
-  retries=0
+@ExtendWith(MockitoExtension.class)
+class SundryManagementServiceImplTest {
 
-  while [ "$retries" -lt "$max_retries" ]; do
-    RAW_OUTPUT=$(ngc getSecret --secretNickname "$nick" --csiid "$CSIID" 2>&1)
-    rc=$?
+    @InjectMocks
+    private SundryManagementServiceImpl sundryManagementService;
 
-    if [ "$rc" -ne 0 ]; then
-      echo "ngc getSecret failed (rc=$rc) for nickname=$nick" >&2
-      echo "$RAW_OUTPUT" >&2
-      retries=$((retries+1))
-      echo "Retry $retries/$max_retries failed for nickname=$nick" >&2
-      sleep 10
-      continue
-    fi
+    @Mock private CatalogueSundryRepository catalogueSundryRepository;
+    @Mock private CatalogueSundryTempRepository catalogueSundryTempRepository;
+    @Mock private SchemaBrowserService schemaBrowserService; // IMPORTANT: interface
+    @Mock private JdbcTemplate jdbcTemplate;
+    @Mock private MultipartFile file;
 
-    # take last non-empty line, trim CR + whitespace
-    SA_CALL_SECRET=$(echo "$RAW_OUTPUT" | sed '/^[[:space:]]*$/d' | tail -n 1 | tr -d '\r' | xargs)
+    @Test
+    void testValidateAndPopulateSundry_InvalidUserId() {
+        // No static mocking needed here because your code returns early on blank userId
+        UploadSundryResponseDTO response =
+                sundryManagementService.validateAndPopulateSundry(file, "JIRA-123", "");
 
-    if [ -n "$SA_CALL_SECRET" ]; then
-      echo "Secret retrieved successfully for nickname=$nick" >&2
-      printf "%s" "$SA_CALL_SECRET"
-      return 0
-    fi
+        assertNotNull(response);
+        assertTrue(response.getErrorMessageList().contains(StaticDataManagementConstants.REQUESTOR_ID_MISSING));
+    }
 
-    retries=$((retries+1))
-    echo "Retry $retries/$max_retries returned empty secret for nickname=$nick" >&2
-    sleep 10
-  done
+    @Test
+    void testValidateAndPopulateSundry_Exception() throws Exception {
+        when(file.isEmpty()).thenReturn(false);
+        when(file.getOriginalFilename()).thenReturn("test.xlsx");
 
-  echo "ERROR: Max retries reached for nickname=$nick" >&2
-  return 1
+        try (MockedStatic<StaticDataUtils> staticDataUtilsMock = mockStatic(StaticDataUtils.class)) {
+            staticDataUtilsMock
+                .when(() -> StaticDataUtils.populateSundryDTO(file))
+                .thenThrow(new RuntimeException("Error"));
+
+            UploadSundryResponseDTO response =
+                    sundryManagementService.validateAndPopulateSundry(file, "JIRA-123", "user123");
+
+            assertNotNull(response);
+            assertTrue(response.getErrorMessageList().get(0).contains("Error processing sundry file"));
+        }
+    }
 }
-
-# --- validate required inputs ---
-if [ -z "$CSIID" ]; then
-  echo "ERROR: CSIID is empty" >&2
-  exit 1
-fi
-
-if [ -z "$SecretNickName" ]; then
-  echo "ERROR: SecretNickName is empty" >&2
-  exit 1
-fi
-
-# 1) Fetch ORAAS/Oracle secret (required)
-ORAAS_SECRET=$(get_secret "$SecretNickName") || exit 1
-export SECRET_NICK_NAME="$ORAAS_SECRET"
-echo "Exported: SECRET_NICK_NAME (length=$(printf "%s" "$SECRET_NICK_NAME" | wc -c))" >&2
-
-# 2) Fetch Impala secret ONLY if nickname is provided (optional)
-if [ -n "$SecretImpalaNickName" ]; then
-  IMPALA_SECRET=$(get_secret "$SecretImpalaNickName") || exit 1
-  export SECRET_IMPALA_NICK_NAME="$IMPALA_SECRET"
-  echo "Exported: SECRET_IMPALA_NICK_NAME (length=$(printf "%s" "$SECRET_IMPALA_NICK_NAME" | wc -c))" >&2
-else
-  echo "Skipping Impala secret fetch (SecretImpalaNickName is empty)" >&2
-fi
