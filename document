@@ -1,1 +1,4 @@
-mv "libs/olympus-jdbc/olympus-jdbc-driver-2.2.0.TH .jar" "libs/olympus-jdbc/olympus-jdbc-driver-2.2.0.TH.jar"
+git add Dockerfile libs/olympus-jdbc/olympus-jdbc-driver-2.2.0.TH.jar
+git status
+git commit -m "Add Olympus JDBC thin jar and copy into image"
+git push
