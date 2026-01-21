@@ -1,2 +1,1 @@
-COPY libs/olympus-jdbc/olympus-jdbc-driver-2.2.0.TH.jar \
-     /home/eqcdrpt/.schema_browser/config/olympus-jdbc-driver-2.2.0.TH.jar
+mv "libs/olympus-jdbc/olympus-jdbc-driver-2.2.0.TH .jar" "libs/olympus-jdbc/olympus-jdbc-driver-2.2.0.TH.jar"
