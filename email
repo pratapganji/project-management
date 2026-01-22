@@ -1,1 +1,4 @@
-grep -n "Truststore\|trustStore\|cacerts\|SSLTrustStore" config/application-dev.properties
+mkdir -p /home/eqcdprt/citidigital/cd_user_consumption/config/uat
+ln -s \
+  /home/eqcdprt/citidigital/cd_user_consumption/config/certs/DEV_cacerts.jks \
+  /home/eqcdprt/citidigital/cd_user_consumption/config/uat/UAT_cacerts.jks
