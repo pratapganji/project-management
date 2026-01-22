@@ -1,10 +1,2 @@
-cd /home/eqcdprt/citidigital/cd_user_consumption
-
-# create expected folder
-mkdir -p config/uat
-
-# option 1: symlink UAT truststore to DEV truststore
-ln -sf ../certs/DEV_cacerts.jks config/uat/UAT_cacerts.jks
-
-# verify
+ls -l config/certs/DEV_cacerts.jks
 ls -l config/uat/UAT_cacerts.jks
