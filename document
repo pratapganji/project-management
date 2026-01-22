@@ -1,1 +1,1 @@
-grep -Rni "Truststore\|trustStore\|cacerts\|SSLTrustStore" config 2>/dev/null
+grep -n "Truststore\|trustStore\|cacerts\|SSLTrustStore" config/application-dev.properties
