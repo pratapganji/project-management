@@ -1,1 +1,1 @@
-grep -Rni '"UID"\|"IPASSWORD"\|"SECRET_IMPALA_NICK_NAME"' /home/eqcdprt/citidigital/cd_user_consumption/config/*.json
+sed -n '1,120p' /home/eqcdprt/citidigital/cd_user_consumption/config/gen_user_consumption.json
