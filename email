@@ -1,2 +1,3 @@
-grep -Rni "gen_user_consumption.json\|constants.json" \
-/home/eqcdrpt/citidigital/cd_user_consumption/bin/gen_user_consumption.py
+echo "UID=$UID"
+echo -n "$IPASSWORD" | wc -c
+echo -n "$IPASSWORD" | tail -c 1 | od -An -t u1
