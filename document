@@ -1,1 +1,1 @@
-select count(*) from SOME_OWNER.OM_CATALOGUE_USER_CONSUMPTION;
+grep -nRi "truststore\|cacerts\|jks\|keystore\|ssl" config/application-dev.properties config 2>/dev/null
