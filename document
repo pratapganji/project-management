@@ -1,5 +1,1 @@
-select grantee, owner, table_name, privilege
-from all_tab_privs
-where owner = 'SOME_OWNER'
-  and table_name = 'OM_CATALOGUE_USER_CONSUMPTION'
-  and grantee in ('A167969OMSBSRC','C167969RPC','A167969RPR');
+select count(*) from SOME_OWNER.OM_CATALOGUE_USER_CONSUMPTION;
