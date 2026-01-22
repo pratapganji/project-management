@@ -1,2 +1,2 @@
-grep -Rni 'IPASSWORD\|SECRET_IMPALA_NICK_NAME\|UID"\|get("UID")\|get("IPASSWORD")' \
-/home/eqcdrpt/citidigital/cd_user_consumption/bin/*.py
+grep -Rni "gen_user_consumption.json\|constants.json" \
+/home/eqcdrpt/citidigital/cd_user_consumption/bin/gen_user_consumption.py
