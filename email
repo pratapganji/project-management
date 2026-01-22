@@ -1,1 +1,1 @@
-sed -n '1,120p' /home/eqcdprt/citidigital/cd_user_consumption/config/gen_user_consumption.json
+ls -lrt /home/eqcdprt/.schema_browser/config
