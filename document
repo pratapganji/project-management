@@ -1,1 +1,1 @@
-"IMPALA_JDBC_URL": "jdbc:impala://icgbigdata-ny-impala-dev.nam.nsroot.net:21050/;ssl=1;AuthMech=3;SSLTrustStore=/home/eqcdprt/citidigital/cd_user_consumption/config/certs/DEV_cacerts.jks;SSLTrustStorePwd=changeit"
+"IMPALA_JDBC_URL" : "jdbc:impala://icgbigdata-ny-impala-dev.nam.nsroot.net:21050/;ssl=1;AuthMech=3;SSLTrustStore=/home/eqcdprt/citidigital/cd_user_consumption/config/certs/DEV_cacerts.jks;SSLTrustStorePwd=changeit;"
