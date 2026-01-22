@@ -1,3 +1,9 @@
-echo "UID=$UID"
-echo -n "$IPASSWORD" | wc -c
-echo -n "$IPASSWORD" | tail -c 1 | od -An -t u1
+python -c "
+import json
+from pathlib import Path
+from bin.gen_user_consumption import get_db_details_impala
+db_conf=json.load(open('/home/eqcdrpt/citidigital/cd_user_consumption/config/gen_user_consumption.json'))['dev']
+print('UID=', db_conf.get('UID'))
+print('IPASSWORD len=', len(db_conf.get('IPASSWORD','')))
+print(get_db_details_impala(db_conf,'dev'))
+"
