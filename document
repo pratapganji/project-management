@@ -1,4 +1,5 @@
-git add Dockerfile libs/olympus-jdbc/olympus-jdbc-driver-2.2.0.TH.jar
-git status
-git commit -m "Add Olympus JDBC thin jar and copy into image"
-git push
+select
+  sys_context('USERENV','DB_NAME') as db_name,
+  sys_context('USERENV','SERVICE_NAME') as service_name,
+  user as session_user
+from dual;
