@@ -1,2 +1,1 @@
-ls -l config/certs/DEV_cacerts.jks
-ls -l config/uat/UAT_cacerts.jks
+test -r config/uat/UAT_cacerts.jks && echo "truststore readable" || echo "truststore NOT readable"
