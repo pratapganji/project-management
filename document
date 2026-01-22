@@ -1,1 +1,1 @@
-grep -n "SSLTrustStore" /home/eqcdprt/citidigital/cd_user_consumption/config/constants.json
+grep -Rni "Truststore\|trustStore\|cacerts\|SSLTrustStore" config 2>/dev/null
