@@ -1,1 +1,36 @@
-Request to apply same Autosys permissions from old job to new jobs (Exit Code 13 / JILIN validation)
+Hello Team,
+
+We are facing an issue with newly created Autosys jobs where they are failing with exit code 13 and JILIN validation failure, while the corresponding old jobs are running successfully on the same machines.
+
+Summary of observation:
+- Old job runs successfully on the server.
+- When the new script is configured in the old job, it runs fine.
+- However, when the same script is run via the new jobs, they fail with exit code 13, which typically indicates a permissions issue.
+
+New Jobs (failing):
+- 167969_OM_CRM_OLYMPUS_API_NEW_SERVER1_STOP / START  
+- 167969_OM_CRM_OLYMPUS_API_NEW_SERVER2_STOP / START  
+- 167969_OM_CRM_OLYMPUS_API_NEW_SERVER3_STOP / START  
+
+Old Job (working):
+- 167969_OM_CRM_OLYMPUS_API_SERVER1_STOP  
+
+Additional details:
+- Machines and agents are reachable and online.
+- Script paths are valid and executable when run via the old job.
+- New jobs currently do not have permissions aligned with the old job.
+- Logs indicate failure consistent with missing or incorrect Autosys job permissions.
+
+Since we do not have Autosys server access to verify or copy permissions, could you please:
+1. Confirm the permission value on the old job, and  
+2. Apply the same Autosys job permissions to all the new jobs listed above,  
+   or advise the correct permission value that should be set in the JIL.
+
+This will allow the new jobs to execute on the server the same way as the existing job.
+
+Please let us know if any additional information is required from our side.
+
+Thank you for your support.
+
+Best regards,  
+Sarswoti
