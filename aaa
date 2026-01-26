@@ -1,1 +1,1 @@
-openssl s_client -connect 10.118.30.76:9094 -servername 10.118.30.76 -showcerts
+keytool -list -v -keystore /path/to/cacerts.jks -storepass <password> -alias DEVELOPMENT | egrep -i "Alias name:|Owner:|Issuer:|Valid from:"
