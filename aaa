@@ -1,1 +1,1 @@
-curl -vk -I http://sd-xz4e-lfwi.nam.nsroot.net:2022/crm_olympus/clientMeetingProtoTemplate
+openssl s_client -connect 10.118.30.76:9094 -servername 10.118.30.76 -showcerts
