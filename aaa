@@ -1,6 +1,3 @@
-cd /data/1/gfolybkb/bin/CRM_Olympus_Config/config
-
-/usr/lib/jvm/java-11-openjdk/bin/keytool \
--list -v \
+/opt/jre/11.0_28164/bin/keytool -list -v \
 -keystore finalcacerts.jks \
--storepass <keystore_password>
+-storepass <changeit>
