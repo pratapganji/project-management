@@ -1,1 +1,1 @@
-keytool -list -v -keystore /path/to/cacerts.jks -storepass <password> -alias DEVELOPMENT | egrep -i "Alias name:|Owner:|Issuer:|Valid from:"
+keytool -list -v -keystore cacerts.jks | egrep -i "Alias name:|Valid from:|Owner:|Issuer:"
