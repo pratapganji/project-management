@@ -1,1 +1,1 @@
-printenv | egrep -i 'JAVA_TOOL_OPTIONS|JAVA_OPTIONS|_JAVA_OPTIONS'
+grep -Rni "truststore\|trustStore\|cacerts" config 2>/dev/null
