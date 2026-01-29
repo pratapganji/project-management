@@ -1,1 +1,1 @@
-grep -Rni "truststore\|trustStore\|cacerts" config 2>/dev/null
+env | egrep -i "FID|PASSWORD|USER|SSO|TOKEN|SECRET"
