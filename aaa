@@ -1,1 +1,24 @@
-env | egrep -i "FID|PASSWORD|USER|SSO|TOKEN|SECRET"
+Subject: RE: Impala connectivity for sb user consumption – UAT
+
+Hi Sajay / Team,
+
+We retried multiple times and the issue is consistent (not intermittent).
+
+SSL and truststore configuration is working correctly now. The application successfully reaches the Olympus gRPC endpoint using olympus-jdbc-driver-2.1.6.jar.
+
+However, the connection is failing during authentication with the following error:
+
+Authentication failure on CitiFed.
+Username or FID/password (SSO) is incorrect.
+
+This occurs after successful SSL handshake and server connection, indicating an authentication/authorization issue for the FID being used.
+
+Could you please help verify:
+	•	Whether the FID sb_olympus_fid_u is enabled for Olympus JDBC access in UAT
+	•	Whether the password/SSO configured for this FID is valid
+	•	Whether this FID is authorized for Starburst/Impala access via the gRPC endpoint
+
+Please let us know if any additional mapping or entitlement is required on the API side.
+
+Thanks,
+Pratap
