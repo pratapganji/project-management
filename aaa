@@ -1,24 +1,28 @@
-Subject: RE: Impala connectivity for sb user consumption – UAT
+Subject: UAT Testing Request – CRM Olympus Autosys Jobs
 
-Hi Sajay / Team,
+Hi Mangesh,
 
-We retried multiple times and the issue is consistent (not intermittent).
+As discussed, we have deployed new Autosys jobs for the CRM Olympus application in the UAT environment.
 
-SSL and truststore configuration is working correctly now. The application successfully reaches the Olympus gRPC endpoint using olympus-jdbc-driver-2.1.6.jar.
+I’ve created a Jira sub-task and assigned it to you for tracking:
+Jira: https://cedt-icg-jira.nam.nsroot.net/jira/browse/C1679695-128406
 
-However, the connection is failing during authentication with the following error:
+Below are the Autosys job details deployed in UAT (QA5):
 
-Authentication failure on CitiFed.
-Username or FID/password (SSO) is incorrect.
+- 167969_OM_CRM_OLYMPUS_API_HTTPS_SERVER1_STOP  
+- 167969_OM_CRM_OLYMPUS_API_HTTPS_SERVER1_START  
+- 167969_OM_CRM_OLYMPUS_API_HTTPS_SERVER2_STOP  
+- 167969_OM_CRM_OLYMPUS_API_HTTPS_SERVER2_START  
+- 167969_OM_CRM_OLYMPUS_API_HTTPS_SERVER3_STOP  
+- 167969_OM_CRM_OLYMPUS_API_HTTPS_SERVER3_START  
 
-This occurs after successful SSL handshake and server connection, indicating an authentication/authorization issue for the FID being used.
+Requesting you to please perform UAT testing for the above jobs.  
+If possible, we are aiming to complete testing within the next 2 days or by this weekend, so that we can plan for production deployment next week.
 
-Could you please help verify:
-	•	Whether the FID sb_olympus_fid_u is enabled for Olympus JDBC access in UAT
-	•	Whether the password/SSO configured for this FID is valid
-	•	Whether this FID is authorized for Starburst/Impala access via the gRPC endpoint
+Please let me know if you need any additional details or support during testing.  
+CC’ing Parmeshwar and Dnyaneshwar for visibility.
 
-Please let us know if any additional mapping or entitlement is required on the API side.
+Thanks in advance for your support.
 
-Thanks,
+Best regards,  
 Pratap
