@@ -1,1 +1,1 @@
-ENTRYPOINT ["sh","-c","exec java $JAVA_VM_OPTS -jar /app/app.jar"]
+The Jenkins build failure for Citifix was due to the existing LSE enterprise pipeline, which expects a pipeline.yaml and doesn’t support Jenkinsfile-based builds. After discussing with Suraj, a new LSC (classic) pipeline and repository were created, the code was mirrored with a Jenkinsfile, and the Jenkins build is now successful. The build/version is also visible in UDeploy and ready for DEV deployment validation.
