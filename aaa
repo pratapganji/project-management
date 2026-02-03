@@ -1,1 +1,3 @@
-The Jenkins build failure for Citifix was due to the existing LSE enterprise pipeline, which expects a pipeline.yaml and doesn’t support Jenkinsfile-based builds. After discussing with Suraj, a new LSC (classic) pipeline and repository were created, the code was mirrored with a Jenkinsfile, and the Jenkins build is now successful. The build/version is also visible in UDeploy and ready for DEV deployment validation.
+For Autosys job validation in QA5, I connected with Mangesh (QE) over Zoom since he doesn’t have access to force-start jobs. During the session, I demonstrated the start/stop jobs by force run and verified the SD URLs coming up and going down as expected.
+
+QE testing is completed from our side. Mangesh plans to re-validate over the weekend using the regular scheduled runs, capture screenshots for start/stop execution, and provide formal sign-off by Monday.
