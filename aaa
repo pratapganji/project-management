@@ -1,3 +1,4 @@
-For Autosys job validation in QA5, I connected with Mangesh (QE) over Zoom since he doesn’t have access to force-start jobs. During the session, I demonstrated the start/stop jobs by force run and verified the SD URLs coming up and going down as expected.
-
-QE testing is completed from our side. Mangesh plans to re-validate over the weekend using the regular scheduled runs, capture screenshots for start/stop execution, and provide formal sign-off by Monday.
+git clone --mirror https://bitbucket.org/myteam/order-service.git
+cd order-service.git
+git remote add github https://github.com/sarswoti/order-service.git
+git push --mirror github
