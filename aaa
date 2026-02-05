@@ -1,4 +1,1 @@
-git clone --mirror https://bitbucket.org/myteam/order-service.git
-cd order-service.git
-git remote add github https://github.com/sarswoti/order-service.git
-git push --mirror github
+Get-ChildItem Env: | Where-Object { $_.Name -match "ORAAS|DB|PASS|PASSWORD|SPRING" }
