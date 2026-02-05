@@ -1,1 +1,7 @@
-Get-ChildItem Env: | Where-Object { $_.Name -match "ORAAS|DB|PASS|PASSWORD|SPRING" }
+Backend User Consumption
+	•	Completed PoC for Impala connectivity in local using FID and password.
+	•	Observed the same error locally as seen in the cluster; Omkar has raised a SiteMinder FID password reset request.
+
+Oracle Service:
+	•	Validated Oracle connection locally using the newly provided FID and password.
+	•	Onboarded secrets to NGC for both DEV and UAT environments.
