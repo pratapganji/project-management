@@ -1,7 +1,3 @@
-Backend User Consumption
-	•	Completed PoC for Impala connectivity in local using FID and password.
-	•	Observed the same error locally as seen in the cluster; Omkar has raised a SiteMinder FID password reset request.
+This Jira tracks production vulnerability remediation for the CRM Olympus application.
 
-Oracle Service:
-	•	Validated Oracle connection locally using the newly provided FID and password.
-	•	Onboarded secrets to NGC for both DEV and UAT environments.
+Security scans identified the presence of multiple outdated and vulnerable Spring Framework JAR files (including spring-web, spring-webmvc, spring-webflux, and spring-core) across several historical CRM Olympus installation directories in the production environment.
