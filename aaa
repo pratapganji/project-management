@@ -1,6 +1,1 @@
-"data_dir": "citidigital/cd_user_consumption/autosys_logs"
-
-data_path = os.path.join(base_dir, env_config["data_dir"])
-os.makedirs(data_path, exist_ok=True)
-csv_file_name = f"staging_user_consumption_{dt_string}.csv"
-csv_file_with_path = os.path.join(data_path, csv_file_name)
+The pod is running, but the job is currently blocked at the “Fetching Tables metadata” step. Since it has been running for several hours, it’s unlikely to complete without query or code changes. I’m planning to add step-level logging and reduce metadata scope to identify and resolve the blocking point.
