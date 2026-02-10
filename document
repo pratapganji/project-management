@@ -1,1 +1,13 @@
 grep -n "Truststore\|trustStore\|cacerts\|SSLTrustStore" config/application-dev.properties
+
+Hi Ananth,
+
+As discussed over Teams, this is to request your support in sharing the production logs for CRM Olympus on priority.
+This issue requires immediate investigation, and access to the prod logs will help us validate the suspected data publishing discrepancy (prod vs COB). Kindly share the relevant logs at the earliest so we can proceed with the analysis.
+
+If Seema is unavailable, Anand or Kasi may also share the error logs.
+Please treat this as high priority and let us know if any additional details are required from our end.
+
+Thanks in advance for your quick support.
+
+Regards,
