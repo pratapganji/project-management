@@ -1,1 +1,9 @@
-The pod is running, but the job is currently blocked at the “Fetching Tables metadata” step. Since it has been running for several hours, it’s unlikely to complete without query or code changes. I’m planning to add step-level logging and reduce metadata scope to identify and resolve the blocking point.
+Description (≈50 words)
+
+New Autosys jobs were created for the CRM Olympus API to support HTTP → HTTPS migration using the new WIP endpoints. These jobs manage controlled start and stop of CRM API services across environments, aligning with updated network, security, and deployment standards while ensuring continuity of scheduled operations.
+
+⸻
+
+Acceptance Criteria (≈50 words)
+
+Autosys jobs successfully start and stop CRM Olympus API services using HTTPS via the new WIP endpoints. Jobs execute without permission errors, trigger at scheduled times, and correctly reflect service availability. Validation is completed in QA5 with screenshots, and QE sign-off is obtained before production deployment.
