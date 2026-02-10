@@ -1,9 +1,1 @@
-Description (≈50 words)
-
-New Autosys jobs were created for the CRM Olympus API to support HTTP → HTTPS migration using the new WIP endpoints. These jobs manage controlled start and stop of CRM API services across environments, aligning with updated network, security, and deployment standards while ensuring continuity of scheduled operations.
-
-⸻
-
-Acceptance Criteria (≈50 words)
-
-Autosys jobs successfully start and stop CRM Olympus API services using HTTPS via the new WIP endpoints. Jobs execute without permission errors, trigger at scheduled times, and correctly reflect service availability. Validation is completed in QA5 with screenshots, and QE sign-off is obtained before production deployment.
+Update: Job is no longer stuck at metadata. Impala query, metadata fetch, CSV generation, and upload step all executed successfully. Current failure is at Oracle insert with ORA-12899 — TABLE_PHYSICAL_NAME value exceeds column length (53 > 50). Planning to trim value in code or align DB column length.
