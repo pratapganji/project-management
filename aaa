@@ -1,1 +1,7 @@
-Update: Job is no longer stuck at metadata. Impala query, metadata fetch, CSV generation, and upload step all executed successfully. Current failure is at Oracle insert with ORA-12899 — TABLE_PHYSICAL_NAME value exceeds column length (53 > 50). Planning to trim value in code or align DB column length.
+We are deploying the CRM Olympus HTTPS Autosys jobs via OneRec ORAAS first because direct deployment through CRM Autosys was resulting in exit code 13 due to enterprise job launcher restrictions.
+
+ORAAS and CRM Autosys run on the same DA5, QA5, and PA5 instances. However, the job metadata must be registered in ORAAS tables (OM_JOB_MASTER_INSTANCE and OM_JOB_PROPERTIES) to comply with governance and job launcher standards.
+
+Once ORAAS registration is completed, we deploy the JIL through CRM Autosys repository, which invokes the enterprise job launcher instead of executing shell commands directly.
+
+This approach aligns with platform security guidelines and avoids permission-related execution failures.
