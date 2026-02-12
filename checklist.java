@@ -1,38 +1,16 @@
-@Test
-void testValidateAndPopulateSundry_Success() throws Exception {
+We are migrating CRM Olympus API endpoints from HTTP to HTTPS for VIP and WIP to align with enterprise security standards.
 
-    when(file.isEmpty()).thenReturn(false);
-    when(file.getOriginalFilename()).thenReturn("test.xlsx");
+For this deployment, we are introducing a new WIP target server URL using a new uDeploy component. The existing PROD setup remains unchanged.
 
-    List<CatalogueSundry> sundryList = new ArrayList<>();
-    CatalogueSundry sundry = new CatalogueSundry();
-    sundry.setDimensionGroupName("Group1");
-    sundry.setElementCode("Code1");
-    sundry.setElementName("Name1");
-    sundry.setSourceCode("Source1");
-    sundry.setSourceDescription("Description1");
-    sundry.setActiveFlag("Y");
-    sundryList.add(sundry);
+Apigee consumer URLs are still pointing to the current PROD target server, so there is no impact to live consumers.
 
-    when(schemaBrowserService.getSundryTempDropdown())
-        .thenReturn(new ArrayList<>());
+This change is isolated and additive. Apigee will be updated in a separate controlled PROD deployment once validation is complete.
 
-    when(jdbcTemplate.queryForObject(anyString(), eq(Integer.class)))
-        .thenReturn(1);
+The change has been successfully validated in DEV and UAT.
+Low risk, no business logic impact.
+Rollback is available by disabling the new component and reverting to the existing target server configuration.
 
-    // 🔴 THIS IS THE IMPORTANT PART
-    try (MockedStatic<StaticDataUtils> mocked =
-             Mockito.mockStatic(StaticDataUtils.class)) {
 
-        mocked.when(() -> StaticDataUtils.populateSundryDTO(file))
-              .thenReturn(sundryList);
 
-        UploadSundryResponseDTO response =
-            sundryManagementService.validateAndPopulateSundry(
-                file, "JIRA-123", "user123");
 
-        assertNotNull(response);
-        assertNotNull(response.getValidSundryList());
-        assertEquals(1, response.getValidSundryList().size());
-    }
-}
+We are deploying a new HTTPS WIP target server for CRM Olympus API using a new uDeploy component. The existing PROD setup remains unchanged, and Apigee consumers are still connected to the current PROD target server, so there is no production impact. This change has been validated in DEV and UAT. Low risk, with rollback available if needed.
