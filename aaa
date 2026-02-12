@@ -5,3 +5,9 @@ ORAAS and CRM Autosys run on the same DA5, QA5, and PA5 instances. However, the 
 Once ORAAS registration is completed, we deploy the JIL through CRM Autosys repository, which invokes the enterprise job launcher instead of executing shell commands directly.
 
 This approach aligns with platform security guidelines and avoids permission-related execution failures.
+
+
+
+We are deploying the CRM Olympus HTTPS Autosys jobs through OneRec ORAAS first because direct CRM Autosys deployment was failing with exit code 13 due to job launcher restrictions.
+Although ORAAS and CRM Autosys run on the same DA5, QA5, and PA5 instances, job metadata must be registered in ORAAS tables to comply with governance standards.
+After registration, we deploy the JIL via CRM Autosys, which invokes the enterprise job launcher securely.
