@@ -1,47 +1,16 @@
-We are deploying the CRM Olympus HTTPS Autosys jobs via OneRec ORAAS first because direct deployment through CRM Autosys was resulting in exit code 13 due to enterprise job launcher restrictions.
+Subject: RE: gfolybkb fid Vulnerability Remediation Plan
 
-ORAAS and CRM Autosys run on the same DA5, QA5, and PA5 instances. However, the job metadata must be registered in ORAAS tables (OM_JOB_MASTER_INSTANCE and OM_JOB_PROPERTIES) to comply with governance and job launcher standards.
+Hi Rajat / Team,
 
-Once ORAAS registration is completed, we deploy the JIL through CRM Autosys repository, which invokes the enterprise job launcher instead of executing shell commands directly.
+As part of the Feb 16 PROD deployment, the reported vulnerable folders (CRM-Olympus.50, .56, .57, .61, .70, .83) were removed through the standard deployment process.
 
-This approach aligns with platform security guidelines and avoids permission-related execution failures.
+I have reviewed the vulnerabilities listed in the attached Excel sheet, and all reported items correspond to these same folders that were deleted on Feb 16.
 
+The screenshots shared earlier were taken on the deployment date (Feb 16) showing the folders before and after removal. Currently, I do not have PROD access, so I am referring to those deployment screenshots.
 
+I will coordinate with the team having access to re-validate in PROD and reconfirm that these folders are no longer present.
 
-We are deploying the CRM Olympus HTTPS Autosys jobs through OneRec ORAAS first because direct CRM Autosys deployment was failing with exit code 13 due to job launcher restrictions.
-Although ORAAS and CRM Autosys run on the same DA5, QA5, and PA5 instances, job metadata must be registered in ORAAS tables to comply with governance standards.
-After registration, we deploy the JIL via CRM Autosys, which invokes the enterprise job launcher securely.
+Please let me know if any additional action is required from my side.
 
-
-
-🔹 CRM Olympus HTTPS – Autosys Jobs Deployment Update
-
-We are deploying the CRM Olympus HTTPS Autosys jobs using a controlled two-step approach.
-
-First, the job metadata is registered in OneRec ORAAS because direct deployment through CRM Autosys was failing with exit code 13 due to enterprise job launcher restrictions. Although ORAAS and CRM Autosys run on the same DA5, QA5, and PA5 instances, governance standards require job definitions to be registered in the ORAAS tables (OM_JOB_MASTER_INSTANCE and OM_JOB_PROPERTIES).
-
-Once ORAAS registration is completed, we deploy the corresponding JIL files through the CRM Autosys repository. The JIL invokes the enterprise job launcher, ensuring secure and compliant execution.
-
-⸻
-
-🔹 Production Safety Clarification
-
-Currently, production is still running on the existing HTTP CRM target server URL.
-
-The HTTPS changes were deployed using a new UDeploy component and new pipeline, completely isolated from the current production setup.
-
-The Apigee target server URL has not been switched to HTTPS yet. Therefore:
-	•	No impact to existing production traffic
-	•	No routing changes
-	•	No RF or rollback impact
-	•	No effect on current HTTP version
-
-This deployment only prepares the HTTPS Autosys jobs and keeps the existing PROD flow untouched.
-
-⸻
-
-🔹 Closing Statement
-
-This approach aligns with platform security and governance standards, resolves permission-related execution failures, and ensures zero impact to the current production environment.
-
-We are deploying the CRM Olympus HTTPS Autosys JIL files (START and STOP jobs) through the CRM Autosys repository. These jobs invoke the enterprise olympus_jobLauncher.ksh script and follow standard scheduling, logging, and retry configurations. DA5 and QA5 validation has been completed successfully. This deployment only introduces HTTPS job configuration and does not impact the current HTTP production setup.
+Thanks & Regards,
+Pratap
