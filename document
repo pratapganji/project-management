@@ -1,16 +1,35 @@
-grep -n "Truststore\|trustStore\|cacerts\|SSLTrustStore" config/application-dev.properties
+serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: pod-restarter
+  namespace: icg-isg-olympus-data-176352
 
-Hi LSE Global Support Team,
+role.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: pod-deleter
+  namespace: icg-isg-olympus-data-176352
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list", "delete"]
 
-We are currently migrating the SB User Consumption application to OpenShift (OCP) and, as part of this activity, we need to download a required JDBC API JAR from the Artifactory repository to include it in our Dockerfile.
+rolebinding.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: pod-deleter-binding
+  namespace: icg-isg-olympus-data-176352
+subjects:
+- kind: ServiceAccount
+  name: pod-restarter
+  namespace: icg-isg-olympus-data-176352
+roleRef:
+  kind: Role
+  name: pod-deleter
+  apiGroup: rbac.authorization.k8s.io
 
-However, we are facing a permission/access issue while attempting to download the JAR file from the below Artifactory URL from docker file:
-https://www.artifactrepository.citigroup.net/artifactory/maven-icg-enterprise-local/com/citi/167969/olympus/api/olympus-jdbc-driver/2.2.0.TH/olympus-jdbc-driver-2.2.0.TH.jar
 
-Due to this access restriction, we are unable to proceed with the Openshift migration. Kindly help us by:
-
-1. Granting the required permissions to download this artifact thorugh docker file using curl OR
-2. Suggesting the correct repository/path or alternate approach to obtain this JAR
-
-This is required on priority, as it is blocking our migration activity.
-Please let us know if any additional details are required from our side.
+serviceAccountName: pod-restarter
