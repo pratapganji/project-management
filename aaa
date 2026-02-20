@@ -1,16 +1,3 @@
-Subject: RE: gfolybkb fid Vulnerability Remediation Plan
-
-Hi Rajat / Team,
-
-As part of the Feb 16 PROD deployment, the reported vulnerable folders (CRM-Olympus.50, .56, .57, .61, .70, .83) were removed through the standard deployment process.
-
-I have reviewed the vulnerabilities listed in the attached Excel sheet, and all reported items correspond to these same folders that were deleted on Feb 16.
-
-The screenshots shared earlier were taken on the deployment date (Feb 16) showing the folders before and after removal. Currently, I do not have PROD access, so I am referring to those deployment screenshots.
-
-I will coordinate with the team having access to re-validate in PROD and reconfirm that these folders are no longer present.
-
-Please let me know if any additional action is required from my side.
-
-Thanks & Regards,
-Pratap
+echo "Restarting olympus-sb-user-consumption deployment";
+oc -n icg-isg-olympus-data-176352 rollout restart deployment/olympus-sb-user-consumption;
+echo "Restart triggered";
