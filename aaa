@@ -1,3 +1,10 @@
-echo "Restarting olympus-sb-user-consumption deployment";
-oc -n icg-isg-olympus-data-176352 rollout restart deployment/olympus-sb-user-consumption;
-echo "Restart triggered";
+command:
+  - /bin/sh
+  - -c
+  - |
+      set -e
+      echo "Restarting olympus-sb-user-consption deployment"
+      oc -n icg-isg-olympus-data-176352 rollout restart deployment/olympus-sb-user-consumption
+      echo "Waiting for rollout to complete..."
+      oc -n icg-isg-olympus-data-176352 rollout status deployment/olympus-sb-user-consumption --timeout=300s
+      echo "Restart completed successfully"
