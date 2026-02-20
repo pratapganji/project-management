@@ -1,10 +1,1 @@
-command:
-  - /bin/sh
-  - -c
-  - |
-      set -e
-      echo "Restarting olympus-sb-user-consption deployment"
-      oc -n icg-isg-olympus-data-176352 rollout restart deployment/olympus-sb-user-consumption
-      echo "Waiting for rollout to complete..."
-      oc -n icg-isg-olympus-data-176352 rollout status deployment/olympus-sb-user-consumption --timeout=300s
-      echo "Restart completed successfully"
+oc run cli-test --image=registry.redhat.io/openshift4/ose-cli:latest --rm -it --restart=Never -- bash
