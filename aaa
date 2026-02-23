@@ -1,3 +1,19 @@
-SELECT stream_unique_name
-FROM   C167969OMC.OM_JOB_STREAM
-ORDER BY stream_unique_name;
+During initial deployment, the insert into OM_JOB_MASTER_INSTANCE failed due to a foreign key constraint on STREAM_UNIQUE_NAME.
+
+Root Cause:
+The stream value used in the DML did not match an existing entry in OM_JOB_STREAM.
+The issue was not related to JOB_UNIQUE_NAME.
+
+Fix Applied:
+	•	Queried OM_JOB_STREAM to validate available stream names.
+	•	Updated the DML to use an existing stream (BKB_CRM).
+	•	Re-deployed ORAAS changes in UAT.
+	•	Deployed corresponding Autosys JIL entries.
+	•	Verified FK checks passed successfully.
+	•	Validated jobs in CA WCC portal — both START and STOP executed successfully (exit code 0).
+
+Confirmation Required:
+Please confirm if BKB_CRM is the correct stream to associate these CRM HTTPS START/STOP jobs with, or if a different stream should be used.
+
+Current Status:
+UAT deployment completed successfully and validated end-to-end.
