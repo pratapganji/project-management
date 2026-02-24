@@ -1,19 +1,199 @@
-During initial deployment, the insert into OM_JOB_MASTER_INSTANCE failed due to a foreign key constraint on STREAM_UNIQUE_NAME.
+SET SERVEROUTPUT ON;
+SET SQLBLANKLINES ON;
+SET DEFINE OFF;
 
-Root Cause:
-The stream value used in the DML did not match an existing entry in OM_JOB_STREAM.
-The issue was not related to JOB_UNIQUE_NAME.
+--------------------------------------------------------------------------------
+-- Server1 STOP TEST1
+--------------------------------------------------------------------------------
+DECLARE
+  val_count NUMBER;
+BEGIN
+  SELECT COUNT(*)
+    INTO val_count
+    FROM C167969OMC.OM_JOB_MASTER_INSTANCE
+   WHERE JOB_UNIQUE_NAME = 'CRM_OLYMPUS_SERVER'
+     AND INSTANCE_UNIQUE_NAME = '167969_om_crm_olympus_Server1_stop_test1';
 
-Fix Applied:
-	•	Queried OM_JOB_STREAM to validate available stream names.
-	•	Updated the DML to use an existing stream (BKB_CRM).
-	•	Re-deployed ORAAS changes in UAT.
-	•	Deployed corresponding Autosys JIL entries.
-	•	Verified FK checks passed successfully.
-	•	Validated jobs in CA WCC portal — both START and STOP executed successfully (exit code 0).
+  IF val_count = 0 THEN
+    INSERT INTO C167969OMC.OM_JOB_MASTER_INSTANCE
+      (INSTANCE_UNIQUE_NAME, JOB_UNIQUE_NAME, REGION, FLOW_CATEGORY, SOURCE_SYSTEM, TAGS,
+       STATUS, DWH_CREATED_BY, DWH_CREATED_TIME, DWH_UPDATED_BY, DWH_UPDATED_TIME,
+       DWH_UPDATED_REASON, STREAM_UNIQUE_NAME)
+    VALUES
+      ('167969_om_crm_olympus_Server1_stop_test1', 'CRM_OLYMPUS_SERVER', 'GLOBAL',
+       NULL, NULL, NULL, 'ACTIVE', 'C167969OMC', SYSDATE,
+       NULL, NULL, NULL, 'BKB_CRM');
 
-Confirmation Required:
-Please confirm if BKB_CRM is the correct stream to associate these CRM HTTPS START/STOP jobs with, or if a different stream should be used.
+    COMMIT;
+  END IF;
+END;
+/
+DECLARE
+  val_count NUMBER;
+BEGIN
+  SELECT COUNT(*)
+    INTO val_count
+    FROM C167969OMC.OM_JOB_PROPERTIES
+   WHERE JOB_UNIQUE_NAME = 'CRM_OLYMPUS_SERVER'
+     AND INSTANCE_UNIQUE_NAME = '167969_om_crm_olympus_Server1_stop_test1'
+     AND KEY IN ('jobLauncher_launch_script_path', 'jobLauncher_job_type');
 
-Current Status:
-UAT deployment completed successfully and validated end-to-end.
+  IF val_count = 0 THEN
+    INSERT INTO C167969OMC.OM_JOB_PROPERTIES
+      (JOB_UNIQUE_NAME, INSTANCE_UNIQUE_NAME, KEY, VALUE, TYPE, DESCRIPTION, ALLOWED_VALUES,
+       DYNAMIC_IND, MANDATORY_IND, STATUS, DWH_CREATED_BY, DWH_CREATED_TIME,
+       DWH_UPDATED_BY, DWH_UPDATED_TIME, DWH_UPDATED_REASON, LAST_UPDATED_JOB_RUN_ID,
+       PREV_VALUE, PREV_UPDATED_TS)
+    VALUES
+      ('CRM_OLYMPUS_SERVER', '167969_om_crm_olympus_Server1_stop_test1',
+       'jobLauncher_launch_script_path',
+       '/data/1/gfolybkb/bin/CRM_Olympus_New/current/install/scripts/bin/stop_app.sh',
+       'STRING', NULL, NULL, 'Y', 'N', 'ACTIVE',
+       'C167969OMC', SYSDATE, 'C167969OMC', SYSDATE, NULL, NULL, NULL, NULL);
+
+    INSERT INTO C167969OMC.OM_JOB_PROPERTIES
+      (JOB_UNIQUE_NAME, INSTANCE_UNIQUE_NAME, KEY, VALUE, TYPE, DESCRIPTION, ALLOWED_VALUES,
+       DYNAMIC_IND, MANDATORY_IND, STATUS, DWH_CREATED_BY, DWH_CREATED_TIME,
+       DWH_UPDATED_BY, DWH_UPDATED_TIME, DWH_UPDATED_REASON, LAST_UPDATED_JOB_RUN_ID,
+       PREV_VALUE, PREV_UPDATED_TS)
+    VALUES
+      ('CRM_OLYMPUS_SERVER', '167969_om_crm_olympus_Server1_stop_test1',
+       'jobLauncher_job_type',
+       'non_spark',
+       'STRING', NULL, NULL, 'Y', 'N', 'ACTIVE',
+       'C167969OMC', SYSDATE, 'C167969OMC', SYSDATE, NULL, NULL, NULL, NULL);
+
+    COMMIT;
+  END IF;
+END;
+/
+--------------------------------------------------------------------------------
+-- Server2 STOP TEST1
+--------------------------------------------------------------------------------
+DECLARE
+  val_count NUMBER;
+BEGIN
+  SELECT COUNT(*)
+    INTO val_count
+    FROM C167969OMC.OM_JOB_MASTER_INSTANCE
+   WHERE JOB_UNIQUE_NAME = 'CRM_OLYMPUS_SERVER'
+     AND INSTANCE_UNIQUE_NAME = '167969_om_crm_olympus_Server2_stop_test1';
+
+  IF val_count = 0 THEN
+    INSERT INTO C167969OMC.OM_JOB_MASTER_INSTANCE
+      (INSTANCE_UNIQUE_NAME, JOB_UNIQUE_NAME, REGION, FLOW_CATEGORY, SOURCE_SYSTEM, TAGS,
+       STATUS, DWH_CREATED_BY, DWH_CREATED_TIME, DWH_UPDATED_BY, DWH_UPDATED_TIME,
+       DWH_UPDATED_REASON, STREAM_UNIQUE_NAME)
+    VALUES
+      ('167969_om_crm_olympus_Server2_stop_test1', 'CRM_OLYMPUS_SERVER', 'GLOBAL',
+       NULL, NULL, NULL, 'ACTIVE', 'C167969OMC', SYSDATE,
+       NULL, NULL, NULL, 'BKB_CRM');
+
+    COMMIT;
+  END IF;
+END;
+/
+DECLARE
+  val_count NUMBER;
+BEGIN
+  SELECT COUNT(*)
+    INTO val_count
+    FROM C167969OMC.OM_JOB_PROPERTIES
+   WHERE JOB_UNIQUE_NAME = 'CRM_OLYMPUS_SERVER'
+     AND INSTANCE_UNIQUE_NAME = '167969_om_crm_olympus_Server2_stop_test1'
+     AND KEY IN ('jobLauncher_launch_script_path', 'jobLauncher_job_type');
+
+  IF val_count = 0 THEN
+    INSERT INTO C167969OMC.OM_JOB_PROPERTIES
+      (JOB_UNIQUE_NAME, INSTANCE_UNIQUE_NAME, KEY, VALUE, TYPE, DESCRIPTION, ALLOWED_VALUES,
+       DYNAMIC_IND, MANDATORY_IND, STATUS, DWH_CREATED_BY, DWH_CREATED_TIME,
+       DWH_UPDATED_BY, DWH_UPDATED_TIME, DWH_UPDATED_REASON, LAST_UPDATED_JOB_RUN_ID,
+       PREV_VALUE, PREV_UPDATED_TS)
+    VALUES
+      ('CRM_OLYMPUS_SERVER', '167969_om_crm_olympus_Server2_stop_test1',
+       'jobLauncher_launch_script_path',
+       '/data/1/gfolybkb/bin/CRM_Olympus_New/current/install/scripts/bin/stop_app.sh',
+       'STRING', NULL, NULL, 'Y', 'N', 'ACTIVE',
+       'C167969OMC', SYSDATE, 'C167969OMC', SYSDATE, NULL, NULL, NULL, NULL);
+
+    INSERT INTO C167969OMC.OM_JOB_PROPERTIES
+      (JOB_UNIQUE_NAME, INSTANCE_UNIQUE_NAME, KEY, VALUE, TYPE, DESCRIPTION, ALLOWED_VALUES,
+       DYNAMIC_IND, MANDATORY_IND, STATUS, DWH_CREATED_BY, DWH_CREATED_TIME,
+       DWH_UPDATED_BY, DWH_UPDATED_TIME, DWH_UPDATED_REASON, LAST_UPDATED_JOB_RUN_ID,
+       PREV_VALUE, PREV_UPDATED_TS)
+    VALUES
+      ('CRM_OLYMPUS_SERVER', '167969_om_crm_olympus_Server2_stop_test1',
+       'jobLauncher_job_type',
+       'non_spark',
+       'STRING', NULL, NULL, 'Y', 'N', 'ACTIVE',
+       'C167969OMC', SYSDATE, 'C167969OMC', SYSDATE, NULL, NULL, NULL, NULL);
+
+    COMMIT;
+  END IF;
+END;
+/
+--------------------------------------------------------------------------------
+-- Server3 STOP TEST1
+--------------------------------------------------------------------------------
+DECLARE
+  val_count NUMBER;
+BEGIN
+  SELECT COUNT(*)
+    INTO val_count
+    FROM C167969OMC.OM_JOB_MASTER_INSTANCE
+   WHERE JOB_UNIQUE_NAME = 'CRM_OLYMPUS_SERVER'
+     AND INSTANCE_UNIQUE_NAME = '167969_om_crm_olympus_Server3_stop_test1';
+
+  IF val_count = 0 THEN
+    INSERT INTO C167969OMC.OM_JOB_MASTER_INSTANCE
+      (INSTANCE_UNIQUE_NAME, JOB_UNIQUE_NAME, REGION, FLOW_CATEGORY, SOURCE_SYSTEM, TAGS,
+       STATUS, DWH_CREATED_BY, DWH_CREATED_TIME, DWH_UPDATED_BY, DWH_UPDATED_TIME,
+       DWH_UPDATED_REASON, STREAM_UNIQUE_NAME)
+    VALUES
+      ('167969_om_crm_olympus_Server3_stop_test1', 'CRM_OLYMPUS_SERVER', 'GLOBAL',
+       NULL, NULL, NULL, 'ACTIVE', 'C167969OMC', SYSDATE,
+       NULL, NULL, NULL, 'BKB_CRM');
+
+    COMMIT;
+  END IF;
+END;
+/
+DECLARE
+  val_count NUMBER;
+BEGIN
+  SELECT COUNT(*)
+    INTO val_count
+    FROM C167969OMC.OM_JOB_PROPERTIES
+   WHERE JOB_UNIQUE_NAME = 'CRM_OLYMPUS_SERVER'
+     AND INSTANCE_UNIQUE_NAME = '167969_om_crm_olympus_Server3_stop_test1'
+     AND KEY IN ('jobLauncher_launch_script_path', 'jobLauncher_job_type');
+
+  IF val_count = 0 THEN
+    INSERT INTO C167969OMC.OM_JOB_PROPERTIES
+      (JOB_UNIQUE_NAME, INSTANCE_UNIQUE_NAME, KEY, VALUE, TYPE, DESCRIPTION, ALLOWED_VALUES,
+       DYNAMIC_IND, MANDATORY_IND, STATUS, DWH_CREATED_BY, DWH_CREATED_TIME,
+       DWH_UPDATED_BY, DWH_UPDATED_TIME, DWH_UPDATED_REASON, LAST_UPDATED_JOB_RUN_ID,
+       PREV_VALUE, PREV_UPDATED_TS)
+    VALUES
+      ('CRM_OLYMPUS_SERVER', '167969_om_crm_olympus_Server3_stop_test1',
+       'jobLauncher_launch_script_path',
+       '/data/1/gfolybkb/bin/CRM_Olympus_New/current/install/scripts/bin/stop_app.sh',
+       'STRING', NULL, NULL, 'Y', 'N', 'ACTIVE',
+       'C167969OMC', SYSDATE, 'C167969OMC', SYSDATE, NULL, NULL, NULL, NULL);
+
+    INSERT INTO C167969OMC.OM_JOB_PROPERTIES
+      (JOB_UNIQUE_NAME, INSTANCE_UNIQUE_NAME, KEY, VALUE, TYPE, DESCRIPTION, ALLOWED_VALUES,
+       DYNAMIC_IND, MANDATORY_IND, STATUS, DWH_CREATED_BY, DWH_CREATED_TIME,
+       DWH_UPDATED_BY, DWH_UPDATED_TIME, DWH_UPDATED_REASON, LAST_UPDATED_JOB_RUN_ID,
+       PREV_VALUE, PREV_UPDATED_TS)
+    VALUES
+      ('CRM_OLYMPUS_SERVER', '167969_om_crm_olympus_Server3_stop_test1',
+       'jobLauncher_job_type',
+       'non_spark',
+       'STRING', NULL, NULL, 'Y', 'N', 'ACTIVE',
+       'C167969OMC', SYSDATE, 'C167969OMC', SYSDATE, NULL, NULL, NULL, NULL);
+
+    COMMIT;
+  END IF;
+END;
+/
