@@ -1,1 +1,9 @@
-mvn clean install “-Dspring.profiles.active=dev” “-DskipTests”
+<build>
+    <finalName>...</finalName>
+    ...
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-compiler-plugin</artifactId>
+            ...
+        </plugin>
