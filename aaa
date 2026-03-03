@@ -1,7 +1,1 @@
-<plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <configuration>
-                <skip>true</skip>
-            </configuration>
-        </plugin>
+mvn -q help:effective-pom -Doutput=effective-pom.xml
