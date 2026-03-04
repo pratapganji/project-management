@@ -1,1 +1,10 @@
-mvn -q help:effective-pom -Doutput=effective-pom.xml
+  - name: JAVA_TOOL_OPTIONS
+    value: "-XX:InitialRAMPercentage=50 -XX:MaxRAMPercentage=70"
+
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "200m"
+  limits:
+    memory: "2Gi"
+    cpu: "1"
