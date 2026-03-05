@@ -1,3 +1,7 @@
 oc auth can-i patch deployments.apps \
   --as system:serviceaccount:icg-isg-olympus-data-176352:sb-cronjob-uat \
   -n icg-isg-olympus-data-176352
+
+
+
+oc login https://api-namicgswd20u-ecs-dyn.nsroot.net:6443
