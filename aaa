@@ -1,7 +1,4 @@
-oc auth can-i patch deployments.apps \
-  --as system:serviceaccount:icg-isg-olympus-data-176352:sb-cronjob-uat \
-  -n icg-isg-olympus-data-176352
-
-
-
-oc login https://api-namicgswd20u-ecs-dyn.nsroot.net:6443
+SELECT *
+FROM A167969NURAREC.ROLE_COLUMN_PERMISSION
+WHERE ROLE_NAME IN ('OLYMPUS_READ_ONLY', 'OLYMPUS_READ_WRITE')
+  AND TABLE_NAME = 'validation_config_rules';
