@@ -1,4 +1,10 @@
-SELECT *
-FROM A167969NURAREC.ROLE_COLUMN_PERMISSION
-WHERE ROLE_NAME IN ('OLYMPUS_READ_ONLY', 'OLYMPUS_READ_WRITE')
-  AND TABLE_NAME = 'validation_config_rules';
+Hi Team,
+
+I am following up on INC0019966442 regarding the service account permission required for the CronJob to restart the deployment in namespace icg-isg-olympus-data-176352.
+
+Could you please review the incident and advise on the next steps (CMP to raise or service account permission update) so we can proceed and resolve the issue? Any guidance would be greatly appreciated.
+
+Thank you for your help.
+
+Regards,  
+Pratap
