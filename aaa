@@ -43,3 +43,23 @@ WHERE f.FID_NAME = 'OLYMPUS_FID';
 SELECT *
 FROM A167969NURAREC.FID_ROLE
 WHERE FID_NAME = 'OLYMPUS_FID';
+
+
+
+For FID OLYMPUS_FID, the following entitlements are configured:
+
+Roles assigned
+	•	OLYMPUS_READ_WRITE
+	•	OLYMPUS_READ_ONLY
+
+Table access
+	•	validation_config_rules
+
+Permissions
+	•	SELECT
+	•	INSERT
+	•	UPDATE
+
+Column-level permissions
+	•	* → SELECT
+	•	ACTIVE_FLAG, LAST_N_DAYS, LB_PERCENT, UP_PERCENT → INSERT / SELECT / UPDATE
