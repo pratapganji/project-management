@@ -33,3 +33,12 @@ roleRef:
 
 
 serviceAccountName: pod-restarter
+
+NEW_HOST="http://newhost.com"
+FILE="application.properties"
+
+if grep -q "^SECONDARY_HOST=" "$FILE"; then
+    sed -i "s|^SECONDARY_HOST=.*|SECONDARY_HOST=${NEW_HOST}|" "$FILE"
+else
+    echo "SECONDARY_HOST=${NEW_HOST}" >> "$FILE"
+fi
