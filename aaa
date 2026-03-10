@@ -1,7 +1,3 @@
-String profile = System.getenv("PROFILE");              // OCP/container way
-if (profile == null || profile.isBlank()) {
-    profile = System.getProperty("spring.profiles.active");   // Maven/Java -D way
-}
-if (profile == null || profile.isBlank()) {
-    profile = "dev";                                    // safe fallback
-}
+SELECT ROLE_NAME
+FROM A167969NURAREC.FID_ROLE
+WHERE FID_NAME = 'OLYMPUS_FID';
