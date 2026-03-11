@@ -1,12 +1,303 @@
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
+Immediate Phase 1 goal
 
+Complete end-to-end flow using the current setup first:
+	•	current FID
+	•	current shared path / SFTP path
+	•	AutoSys job
+	•	DEV/UAT working
 
+Do not block phase 1 waiting for ideal improvements.
 
+⸻
 
-management.endpoint.health.probes.enabled=true
-management.health.livenessstate.enabled=true
-management.health.readinessstate.enabled=true
-management.endpoints.web.exposure.include=health,info
+Action items from the discussion
+
+1. AutoSys job understanding and configuration
+
+You need to find out:
+	•	what are the 3 APIs
+	•	in which scenarios each API is called
+	•	whether they run:
+	•	weekly
+	•	ad hoc
+	•	on demand
+	•	for specific business requests
+	•	who triggers ad hoc runs
+	•	how current users request them
+	•	what frequency each job has
+
+Also:
+	•	create a Confluence page / notes with:
+	•	API name
+	•	purpose
+	•	schedule
+	•	trigger scenario
+	•	output
+
+And for implementation:
+	•	because this is an API, use AutoSys job with curl command
+	•	not CronJob like SB user consumption
+
+You were told to:
+	•	talk to Sivakami / Roshni
+	•	also check with Oscar for AutoSys job example, like CRM/Data Catalog style
+
+⸻
+
+2. Understand full flow after API is hit
+
+You need to document:
+
+API hit → Oracle DB → extract data → create CSV → place file in shared/SFTP path → downstream pickup
+
+Need to identify clearly:
+	•	which tables are queried
+	•	from which Oracle schema/user
+	•	where CSV is created
+	•	where file is placed
+	•	who picks the file next
+	•	whether Hive / Mukund team consumes it
+	•	what downstream dependency exists
+
+⸻
+
+3. Password hardcoding removal
+
+This was an important task.
+
+Current state:
+	•	encrypted password is in code/config
+	•	they want that removed
+
+Required fix:
+	•	store the value inside NGC unmanaged secret
+	•	fetch it dynamically at runtime
+	•	keep ENC usage, but do not hardcode the password value in repo
+
+Need to do this for:
+	•	DEV
+	•	UAT
+
+⸻
+
+4. Oracle/FID improvement discussion
+
+Current phase 1:
+	•	use the provided FID/schema temporarily so the app works
+
+Parallel improvement:
+	•	discuss with Roshni / Sivakami whether your team can get its own FID
+	•	own FID should have access only to required tables
+	•	that way you are not dependent on their governed FID
+
+Need to understand:
+	•	what access current user has
+	•	what tables are used
+	•	what tablespace/schema it belongs to
+
+You were asked to discuss with:
+	•	Mahesh
+	•	and ask:
+	•	what access current DB user has
+	•	what tablespace it uses
+	•	which tables are involved
+
+⸻
+
+5. Shared path / SFTP connectivity
+
+Current problem:
+	•	app cannot connect to shared path / SFTP host from OCP
+
+Need to do:
+	•	talk to Sivakami / Roshni
+	•	ask how to raise access/connectivity request
+	•	check if there is:
+	•	CMP request
+	•	Confluence guide
+	•	standard process
+
+Also clarify:
+	•	DEV host
+	•	UAT host
+	•	username/FID used for SFTP
+	•	exact destination path
+
+⸻
+
+6. Shared path improvement idea
+
+This is not phase 1, but future improvement.
+
+Need feasibility discussion:
+	•	can you use your own shared path
+	•	instead of theirs
+	•	and can downstream consumers be pointed to your path instead
+
+But this needs:
+	•	feasibility check
+	•	downstream team changes
+	•	business approval
+
+So for now:
+	•	use existing shared path first
+	•	discuss improvement in parallel
+
+⸻
+
+7. Notification API
+
+Need to understand the notification flow.
+
+Questions to answer:
+	•	what notification is being sent
+	•	when it is sent
+	•	sample notification
+	•	who receives it
+	•	whether it is email / feedback / upload status
+	•	which API triggers it
+
+Also requested:
+	•	include your API DL
+	•	include Schema Browser DL
+	•	include relevant support folks
+
+Need a sample notification message too.
+
+⸻
+
+8. Code cleanup
+
+Very important task.
+
+Only keep code related to SDM file export.
+
+Need to review and identify:
+	•	unused controllers
+	•	unused properties
+	•	old FIDs
+	•	unrelated APIs
+	•	old integrations
+	•	anything not needed for SDM
+
+Instruction was:
+	•	first comment if needed
+	•	later remove fully
+	•	do not remove blindly without confirming with Sivakami/Roshni
+
+Examples mentioned as possibly removable:
+	•	non-SDM controllers
+	•	unrelated AWS / BCS / JPOT / other flows
+	•	unused DB configs
+	•	unused file upload code
+	•	unrelated FIDs
+
+⸻
+
+9. Security review
+
+Need review from security angle:
+	•	hardcoded passwords
+	•	unnecessary FIDs
+	•	unused external configs
+	•	unused controllers/endpoints
+	•	anything extra in repo that should not be owned
+
+⸻
+
+10. Code quality review
+
+Sachin was asked to review and provide comments in three areas:
+	•	only the 3 required APIs should remain
+	•	security correctness
+	•	code improvement areas
+
+He should prepare review comments in a document and share with you and your lead.
+
+⸻
+
+11. Logging / observability
+
+Need separate discussion on:
+	•	how logs will be traced in OpenShift
+	•	what logs are needed
+	•	how to monitor failures
+
+Not phase 1 blocker, but noted.
+
+⸻
+
+12. Deployment strategy
+
+Need to confirm deployment uses:
+	•	Rolling update
+
+This is already likely correct, but was asked to verify.
+
+⸻
+
+People to contact and for what
+
+Sivakami / Roshni
+
+Ask about:
+	•	AutoSys current behavior
+	•	scenario/frequency of 3 APIs
+	•	SFTP/shared path connectivity request process
+	•	cleanup confirmation
+	•	shortcomings/issues in current process
+	•	possibility of own FID
+	•	feasibility of own shared path
+	•	notification details
+
+Mahesh
+
+Ask about:
+	•	DB user access
+	•	tablespace/schema
+	•	tables used by extraction
+
+Oscar
+
+Ask about:
+	•	how to create AutoSys API-based jobs
+	•	example similar to CRM/Data Catalog
+
+Rahul Sharma
+
+Fallback if you don’t get CMP/connectivity process details.
+
+⸻
+
+What you should prepare next
+
+Make a document with these sections:
+
+A. Current business flow
+	•	APIs
+	•	triggers
+	•	schedule
+	•	ad hoc process
+	•	output file
+	•	destination path
+	•	downstream consumer
+
+B. External dependencies
+	•	Oracle DB
+	•	FID/schema
+	•	SFTP/shared path
+	•	notification API
+	•	AutoSys
+
+C. Cleanup candidates
+	•	unused controllers
+	•	unused configs
+	•	unused DB properties
+	•	unrelated integrations
+
+D. Improvement items
+	•	use your own FID
+	•	use your own shared path
+	•	improve logging
+	•	remove hardcoded password
+	•	streamline notification recipients
