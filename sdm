@@ -1,3 +1,19 @@
+We need the below details regarding the migration:
+	1.	Help to share the SCP/SFTP connectivity process or request required to enable connectivity from ECS to the reference server. Please share if any CMP or documentation exists.
+	2.	We would like to proceed with creating a new FID for Oracle database connectivity with access limited to the required tablespace.
+	3.	AutoSys job details for the Schema Browser APIs — including source code reference, schedule timings, job frequency, and AutoSys server information.
+	4.	Any current outstanding issues or problems with the project and potential improvements required.
+	5.	Confirmation on cleanup of unused code in the project.
+	6.	Feasibility of using our own shared path for copying/exporting files instead of the current shared path.
+
+A quick call would be helpful to discuss the above points.
+
+
+
+
+
+
+
 Immediate Phase 1 goal
 
 Complete end-to-end flow using the current setup first:
