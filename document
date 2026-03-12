@@ -42,3 +42,6 @@ if grep -q "^SECONDARY_HOST=" "$FILE"; then
 else
     echo "SECONDARY_HOST=${NEW_HOST}" >> "$FILE"
 fi
+
+We would like to inform you that the migration activity cannot be completed by the 31st of this month unless the SFTP configuration is completed.
+Currently, there is a blocker related to connectivity from ECS to the SFTP server. Until this configuration and connectivity are established, we will not be able to proceed with the remaining migration steps.
