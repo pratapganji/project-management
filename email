@@ -1,36 +1,55 @@
-Hello Team,
+Main idea
 
-We are facing an issue with newly created Autosys jobs where they are failing with exit code 13 and JILIN validation failure, while the corresponding old jobs are running successfully on the same machines.
+Today the process creates a CSV and places it on a shared path.
+They are saying instead of that old method, create or modify an API so that when Mukund’s team calls the API, the CSV gets downloaded directly to their edge/local system. Then their process can use that downloaded file.
 
-Summary of observation:
-- Old job runs successfully on the server.
-- When the new script is configured in the old job, it runs fine.
-- However, when the same script is run via the new jobs, they fail with exit code 13, which typically indicates a permissions issue.
+Two options discussed
 
-New Jobs (failing):
-- 167969_OM_CRM_OLYMPUS_API_NEW_SERVER1_STOP / START  
-- 167969_OM_CRM_OLYMPUS_API_NEW_SERVER2_STOP / START  
-- 167969_OM_CRM_OLYMPUS_API_NEW_SERVER3_STOP / START  
+Option 1 — Preferred
 
-Old Job (working):
-- 167969_OM_CRM_OLYMPUS_API_SERVER1_STOP  
+API download approach
+	•	Mukund’s team calls your API from their process
+	•	API generates/returns the CSV
+	•	File gets downloaded locally on their side
+	•	They process it from there
+	•	No need for NAS/shared path/job copying flow
+	•	Also avoids running the Autosys job on your side
 
-Additional details:
-- Machines and agents are reachable and online.
-- Script paths are valid and executable when run via the old job.
-- New jobs currently do not have permissions aligned with the old job.
-- Logs indicate failure consistent with missing or incorrect Autosys job permissions.
+This is being seen as:
+	•	cleaner
+	•	more on-demand
+	•	less old-fashioned
+	•	easier long term
 
-Since we do not have Autosys server access to verify or copy permissions, could you please:
-1. Confirm the permission value on the old job, and  
-2. Apply the same Autosys job permissions to all the new jobs listed above,  
-   or advise the correct permission value that should be set in the JIL.
+Option 2 — Backup / older route
 
-This will allow the new jobs to execute on the server the same way as the existing job.
+VM + NAS mount + job copy
+	•	Put file on NAS mounted to VM/edge node
+	•	Write a job to copy from NAS to destination folder/local path
+	•	Another job/process picks it from there
 
-Please let us know if any additional information is required from our side.
+This is considered:
+	•	old/rudimentary
+	•	less preferred
+	•	only a fallback if API route cannot be done
 
-Thank you for your support.
+Concerns mentioned
+	•	The API-based solution needs logic changes in the API
+	•	There may not be enough time right now
+	•	Direct connection to edge node is not available
+	•	File size is probably small, so API download is practical
 
-Best regards,  
-Sarswoti
+Decision / next step
+
+They want to discuss this with Mukund’s team in a call tomorrow and understand their process.
+Then they will suggest that Mukund’s team:
+	•	stop depending on shared path
+	•	call the API directly
+	•	download the file in their process
+
+Simple takeaway
+
+Preferred solution: make the file downloadable through API on demand.
+Fallback solution: VM/NAS/job-based file movement.
+
+If you want, I can turn this into a clean meeting summary with action items and owners.
