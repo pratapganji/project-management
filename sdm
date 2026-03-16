@@ -1,3 +1,87 @@
+SDM File Export Migration Plan
+
+Phase 1 – Downloadable CSV API (Migration + POC)
+
+Objective:
+Replace the current shared-path file export mechanism with a downloadable CSV API and eliminate the existing file-transfer AutoSys jobs.
+
+Current Flow:
+AutoSys Job → API generates CSV → File stored in shared path → File copied through multiple intermediate jobs → Mukund team picks file → File copied to HDFS → Hive load.
+
+Proposed Flow (Phase 1):
+Mukund Job (curl/KSH) → Call SDM Download API → API returns CSV file → File downloaded on Mukund server → Mukund process moves file to HDFS → Hive ingestion.
+
+Implementation Details:
+1. Convert existing SDM export APIs so that instead of writing the CSV to a shared path, the API returns the CSV file directly as a downloadable response.
+   Example endpoint:
+   GET /sdm/export/source-system
+
+   Response headers:
+   Content-Type: text/csv
+   Content-Disposition: attachment; filename=source-system.csv
+
+2. Generate a CTL file along with the CSV containing record count metadata.
+   Example:
+   source-system.ctl
+   FILE_NAME=source-system.csv
+   RECORD_COUNT=1234
+
+3. Mukund’s process will call the API using curl from the KSH job and download the CSV file directly to the local machine. After download, the existing framework can move the file to HDFS and process it as today.
+
+4. Once this approach is implemented, we can retire the existing file movement job chain (shared path export + intermediate copy jobs). This will remove at least 3 AutoSys jobs currently used for file transfers.
+
+5. Testing Plan:
+   - Validate curl-based download from Mukund environment (POC already verified).
+   - Deploy downloadable API in lower environment.
+   - Mukund tests ingestion into Hive using downloaded file.
+   - Validate record count using CTL file.
+   - Promote to production.
+
+Deliverables for Phase 1:
+- Downloadable CSV API for SDM exports.
+- CTL file with record count.
+- Removal of shared-path based export jobs.
+- End-to-end validation with Mukund framework.
+
+Phase 2 – Parameterized Export API
+
+Objective:
+Enhance the API so that consumers can request different extraction windows dynamically without changing the API logic or creating separate jobs.
+
+Proposed API Design:
+GET /sdm/export/source-system?days=1
+GET /sdm/export/source-system?days=7
+GET /sdm/export/source-system?fullLoad=true
+
+Meaning:
+days=1 → return last 24 hours of data.
+days=7 → return last 7 days of data (current behavior).
+fullLoad=true → return complete dataset.
+
+Future Flow:
+Mukund Job → API call with parameter → CSV download → HDFS ingestion → Hive processing.
+
+Benefits:
+- Reduces ad-hoc requests for manual job triggers.
+- Enables daily incremental ingestion.
+- Allows full dataset refresh when required.
+- Simplifies operational support by reducing manual intervention.
+
+Future Considerations (Not part of current migration):
+- JSON streaming instead of CSV.
+- Direct dataset ingestion without file creation.
+- Event/Kafka-based ingestion pipeline.
+
+For now, Phase 1 will focus on downloadable CSV API implementation and removal of the shared-path job chain, while Phase 2 will introduce parameterized data extraction capability.
+
+
+
+
+
+
+
+
+
 We need the below details regarding the migration:
 	1.	Help to share the SCP/SFTP connectivity process or request required to enable connectivity from ECS to the reference server. Please share if any CMP or documentation exists.
 	2.	We would like to proceed with creating a new FID for Oracle database connectivity with access limited to the required tablespace.
