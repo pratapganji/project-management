@@ -1,5 +1,148 @@
 SDM File Export Migration Plan
 
+Current Situation
+Currently we have multiple APIs like:
+- /exportSundry
+- /exportSourceSystem
+- /exportSourceSystemAdhocLatestFetch
+- /exportSourceSystemCoverage
+- /exportSourceSystemCoverageAdhocLatestFetch
+
+These APIs internally hardcode values such as:
+- type = WEEKLY
+- type = ADHOC
+- requestor = SYSTEM or SOEID
+- noOfDays = 0
+
+Also the current process generates CSV files into a shared path and then multiple AutoSys jobs move the file across locations before Mukund’s process reads it and loads it into Hive.
+
+Current Flow
+AutoSys Job → API generates CSV → File written to shared path → File copied through multiple intermediate jobs → Mukund team picks the file → File copied to HDFS → Hive load.
+
+Phase 1 – Downloadable CSV API (Migration + POC)
+
+Objective
+Replace the shared-path file export mechanism with a downloadable CSV API so that Mukund’s process can directly download the file using curl.
+
+Proposed Flow (Phase 1)
+Mukund Job (curl/KSH) → Call SDM Download API → API returns CSV file → File downloaded locally → Mukund process moves file to HDFS → Hive ingestion.
+
+Implementation Details
+
+1. Convert existing export APIs so that instead of writing the CSV file to a shared path, the API returns the CSV file directly as a downloadable response.
+
+Example API
+GET /sdm/export/source-system
+
+Response Headers
+Content-Type: text/csv
+Content-Disposition: attachment; filename=source-system.csv
+
+2. Generate a CTL file along with the CSV file containing the record count metadata.
+
+Example CTL file
+source-system.ctl
+
+FILE_NAME=source-system.csv
+RECORD_COUNT=1234
+
+Mukund’s process can validate the record count before loading the file into Hive.
+
+3. Mukund’s process will call the API using curl from the KSH job and download the CSV file directly to the local machine. After downloading, the existing ingestion framework will move the file to HDFS and process it.
+
+4. With this new approach, we can retire the existing file movement chain of AutoSys jobs. This will eliminate at least three jobs currently responsible for moving files between shared paths.
+
+5. Testing Plan
+- Validate curl-based file download from Mukund environment (POC already verified).
+- Deploy downloadable API in lower environment.
+- Mukund team tests ingestion into Hive using the downloaded file.
+- Validate record count using CTL file.
+- Promote the solution to production.
+
+Deliverables for Phase 1
+- Downloadable CSV API.
+- CTL file with record count.
+- Removal of shared-path export jobs.
+- End-to-end validation with Mukund’s ingestion framework.
+
+Phase 2 – Parameterized Export API
+
+Objective
+Simplify the API design by introducing parameterized endpoints instead of maintaining separate APIs for weekly and adhoc exports.
+
+Instead of multiple APIs such as:
+- /exportSourceSystem
+- /exportSourceSystemAdhocLatestFetch
+- /exportSourceSystemCoverage
+- /exportSourceSystemCoverageAdhocLatestFetch
+
+We will introduce parameterized APIs.
+
+Example Parameterized APIs
+
+GET /sdm/export/source-system?days=1
+GET /sdm/export/source-system?days=7
+GET /sdm/export/source-system?fullLoad=true
+
+GET /sdm/export/source-system-coverage?days=1
+GET /sdm/export/source-system-coverage?days=7
+GET /sdm/export/source-system-coverage?fullLoad=true
+
+GET /sdm/export/sundry?days=1
+GET /sdm/export/sundry?days=7
+GET /sdm/export/sundry?fullLoad=true
+
+Parameter Meaning
+
+days=1
+Return last 24 hours of data.
+
+days=7
+Return last 7 days of data (current weekly export behavior).
+
+fullLoad=true
+Return the complete dataset.
+
+Future Flow (Phase 2)
+
+Mukund Job → API call with parameter → CSV download → HDFS ingestion → Hive processing.
+
+Benefits
+
+- Reduces the number of APIs and simplifies the design.
+- Eliminates the need for adhoc export APIs.
+- Enables flexible extraction windows (daily, weekly, full load).
+- Reduces manual intervention and operational support.
+- Simplifies AutoSys orchestration.
+
+Future Enhancements (Not part of current migration)
+
+- JSON streaming instead of CSV.
+- Direct dataset ingestion without file generation.
+- Kafka/event-based ingestion.
+
+For the current migration, Phase 1 will focus on converting the export APIs into downloadable CSV APIs and removing the shared-path job chain. Phase 2 will introduce parameterized data extraction capability.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+SDM File Export Migration Plan
+
 Phase 1 – Downloadable CSV API (Migration + POC)
 
 Objective:
