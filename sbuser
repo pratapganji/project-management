@@ -1,1 +1,7 @@
+SELECT *
+FROM C167969RPC.OM_CATALOGUE_USER_CONSUMPTION
+ORDER BY DWH_CREATED_TIMESTAMP DESC
+FETCH FIRST 20 ROWS ONLY;
+
+
 The failure is not related to the migration process. The job fails because one of the table names coming from the source logs is longer than the column size defined in the target table. The column TABLE_PHYSICAL_NAME allows only 50 characters, but the incoming value is 53 characters, which causes Oracle to reject the insert.
