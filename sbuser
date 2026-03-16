@@ -1,3 +1,13 @@
+for line in csv_reader:
+    table_name_val = line[3]
+
+    if table_name_val and len(table_name_val) > 50:
+        print("TABLE NAME TOO LONG:", table_name_val, "length:", len(table_name_val))
+
+    data.append(tuple(line))
+
+
+
 SELECT *
 FROM C167969RPC.OM_CATALOGUE_USER_CONSUMPTION
 ORDER BY DWH_CREATED_TIMESTAMP DESC
