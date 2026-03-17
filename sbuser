@@ -1,3 +1,6 @@
+UAT Issue – ORA-12899 on OM_CATALOGUE_USER_CONSUMPTION (TABLE_PHYSICAL_NAME length)
+
+
 Hi Omkar,
 
 In UAT, we are again encountering the below error during the SB User Consumption load:
