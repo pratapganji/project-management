@@ -1,3 +1,22 @@
+Hi Mukund,
+
+Following up on the SDM file export migration plan shared yesterday.
+
+As discussed, we are proposing to:
+	•	Provide CSV and CTL together as a ZIP download via API
+	•	Use parameterized load (1 day / 7 days / full load)
+
+Could you please confirm if you are okay with this approach so we can proceed with development?
+
+
+
+
+
+
+
+
+
+
 SDM File Export Migration Plan
 
 Current Situation
