@@ -1,3 +1,32 @@
+Hi Omkar,
+
+In UAT, we are again encountering the below error during the SB User Consumption load:
+
+ORA-12899: value too large for column  
+C167969RPC.OM_CATALOGUE_USER_CONSUMPTION.TABLE_PHYSICAL_NAME  
+(actual: 53, maximum: 50)
+
+Earlier, we had observed the same issue and as suggested, we reran the process, after which the job completed successfully. However, we are now seeing this error again.
+
+To further analyze, I added logging before the insert step and identified the exact table name causing the issue:
+
+TABLE NAME TOO LONG: OM_RISK_FRTB_SENSITIVITY_COMPLETENESS_RESULT_DATE_MAP  
+Length: 53
+
+This confirms that the failure is due to incoming source data exceeding the current column size limit (50), rather than an issue with the migration process.
+
+Since we are currently in UAT and the job has already been handed over for testing, could you please advise on how to proceed further?
+
+Should we consider increasing the column size for TABLE_PHYSICAL_NAME as a permanent fix, or handle this via trimming at the application level?
+
+Please let me know your suggestion.
+
+Thanks,  
+Pratap
+
+
+
+
 for line in csv_reader:
     table_name_val = line[3]
 
