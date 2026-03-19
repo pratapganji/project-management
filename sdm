@@ -1,3 +1,19 @@
+
+select *
+from om_catalogue_source_system
+where catalogue_source_system_sk in (
+    select max(catalogue_source_system_sk)
+    from om_catalogue_source_system s
+    where status = 'COMPLETE'
+    group by source_system_id, csi_id, source_system_code, olympus_data_flow_name, business_region_code, country_code
+)
+and dwh_updated_timestamp between (trunc(sysdate - 7) + 22/24) and (trunc(sysdate) + 22/24)
+and status = 'COMPLETE'
+and action = 'I';
+
+
+
+
 INSERT INTO OM_CATALOGUE_SOURCE_SYSTEM (
     CATALOGUE_SOURCE_SYSTEM_SK,
     SOURCE_SYSTEM_SK,
