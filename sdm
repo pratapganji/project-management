@@ -1,7 +1,12 @@
 
 
 
-
+case SPECIFIC:
+        sourceInsert = catalogueSourceSystemRepository.findByInsertStatusAdhoc(exportTypeDTO.getNoOfDays());
+        sourceUpdate = catalogueSourceSystemRepository.findByUpdateStatusAdhoc(exportTypeDTO.getNoOfDays());
+        LOGGER.info("exportSourceSystem type : SPECIFIC");
+        LOGGER.info("only {} day load", exportTypeDTO.getNoOfDays());
+        break;
 
         
 
