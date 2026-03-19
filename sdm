@@ -1,3 +1,43 @@
+@Operation(description = "export SourceSystem")
+@PostMapping(value = "/exportSourceSystem")
+public ResponseEntity<?> exportSourceSystem(
+        @RequestParam(name = "load", required = false) String load) throws Exception {
+
+    LOGGER.info("Method in : exportSourceSystem ");
+    UpdateResponseDTO updateResponseDTO = new UpdateResponseDTO();
+    ExportTypeDTO exportTypeDTO = new ExportTypeDTO();
+
+    if (load != null && load.equalsIgnoreCase("7")) {
+        exportTypeDTO.setType(WEEKLY);
+        exportTypeDTO.setRequestor(SYSTEM);
+    } else if (load != null && load.equalsIgnoreCase("1")) {
+        exportTypeDTO.setType(SPECIFIC);
+        exportTypeDTO.setRequestor(SYSTEM);
+        exportTypeDTO.setNoOfDays(Integer.parseInt(load));
+    } else {
+        // TODO: Implement full load
+        LOGGER.info("else block executing");
+        return ResponseEntity.badRequest().body("invalid load value");
+    }
+
+    try {
+        Resource resource = schemabrowserService.exportSourceSystem(exportTypeDTO);
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION,
+                        "attachment; filename=\"" + resource.getFilename() + "\"")
+                .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                .contentLength(resource.contentLength())
+                .body(resource);
+    } catch (Exception e) {
+        updateResponseDTO.setErrorMessage(e.getMessage());
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+    }
+}
+
+
+
+
+
 INSERT INTO OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE (
     CATALOGUE_SOURCE_SYSTEM_COVERAGE_SK,
     ACTION,
