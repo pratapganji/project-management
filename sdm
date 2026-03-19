@@ -4,6 +4,7 @@ public Resource exportSourceSystemCoverage(ExportTypeDTO exportTypeDTO) throws E
     try {
         LOGGER.info("Method in : exportSourceSystemCoverage");
 
+        Optional<List<CatalogueSourceSystemCoverage>> coverageList = Optional.empty();
         List<CatalogueSourceSystemCoverage> total = new ArrayList<>();
         List<CatalogueSourceSystemCoverage> coverageInsert = new ArrayList<>();
         List<CatalogueSourceSystemCoverage> coverageUpdate = new ArrayList<>();
@@ -11,12 +12,6 @@ public Resource exportSourceSystemCoverage(ExportTypeDTO exportTypeDTO) throws E
         Timestamp lastRunTime = sdmLogRepository.getLastRunTime(coverageTable);
         LocalDateTime localDateTime = LocalDateTime.now(DateTimeZone.forID("America/New_York"));
         Timestamp currentTimevalue = new Timestamp(localDateTime.toDateTime().getMillis());
-
-        Date lastdate = new Date(lastRunTime.getTime());
-        String lastrun = new SimpleDateFormat("dd-MMM-yy").format(lastdate);
-
-        Date currentdate = new Date(currentTimevalue.getTime());
-        String currentRun = new SimpleDateFormat("dd-MMM-yy").format(currentdate);
 
         switch (exportTypeDTO.getType()) {
             case WEEKLY:
@@ -46,7 +41,7 @@ public Resource exportSourceSystemCoverage(ExportTypeDTO exportTypeDTO) throws E
             total.addAll(coverageUpdate);
         }
 
-        Optional<List<CatalogueSourceSystemCoverage>> coverageList = Optional.of(total);
+        coverageList = Optional.of(total);
 
         String inputFileName = "CatalogueSourceSystemCoverage";
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
@@ -67,7 +62,8 @@ public Resource exportSourceSystemCoverage(ExportTypeDTO exportTypeDTO) throws E
             String queryLog = QUERY_LOG + lastRunTime + CONNECTOR + currentTimevalue;
             LOGGER.info("Query Fetch timing:{}", queryLog);
 
-            CatalogueSdmLog sdmLog = setSdmLogDetails(exportTypeDTO, coverageTable, currentTimestamp, coverageList.get().size());
+            CatalogueSdmLog sdmLog = setSdmLogDetails(
+                    exportTypeDTO, coverageTable, currentTimestamp, coverageList.get().size());
             sdmLogRepository.save(sdmLog);
             LOGGER.info("Inserted SOURCE SYSTEM COVERAGE log record into SDM LOG table successfully");
         }
@@ -84,12 +80,17 @@ public Resource exportSourceSystemCoverage(ExportTypeDTO exportTypeDTO) throws E
 
 
 
+
+        
+
+
 @Override
 @Transactional
 public Resource exportSourceSystem(ExportTypeDTO exportTypeDTO) throws Exception {
     try {
         LOGGER.info("Method in : exportSourceSystem");
 
+        Optional<List<CatalogueSourceSystem>> sourceList = Optional.empty();
         List<CatalogueSourceSystem> total = new ArrayList<>();
         List<CatalogueSourceSystem> sourceInsert = new ArrayList<>();
         List<CatalogueSourceSystem> sourceUpdate = new ArrayList<>();
@@ -105,12 +106,6 @@ public Resource exportSourceSystem(ExportTypeDTO exportTypeDTO) throws Exception
         dateTimeInNewYork = currentTimevalue.toLocalDateTime().atZone(ZoneId.of("America/New_York"));
         dateTimeInGMT = dateTimeInNewYork.withZoneSameInstant(ZoneId.of("GMT"));
         Timestamp currentRunGMT = Timestamp.valueOf(dateTimeInGMT.toLocalDateTime());
-
-        Date lastdate = new Date(lastRunTime.getTime());
-        String lastrun = new SimpleDateFormat("dd-MMM-yy").format(lastdate);
-
-        Date currentdate = new Date(currentTimevalue.getTime());
-        String currentRun = new SimpleDateFormat("dd-MMM-yy").format(currentdate);
 
         switch (exportTypeDTO.getType()) {
             case WEEKLY:
@@ -140,7 +135,7 @@ public Resource exportSourceSystem(ExportTypeDTO exportTypeDTO) throws Exception
             total.addAll(sourceUpdate);
         }
 
-        Optional<List<CatalogueSourceSystem>> sourceList = Optional.of(total);
+        sourceList = Optional.of(total);
 
         String inputFileName = "CatalogueSourceSystem";
         SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
@@ -161,7 +156,8 @@ public Resource exportSourceSystem(ExportTypeDTO exportTypeDTO) throws Exception
             String queryLog = QUERY_LOG + lastRunTime + CONNECTOR + currentTimevalue;
             LOGGER.info("Query Fetch timing:{}", queryLog);
 
-            CatalogueSdmLog sdmLog = setSdmLogDetails(exportTypeDTO, sourceTable, currentTimestamp, sourceList.get().size());
+            CatalogueSdmLog sdmLog = setSdmLogDetails(
+                    exportTypeDTO, sourceTable, currentTimestamp, sourceList.get().size());
             sdmLogRepository.save(sdmLog);
             LOGGER.info("Inserted SOURCE SYSTEM log record into SDM LOG table successfully");
         }
@@ -174,6 +170,9 @@ public Resource exportSourceSystem(ExportTypeDTO exportTypeDTO) throws Exception
         throw new Exception("There is an issue in exportSourceSystem, Data is not proper");
     }
 }
+
+
+
 
 
 
