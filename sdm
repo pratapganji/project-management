@@ -1,3 +1,114 @@
+@Override
+@Transactional
+public Resource exportSundry(ExportTypeDTO exportTypeDTO) throws Exception {
+    try {
+        LOGGER.info("Method in : exportSundry");
+
+        if (FULL_LOAD.equalsIgnoreCase(exportTypeDTO.getType())) {
+            return exportSundryFullLoadStream(exportTypeDTO);
+        }
+
+        Optional<List<CatalogueSundry>> sunList = Optional.empty();
+        Timestamp lastRunTime = sdmLogRepository.getLastRunTime(sundryTable);
+        LocalDateTime localDateTime = LocalDateTime.now(DateTimeZone.forID("America/New_York"));
+        Timestamp currentTimevalue = new Timestamp(localDateTime.toDateTime().getMillis());
+
+        switch (exportTypeDTO.getType()) {
+            case WEEKLY:
+                sunList = catalogueSundryRepository.findByStatusAndIsCurrentFlag();
+                LOGGER.info("export type 7 day load");
+                break;
+
+            case SPECIFIC:
+                sunList = catalogueSundryRepository.findByStatusAndIsCurrentFlagwithDays(exportTypeDTO.getNoOfDays());
+                LOGGER.info("only {} day load", exportTypeDTO.getNoOfDays());
+                break;
+
+            default:
+                throw new Exception("Unsupported export type for exportSundry: " + exportTypeDTO.getType());
+        }
+
+        String inputFileName = "CatalogueSundry";
+        SimpleDateFormat formatter = new SimpleDateFormat("yyyyMMdd");
+        java.util.Date date = new java.util.Date();
+
+        inputFileName = inputFileName + "." + formatter.format(date) + ".csv";
+        String sourcePathLocation = sundrySourcePath + inputFileName;
+        String destinationPathLocation = sundryDestPath + inputFileName;
+
+        Resource file = getCsv(sunList, null, null, "SUNDRY",
+                sourcePathLocation, destinationPathLocation,
+                "CatalogueSundry", exportTypeDTO);
+
+        if (file.contentLength() > 0 && sunList.isPresent()) {
+            LOGGER.info("updating the sdm log table - lastSuccessfulRunTimestamp");
+            localDateTime = LocalDateTime.now(DateTimeZone.forID("America/New_York"));
+            Timestamp currentTimestamp = new Timestamp(localDateTime.toDateTime().getMillis());
+            String queryLog = "Current Query fetch time range : between " + lastRunTime + " and " + currentTimevalue;
+            LOGGER.info("Query Fetch timing:{}", queryLog);
+
+            CatalogueSdmLog sdmLog = setSdmLogDetails(exportTypeDTO, sundryTable, currentTimestamp, sunList.get().size());
+            sdmLogRepository.save(sdmLog);
+            LOGGER.info("Inserted SUNDRY log record into SDM LOG table successfully");
+        }
+
+        LOGGER.info("Method out : exportSundry");
+        return file;
+
+    } catch (Exception e) {
+        LOGGER.info("Exception in exportSundry:{}", e.getMessage());
+        throw new Exception("There is an issue in exportSundry, Data is not proper");
+    }
+}
+
+
+
+private String nullSafe(Object value) {
+    return value == null ? "" : value.toString();
+}
+
+
+private Resource zipCsvAndCtl(File csvFile, Resource ctlResource, String zipFileName) throws Exception {
+    File ctlFile = ctlResource.getFile();
+    String zipPath = csvFile.getParent() + File.separator + zipFileName;
+    File zipFile = new File(zipPath);
+
+    try (ZipOutputStream zos = new ZipOutputStream(new FileOutputStream(zipFile))) {
+        addFileToZip(csvFile, csvFile.getName(), zos);
+        addFileToZip(ctlFile, ctlFile.getName(), zos);
+    }
+
+    LOGGER.info("CSV + CTL zipped successfully for file : {}", zipFileName);
+    return new FileSystemResource(zipFile);
+}
+
+
+private void addFileToZip(File file, String entryName, ZipOutputStream zos) throws Exception {
+    try (FileInputStream fis = new FileInputStream(file)) {
+        zos.putNextEntry(new ZipEntry(entryName));
+        byte[] buffer = new byte[8192];
+        int len;
+        while ((len = fis.read(buffer)) > 0) {
+            zos.write(buffer, 0, len);
+        }
+        zos.closeEntry();
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 SELECT *
 FROM (
     SELECT s.*,
