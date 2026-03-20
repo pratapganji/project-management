@@ -4,6 +4,15 @@ SELECT column_name,
 FROM all_tab_columns
 WHERE owner = 'C167969RPC'
   AND table_name = 'OM_CATALOGUE_USER_CONSUMPTION'
+  AND column_name = 'TABLE_PHYSICAL_NAME';
+
+
+SELECT column_name,
+       data_type,
+       data_length
+FROM all_tab_columns
+WHERE owner = 'C167969RPC'
+  AND table_name = 'OM_CATALOGUE_USER_CONSUMPTION'
 ORDER BY column_id;
 
 
