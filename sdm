@@ -1,3 +1,59 @@
+SELECT *
+FROM (
+    SELECT s.*,
+           ROW_NUMBER() OVER (
+               PARTITION BY s.DIMENSION_GROUP_NAME, s.SOURCE_CODE
+               ORDER BY s.CATALOGUE_SUNDRY_SK DESC
+           ) rn
+    FROM OM_CATALOGUE_SUNDRY s
+    WHERE s.STATUS = 'COMPLETE'
+) x
+WHERE x.rn = 1
+ORDER BY x.SUNDRY_SK
+
+
+
+@Query(value =
+        "SELECT * FROM ( " +
+        "   SELECT s.*, ROW_NUMBER() OVER ( " +
+        "       PARTITION BY s.DIMENSION_GROUP_NAME, s.SOURCE_CODE " +
+        "       ORDER BY s.CATALOGUE_SUNDRY_SK DESC " +
+        "   ) rn " +
+        "   FROM OM_CATALOGUE_SUNDRY s " +
+        "   WHERE s.STATUS = 'COMPLETE' " +
+        ") x " +
+        "WHERE x.rn = 1 " +
+        "ORDER BY x.SUNDRY_SK",
+        nativeQuery = true)
+Stream<CatalogueSundry> streamFullLoadSundry();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 @Query(value = "select * from OM_CATALOGUE_SUNDRY where catalogue_sundry_sk in ( " +
         "select MAX(catalogue_sundry_sk) from OM_CATALOGUE_SUNDRY s " +
