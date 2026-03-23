@@ -1,20 +1,3 @@
-As part of the CRM Olympus Secondary Host update, this subtask is created to perform QE validation in UAT for the deployed changes.
-
-Scope of Testing:
-	•	Validate that crm-olympus-application.properties contains the updated secondary host configuration.
-	•	Verify that the updated properties file is correctly deployed to the server path (/data/1/.../CRM_Olympus_Config/config) via UDeploy.
-	•	Confirm that the application picks up the updated configuration.
-	•	Validate HTTPS endpoints (VIP/WIP) are functioning as expected.
-	•	Ensure no impact to downstream systems after HTTPS migration.
-
-Current Status:
-	•	Deployment changes have been completed in UAT.
-	•	Configuration files are updated and available on the server.
-	•	Testing is pending and to be performed by QE team.
-
-Action Required:
-	•	QE team to execute functional and configuration validation in UAT.
-	•	Provide testing sign-off upon successful validation.
 
 
 
