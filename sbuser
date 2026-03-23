@@ -1,3 +1,26 @@
+As part of the CRM Olympus Secondary Host update, testing is being performed in UAT to validate the deployment and configuration changes.
+
+Scope of Testing:
+	•	Verify that crm-olympus-application.properties is updated with the secondary host configuration.
+	•	Ensure the updated properties file is correctly copied to the server path (/data/1/.../CRM_Olympus_Config/config) via UDeploy.
+	•	Validate that the application picks up the updated configuration from the server.
+	•	Confirm that HTTPS endpoints (VIP/WIP) are working as expected.
+	•	Ensure no impact to downstream systems after HTTPS migration.
+
+Validation Performed:
+	•	Verified properties file content includes updated secondary host entry.
+	•	Confirmed correct file placement in server config path after deployment.
+	•	Validated application behavior using updated HTTPS endpoints.
+	•	Checked logs/config to ensure secondary host is being used.
+
+
+
+
+
+
+
+
+
 SELECT column_name,
        data_type,
        data_length
