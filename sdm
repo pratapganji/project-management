@@ -1,3 +1,118 @@
+package com.citi.olympus.staticdata.model;
+
+import com.citi.olympus.validation.AllowedEmailDomainsValidator;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import lombok.Data;
+
+import javax.validation.constraints.Email;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
+import javax.validation.constraints.Pattern;
+import java.util.List;
+
+@Data
+public class EmailNotificationRequest extends NotificationRequest {
+
+    @JsonProperty("emailFrom")
+    @NotNull
+    @NotBlank
+    @Email
+    @AllowedEmailDomainsValidator(message = "Email domains in emailFrom are not allowed")
+    private String emailFrom;
+
+    @JsonProperty("emailTo")
+    @NotNull
+    private List<
+            @NotBlank
+            @NotNull
+            @Email(message = "Invalid email format in emailTo")
+            @AllowedEmailDomainsValidator(message = "Email domains in emailTo are not allowed")
+            String> emailTo;
+
+    @JsonProperty("emailCc")
+    private List<
+            @Email(message = "Invalid email format in emailCc")
+            @NotNull
+            @NotBlank
+            @AllowedEmailDomainsValidator(message = "Email domains in emailCc are not allowed")
+            String> emailCc;
+
+    @JsonProperty("emailSubject")
+    @NotNull
+    @NotBlank
+    private String emailSubject;
+
+    @JsonProperty("message")
+    @NotNull
+    @NotBlank
+    private String message;
+
+    @JsonProperty("emailHtmlFormat")
+    @Pattern(regexp = "^[YN]?$", message = "emailHtmlFormat must be either 'Y', 'N', or blank")
+    private String emailHtmlFormat;
+
+    public String getEmailFrom() {
+        return emailFrom;
+    }
+
+    public void setEmailFrom(String emailFrom) {
+        this.emailFrom = emailFrom;
+    }
+
+    public List<String> getEmailTo() {
+        return emailTo;
+    }
+
+    public void setEmailTo(List<String> emailTo) {
+        this.emailTo = emailTo;
+    }
+
+    public List<String> getEmailCc() {
+        return emailCc;
+    }
+
+    public void setEmailCc(List<String> emailCc) {
+        this.emailCc = emailCc;
+    }
+
+    public String getEmailSubject() {
+        return emailSubject;
+    }
+
+    public void setEmailSubject(String emailSubject) {
+        this.emailSubject = emailSubject;
+    }
+
+    public String getMessage() {
+        return message;
+    }
+
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
+    public String getEmailHtmlFormat() {
+        return emailHtmlFormat;
+    }
+
+    public void setEmailHtmlFormat(String emailHtmlFormat) {
+        this.emailHtmlFormat = emailHtmlFormat;
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 @Override
 @Transactional
 public Resource exportSundry(ExportTypeDTO exportTypeDTO) throws Exception {
