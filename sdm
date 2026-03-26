@@ -1,9 +1,7 @@
 
-curl -vk -X POST "https://olympus.api.notification.dev.cloudgsl.nam.nsroot.net/olympus/notification/api/notify/emails" ^
-  -H "Content-Type: application/json" ^
-  -d "{\"emailFrom\":\"noreply@citi.com\",\"emailTo\":[\"pg16424@citi.com\"],\"emailCc\":[\"pg16424@citi.com\"],\"emailSubject\":\"test\",\"message\":\"test\",\"emailHtmlFormat\":\"Y\"}"
-
-
+curl -vk -X POST "https://olympus.api.notification.dev.cloudgsl.nam.nsroot.net/olympus/notification/api/notify/emails" \
+  -H "Content-Type: application/json" \
+  -d '{"emailFrom":"noreply@citi.com","emailTo":["pg16424@citi.com"],"emailCc":["pg16424@citi.com"],"emailSubject":"test","message":"test","emailHtmlFormat":"Y"}'
 
 
 
