@@ -1,3 +1,12 @@
+logger.info("Email notification URL: {}", notificationUrl);
+logger.info("From email: {}", fromEmail);
+logger.info("To email: {}", toEmail);
+logger.info("CC email: {}", ccEmail);
+logger.info("Email subject: {}", subject);
+logger.info("Email request body: {}", emailRequest);
+
+
+
 package com.citi.olympus.staticdata.model;
 
 import com.citi.olympus.validation.AllowedEmailDomainsValidator;
