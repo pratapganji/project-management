@@ -1,28 +1,108 @@
-def get_db_details_impala(db_conf, env):
-    home_dir = os.environ["HOME"]
-    base_path = os.path.join(os.environ["HOME"], ".schema_browser/config/")
-    api_env = "prod" if env in ["prod", "cob", "sb_prod", "sb_cob"] else env.split("_")[-1]
+✅ Fill This in Your Document
 
-    # This should be the decrypted password exported by fetch_secret.sh
-    impala_password = os.getenv("SECRET_IMPALA_NICK_NAME")
+✔ Select:
 
-    # If Impala is NOT being used, don't treat it as an error.
-    if not impala_password:
-        log.info("SECRET_IMPALA_NICK_NAME not set. Skipping Impala JDBC configuration.")
-        return None
+☑ CAP Closure
 
-    return {
-        "properties": {
-            # UID is your username/FID
-            "username": db_conf.get("UID"),
-            # Password must come from the secret (not UID)
-            "password": impala_password,
-            "ENV": api_env,
-            "datasource": "STARBURST",
-            "upperCaseColumns": "",
-            "queryTimeout": "3000",
-        },
-        "classname": "net.citi.olympus.jdbc.driver.OlympusDriver",
-        "url": "jdbc:olympus",
-        "jarFile": os.path.join(base_path, "olympus-jdbc-driver-2.0.10.jar"),
-    }
+⸻
+
+🔹 Issue Section
+
+Issue ID
+
+CAP-989013 (use same from email subject)
+
+Issue Name
+
+HTTP to HTTPS migration for CRM Olympus APIs via Apigee
+
+Issue Due Date
+
+Use latest milestone (example: 05-Mar-2026)
+
+Issue Owner
+
+Rajat Kansal (or your team name if needed)
+
+Exam / Report ID
+
+N/A
+
+⸻
+
+🟢 Executive summary of the remediation action taken
+
+HTTP endpoints for CRM Olympus APIs were successfully migrated to HTTPS by enabling SSL through VIP endpoints and updating Apigee target servers. Application configurations were modified to use secure URLs, and deployments were completed across all environments. End-to-end validation confirmed secure communication without impacting functionality.
+
+⸻
+
+🟢 Executive summary of sustainability
+
+HTTPS enforcement ensures all communication is encrypted, reducing security risks. SSL configurations and deployment processes have been standardized, ensuring future services follow secure communication protocols by default.
+
+⸻
+
+🟢 How did the remediation actions address the issue
+
+The issue of unsecured HTTP communication was resolved by replacing all HTTP endpoints with HTTPS endpoints, enabling SSL certificates, and validating secure communication across Apigee and backend systems. This eliminated exposure to security vulnerabilities and ensured compliance with security standards.
+
+⸻
+
+🔹 CAP Section
+
+CAP ID
+
+Same as above (CAP-989013)
+
+CAP Due Date
+
+05-Mar-2026 (or your milestone date)
+
+CAP Owner
+
+Your name / Rajat Kansal
+
+⸻
+
+🟢 How did the remediation actions in this CAP address the issue
+
+The CAP ensured complete migration of CRM Olympus APIs from HTTP to HTTPS by implementing SSL configurations, updating routing through VIP endpoints, modifying application and Apigee configurations, and validating secure end-to-end connectivity. This fully mitigated the identified security risk.
+
+⸻
+
+🔹 Steps + Evidence Table (Very Important)
+
+Description of remediation actions | Evidence
+	1.	Identified all HTTP endpoints in CRM Olympus APIs
+→ Evidence: Endpoint list / config files
+	2.	Created and configured HTTPS VIP endpoints
+→ Evidence: VIP URL / configuration details
+	3.	Installed and configured SSL certificates (cacerts / truststore)
+→ Evidence: SSL config screenshots / logs
+	4.	Updated application properties to use HTTPS URLs
+→ Evidence: crm-olympus-application.properties changes
+	5.	Updated Apigee target servers to HTTPS endpoints
+→ Evidence: Apigee config screenshots
+	6.	Deployed changes across UAT and Production
+→ Evidence: Deployment logs
+	7.	Validated end-to-end HTTPS connectivity
+→ Evidence: API response / Postman / curl output
+	8.	Verified application logs showing HTTPS port (2005)
+→ Evidence: Logs (like you shared earlier)
+
+⸻
+
+🔹 Approval of CAP closure
+
+Write:
+
+Approval attached via email confirmation and deployment validation.
+
+⸻
+
+💯 Pro Tip (Important for you)
+
+If they ask proof later, keep ready:
+	•	One HTTPS URL working screenshot
+	•	One log showing HTTPS port (2005)
+	•	One Apigee config screenshot
