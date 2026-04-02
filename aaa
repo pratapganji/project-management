@@ -1,6 +1,17 @@
+SELECT ACTIVE_FLAG, LB_PERCENT 
+FROM validation_config_rules
+WHERE HIERARCHY_PATH = '2052A~Debt'
+AND DATA_TYPE = 'generic_validation'
+
+
+SELECT ACTIVE_FLAG, LB_PERCENT 
+FROM validation_config_rules
+WHERE HIERARCHY_PATH = '2052a~Loans'
+AND DATA_TYPE = 'hop_validation'
+
 {
   "fid": "OLYMPUS_ABAC_LIMITED_FID",
-  "sql": "SELECT ACTIVE_FLAG, LB_PERCENT FROM validation_config_rules"
+  "sql": "SELECT ACTIVE_FLAG, LB_PERCENT FROM validation_config_rules WHERE HIERARCHY_PATH = '2052A~Debt' AND DATA_TYPE = 'generic_validation'"
 }
 
 
