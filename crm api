@@ -1,3 +1,30 @@
+
+import org.jasypt.util.text.BasicTextEncryptor;
+
+public class EncryptPassword {
+    public static void main(String[] args) {
+        BasicTextEncryptor encryptor = new BasicTextEncryptor();
+        
+        // 🔑 same key from your start_app.sh
+        encryptor.setPassword("d7+t60Ihlf3G10nWHXjovZeoONbtsu7N87h1taUEt=");
+        
+        String plainPassword = "YOUR_CMP_PASSWORD"; // <-- put your actual password here
+        
+        String encrypted = encryptor.encrypt(plainPassword);
+        
+        System.out.println("ENC(" + encrypted + ")");
+    }
+}
+
+
+
+
+
+
+
+
+
+
 ✅ Fill This in Your Document
 
 ✔ Select:
