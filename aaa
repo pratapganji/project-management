@@ -1,45 +1,4 @@
-try {
-    log.info("---- HANDLE SELECT START ----");
-    log.info("FID: {}", fid);
-    log.info("Roles: {}", roles);
-    log.info("Incoming SELECT: {}", select);
 
-    PlainSelect ps = (PlainSelect) select.getSelectBody();
-    Expression where = ps.getWhere();
-    log.info("Original WHERE clause: {}", where);
-
-    List<String> tables = new TablesNamesFinder().getTableList(select);
-    log.info("Tables in query: {}", tables);
-
-    for (String table : tables) {
-        log.info("Processing table: {}", table);
-
-        List<String> rules = auth.rowRules(roles, table, SqlOperation.SELECT);
-        log.info("Row rules for table {}: {}", table, rules);
-
-        for (String rule : rules) {
-            log.info("Applying rule: {}", rule);
-
-            Expression ruleExpr = CCJSqlParserUtil.parseCondExpression(rule);
-            log.info("Parsed rule expression: {}", ruleExpr);
-
-            if (where == null) {
-                where = ruleExpr;
-                log.info("Updated WHERE: {}", where);
-            } else {
-                where = new AndExpression(where, ruleExpr);
-                log.info("Updated WHERE: {}", where);
-            }
-        }
-    }
-
-    ps.setWhere(where);
-    log.info("Final WHERE applied: {}", where);
-
-    String finalSql = appendSchemaToTables(select.toString());
-    log.info("Final SQL to execute: {}", finalSql);
-
-    return jdbc.queryForList(finalSql);
 
 
 
