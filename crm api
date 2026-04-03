@@ -1,3 +1,6 @@
+keytool -importkeystore -srckeystore CertAndKey.pfx -srcstoretype PKCS12 -destkeystore keystore.jks -deststoretype JKS
+
+
 
 import org.jasypt.util.text.BasicTextEncryptor;
 
