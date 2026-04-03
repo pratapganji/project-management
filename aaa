@@ -1,3 +1,7 @@
+{
+  "fid": "OLYMPUS_ABAC_LIMITED_FID",
+  "sql": "INSERT INTO validation_config_rules (ACTIVE_FLAG, LB_PERCENT, HIERARCHY_PATH, DATA_TYPE) VALUES ('Y', 50, '2052A~Debt', 'generic_validation')"
+}
 
 
 UPDATE A167969NURAREC.ROLE_ROW_RULE
