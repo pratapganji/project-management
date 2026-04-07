@@ -1,5 +1,5 @@
 @Test
-void testSendMail_Success() throws Exception {
+void testSendMail_NonOkResponse() throws Exception {
     ReflectionTestUtils.setField(emailNotificationService, "notificationUrl", "https://dummy-url");
     ReflectionTestUtils.setField(emailNotificationService, "fromEmail", "from@example.com");
     ReflectionTestUtils.setField(emailNotificationService, "appName", "TestApp");
@@ -13,17 +13,19 @@ void testSendMail_Success() throws Exception {
 
     when(restConsumerService.getHttpHeaders()).thenReturn(headers);
     when(restConsumerService.getRestTemplateSSL()).thenReturn(restTemplate);
-    when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
-            .thenReturn(new ResponseEntity<>("Success", HttpStatus.OK));
+    when(restTemplate.postForEntity(eq("https://dummy-url"), any(HttpEntity.class), eq(String.class)))
+            .thenReturn(new ResponseEntity<>("Bad Request", HttpStatus.BAD_REQUEST));
 
-    ResponseEntity<String> response =
-            emailNotificationService.sendMail(message, subject, toEmail, ccEmail);
+    IllegalStateException exception = assertThrows(
+            IllegalStateException.class,
+            () -> emailNotificationService.sendMail(message, subject, toEmail, ccEmail)
+    );
 
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-
+    assertTrue(exception.getMessage().contains("Failed to send email. Response code"));
     verify(restTemplate, times(1))
-            .postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
+            .postForEntity(eq("https://dummy-url"), any(HttpEntity.class), eq(String.class));
 }
+
 
 
 
