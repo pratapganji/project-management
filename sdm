@@ -1,3 +1,34 @@
+@Test
+void testSendMail_Success() throws Exception {
+    ReflectionTestUtils.setField(emailNotificationService, "notificationUrl", "https://dummy-url");
+    ReflectionTestUtils.setField(emailNotificationService, "fromEmail", "from@example.com");
+    ReflectionTestUtils.setField(emailNotificationService, "appName", "TestApp");
+
+    String message = "Test Message";
+    String subject = "Test Subject";
+    String toEmail = "test@example.com";
+    String ccEmail = "cc@example.com";
+
+    HttpHeaders headers = new HttpHeaders();
+
+    when(restConsumerService.getHttpHeaders()).thenReturn(headers);
+    when(restConsumerService.getRestTemplateSSL()).thenReturn(restTemplate);
+    when(restTemplate.postForEntity(anyString(), any(HttpEntity.class), eq(String.class)))
+            .thenReturn(new ResponseEntity<>("Success", HttpStatus.OK));
+
+    ResponseEntity<String> response =
+            emailNotificationService.sendMail(message, subject, toEmail, ccEmail);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+
+    verify(restTemplate, times(1))
+            .postForEntity(anyString(), any(HttpEntity.class), eq(String.class));
+}
+
+
+
+
+
 
 curl -vk -X POST "https://olympus.api.notification.dev.cloudgsl.nam.nsroot.net/olympus/notification/api/notify/emails" \
   -H "Content-Type: application/json" \
