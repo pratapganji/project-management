@@ -1,3 +1,10 @@
+We are not changing any business logic; we are only bypassing SSL validation for outbound secondary-host calls to resolve the PKIX certificate error causing 500 failures
+
+
+
+
+
+
 keytool -importkeystore -srckeystore CertAndKey.pfx -srcstoretype PKCS12 -destkeystore keystore.jks -deststoretype JKS
 
 
