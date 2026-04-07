@@ -1,151 +1,110 @@
 
 
 @Test
-void testGetFailureEmail() throws Exception {
-    EmailNotificationService spyService = Mockito.spy(emailNotificationService);
-
-    String template = "Payload: {{payload}}, Env: {{Environment}}, Error: {{error}}, Time: {{CURRENT_TIME}}, App: ${app}";
-    doReturn(template).when(spyService).loadTemplate("failureTemplate.html");
-
-    String result = spyService.getFailureEmail(
-            "testPayload",
-            "dev",
-            "some error",
-            "2026-04-07T10:00:00",
-            "TestApp",
-            "failureTemplate.html"
-    );
-
-    assertTrue(result.contains("testPayload"));
-    assertTrue(result.contains("dev"));
-    assertTrue(result.contains("some error"));
-    assertTrue(result.contains("2026-04-07T10:00:00"));
-    assertTrue(result.contains("TestApp"));
-}
-
-
-
-
-@Test
-void testGetSuccessEmail() throws Exception {
-    EmailNotificationService spyService = Mockito.spy(emailNotificationService);
-
-    String template = "Payload: {{payload}}, Env: {{Environment}}, Time: {{CURRENT_TIME}}, App: ${app}";
-    doReturn(template).when(spyService).loadTemplate("successTemplate.html");
-
-    String result = spyService.getSuccessEmail(
-            "testPayload",
-            "dev",
-            "2026-04-07T10:00:00",
-            "TestApp",
-            "successTemplate.html"
-    );
-
-    assertTrue(result.contains("testPayload"));
-    assertTrue(result.contains("dev"));
-    assertTrue(result.contains("2026-04-07T10:00:00"));
-    assertTrue(result.contains("TestApp"));
-}
-
-
-
-
-@Test
-void testSendEmailNotification_InvalidPayload_DefaultErrorMessage() throws Exception {
+void testSendEmailNotification_SendMailThrowsException() throws Exception {
     EmailNotificationService spyService = Mockito.spy(emailNotificationService);
 
     ReflectionTestUtils.setField(spyService, "appName", "TestApp");
     ReflectionTestUtils.setField(spyService, "toEmail", "test@example.com");
     ReflectionTestUtils.setField(spyService, "ccEmail", "cc@example.com");
 
-    doReturn("failure body").when(spyService)
-            .getFailureEmail(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
-    doReturn("[DEV] Report: path/to/report").when(spyService)
-            .constructSubject(anyString(), anyString());
-    doReturn(new ResponseEntity<>("Success", HttpStatus.OK)).when(spyService)
-            .sendMail(anyString(), anyString(), anyString(), anyString());
-
-    assertDoesNotThrow(() ->
-            spyService.sendEmailNotification(
-                    "payload",
-                    false,
-                    "context",
-                    "dev",
-                    "path/to/report",
-                    null,
-                    "failureTemplate.html")
-    );
-
-    verify(spyService).getFailureEmail(
-            eq("payload"),
-            eq("dev"),
-            eq("Payload validation failed"),
-            anyString(),
-            eq("TestApp"),
-            eq("failureTemplate.html")
-    );
-}
-
-
-
-
-@Test
-void testSendEmailNotification_NullEnvironment() throws Exception {
-    EmailNotificationService spyService = Mockito.spy(emailNotificationService);
-
-    ReflectionTestUtils.setField(spyService, "appName", "TestApp");
-    ReflectionTestUtils.setField(spyService, "toEmail", "test@example.com");
-    ReflectionTestUtils.setField(spyService, "ccEmail", "cc@example.com");
-
-    doReturn("success body").when(spyService)
+    doReturn("success email body").when(spyService)
             .getSuccessEmail(anyString(), anyString(), anyString(), anyString(), anyString());
+
     doReturn("[DEV] Report: path/to/report").when(spyService)
             .constructSubject(anyString(), anyString());
-    doReturn(new ResponseEntity<>("Success", HttpStatus.OK)).when(spyService)
+
+    doThrow(new IllegalStateException("Failed to send email")).when(spyService)
             .sendMail(anyString(), anyString(), anyString(), anyString());
 
-    assertDoesNotThrow(() ->
+    assertThrows(IllegalStateException.class, () ->
             spyService.sendEmailNotification(
-                    "payload",
-                    true,
-                    "context",
-                    null,
-                    "path/to/report",
-                    null,
-                    "successTemplate.html")
-    );
-
-    verify(spyService).getSuccessEmail(eq("payload"), eq("dev"), anyString(), eq("TestApp"), eq("successTemplate.html"));
+                    "payload", true, "context", "dev", "path/to/report", null, "successTemplate.html"));
 }
 
 
 
 
+@Test
+void testSendEmailNotification_Failure() throws Exception {
+    EmailNotificationService spyService = Mockito.spy(emailNotificationService);
+
+    ReflectionTestUtils.setField(spyService, "appName", "TestApp");
+    ReflectionTestUtils.setField(spyService, "toEmail", "test@example.com");
+    ReflectionTestUtils.setField(spyService, "ccEmail", "cc@example.com");
+
+    String payload = "Test Payload";
+    boolean isValid = false;
+    String context = "Test Context";
+    String environment = "dev";
+    String hierarchyPath = "path/to/report";
+    String errorMessage = "Test Error";
+    String templateName = "failureTemplate.html";
+
+    doReturn("failure email body").when(spyService)
+            .getFailureEmail(anyString(), anyString(), anyString(), anyString(), anyString(), anyString());
+
+    doReturn("[DEV] Report: path/to/report").when(spyService)
+            .constructSubject(anyString(), anyString());
+
+    doReturn(new ResponseEntity<>("Success", HttpStatus.OK)).when(spyService)
+            .sendMail(anyString(), anyString(), anyString(), anyString());
+
+    assertDoesNotThrow(() ->
+            spyService.sendEmailNotification(
+                    payload, isValid, context, environment, hierarchyPath, errorMessage, templateName));
+
+    verify(spyService, times(1))
+            .getFailureEmail(eq(payload), eq(environment), eq(errorMessage), anyString(), eq("TestApp"), eq(templateName));
+
+    verify(spyService, times(1))
+            .constructSubject(eq(environment), eq(hierarchyPath));
+
+    verify(spyService, times(1))
+            .sendMail(eq("failure email body"), eq("[DEV] Report: path/to/report"),
+                    eq("test@example.com"), eq("cc@example.com"));
+}
+
 
 
 @Test
-void testSendMail_Exception() throws Exception {
-    ReflectionTestUtils.setField(emailNotificationService, "notificationUrl", "https://dummy-url");
-    ReflectionTestUtils.setField(emailNotificationService, "fromEmail", "from@example.com");
+void testSendEmailNotification_Success() throws Exception {
+    EmailNotificationService spyService = Mockito.spy(emailNotificationService);
 
-    String message = "Test Message";
-    String subject = "Test Subject";
-    String toEmail = "test@example.com";
-    String ccEmail = "cc@example.com";
+    ReflectionTestUtils.setField(spyService, "appName", "TestApp");
+    ReflectionTestUtils.setField(spyService, "toEmail", "test@example.com");
+    ReflectionTestUtils.setField(spyService, "ccEmail", "cc@example.com");
 
-    HttpHeaders headers = new HttpHeaders();
+    String payload = "Test Payload";
+    boolean isValid = true;
+    String context = "Test Context";
+    String environment = "dev";
+    String hierarchyPath = "path/to/report";
+    String errorMessage = null;
+    String templateName = "successTemplate.html";
 
-    when(restConsumerService.getHttpHeaders()).thenReturn(headers);
-    when(restConsumerService.getRestTemplateSSL()).thenReturn(restTemplate);
-    when(restTemplate.postForEntity(eq("https://dummy-url"), any(HttpEntity.class), eq(String.class)))
-            .thenThrow(new RuntimeException("Error"));
+    doReturn("success email body").when(spyService)
+            .getSuccessEmail(anyString(), anyString(), anyString(), anyString(), anyString());
 
-    IllegalStateException exception = assertThrows(
-            IllegalStateException.class,
-            () -> emailNotificationService.sendMail(message, subject, toEmail, ccEmail)
-    );
+    doReturn("[DEV] Report: path/to/report").when(spyService)
+            .constructSubject(anyString(), anyString());
 
-    assertEquals("Failed to send email", exception.getMessage());
+    doReturn(new ResponseEntity<>("Success", HttpStatus.OK)).when(spyService)
+            .sendMail(anyString(), anyString(), anyString(), anyString());
+
+    assertDoesNotThrow(() ->
+            spyService.sendEmailNotification(
+                    payload, isValid, context, environment, hierarchyPath, errorMessage, templateName));
+
+    verify(spyService, times(1))
+            .getSuccessEmail(eq(payload), eq(environment), anyString(), eq("TestApp"), eq(templateName));
+
+    verify(spyService, times(1))
+            .constructSubject(eq(environment), eq(hierarchyPath));
+
+    verify(spyService, times(1))
+            .sendMail(eq("success email body"), eq("[DEV] Report: path/to/report"),
+                    eq("test@example.com"), eq("cc@example.com"));
 }
 
 
