@@ -2,51 +2,61 @@
 
 package com.citi.olympus.validation;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
 
-import javax.validation.Constraint;
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import javax.validation.ConstraintValidatorContext;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-class AllowedEmailDomainsValidatorTest {
+class AllowedEmailDomainsValidatorImplTest {
 
-    private static class DummyClass {
-        @AllowedEmailDomainsValidator
-        private String email;
+    private AllowedEmailDomainsValidatorImpl validator;
+    private ConstraintValidatorContext context;
+
+    @BeforeEach
+    void setUp() {
+        validator = new AllowedEmailDomainsValidatorImpl();
+        context = null;
+
+        Set<String> validDomains = new HashSet<>();
+        validDomains.add("example.com");
+        validDomains.add("citi.com");
+
+        ReflectionTestUtils.setField(validator, "validDomains", validDomains);
     }
 
     @Test
-    void testAnnotationDefaults() throws NoSuchFieldException {
-        AllowedEmailDomainsValidator annotation =
-                DummyClass.class.getDeclaredField("email")
-                        .getAnnotation(AllowedEmailDomainsValidator.class);
-
-        assertNotNull(annotation);
-        assertEquals("Email domain not allowed", annotation.message());
-        assertEquals(0, annotation.groups().length);
-        assertEquals(0, annotation.payload().length);
+    void testIsValid_NullEmail_ReturnsTrue() {
+        boolean result = validator.isValid(null, context);
+        assertTrue(result);
     }
 
     @Test
-    void testMetaAnnotations() {
-        Target target = AllowedEmailDomainsValidator.class.getAnnotation(Target.class);
-        Retention retention = AllowedEmailDomainsValidator.class.getAnnotation(Retention.class);
-        Constraint constraint = AllowedEmailDomainsValidator.class.getAnnotation(Constraint.class);
+    void testIsValid_EmptyEmail_ReturnsTrue() {
+        boolean result = validator.isValid("", context);
+        assertTrue(result);
+    }
 
-        assertNotNull(target);
-        assertNotNull(retention);
-        assertNotNull(constraint);
+    @Test
+    void testIsValid_AllowedDomain_ReturnsTrue() {
+        boolean result = validator.isValid("user@example.com", context);
+        assertTrue(result);
+    }
 
-        assertArrayEquals(
-                new ElementType[]{ElementType.FIELD, ElementType.TYPE_USE},
-                target.value()
-        );
-        assertEquals(RetentionPolicy.RUNTIME, retention.value());
-        assertEquals(AllowedEmailDomainsValidatorImpl.class, constraint.validatedBy()[0]);
+    @Test
+    void testIsValid_AnotherAllowedDomain_ReturnsTrue() {
+        boolean result = validator.isValid("user@citi.com", context);
+        assertTrue(result);
+    }
+
+    @Test
+    void testIsValid_DisallowedDomain_ReturnsFalse() {
+        boolean result = validator.isValid("user@gmail.com", context);
+        assertFalse(result);
     }
 }
     
