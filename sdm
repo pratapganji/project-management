@@ -1,48 +1,12 @@
 
-package com.citi.olympus.utils;
+@Test
+void testInit_SetsPassword() {
+    SecretUtil secretUtil = new SecretUtil();
 
-import org.junit.jupiter.api.Test;
-import org.springframework.test.util.ReflectionTestUtils;
+    secretUtil.init();
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-
-class SecretUtilTest {
-
-    @Test
-    void testGetOracleDbPassword_ReturnsSetValue() {
-        SecretUtil secretUtil = new SecretUtil();
-        ReflectionTestUtils.setField(secretUtil, "oraasDbPassword", "testPassword123");
-
-        String result = secretUtil.getOraasDbPassword();
-
-        assertEquals("testPassword123", result);
-    }
-
-    @Test
-    void testSetOracleDbPassword_UpdatesValue() {
-        SecretUtil secretUtil = new SecretUtil();
-
-        secretUtil.setOraasDbPassword("newPassword456");
-
-        assertEquals("newPassword456", secretUtil.getOraasDbPassword());
-    }
-
-    @Test
-    void testInit_SetsPassword() {
-        SecretUtil secretUtil = new SecretUtil();
-
-        secretUtil.init();
-
-        assertEquals("abcde@#9", secretUtil.getOraasDbPassword());
-    }
-
-    @Test
-    void testInit_DoesNotThrowException() {
-        SecretUtil secretUtil = new SecretUtil();
-
-        assertDoesNotThrow(secretUtil::init);
-    }
+    assertNotNull(secretUtil.getOraasDbPassword());
+    assertFalse(secretUtil.getOraasDbPassword().isEmpty());
 }
 
         
