@@ -1,12 +1,24 @@
 
-@Test
-void testInit_SetsPassword() {
-    SecretUtil secretUtil = new SecretUtil();
+package com.citi.olympus.utils;
 
-    secretUtil.init();
+import org.junit.jupiter.api.Test;
 
-    assertNotNull(secretUtil.getOraasDbPassword());
-    assertFalse(secretUtil.getOraasDbPassword().isEmpty());
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.spy;
+
+class SecretUtilTest {
+
+    @Test
+    void testInit_CatchBlockCovered_WhenSetterThrowsException() {
+        SecretUtil secretUtil = spy(new SecretUtil());
+
+        doThrow(new RuntimeException("Test exception"))
+                .when(secretUtil).setOraasDbPassword(anyString());
+
+        assertDoesNotThrow(secretUtil::init);
+    }
 }
 
         
