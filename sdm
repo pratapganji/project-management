@@ -1,35 +1,33 @@
 
 
-@Test
-void testSendMail_NonOkResponse() throws Exception {
-    ReflectionTestUtils.setField(emailNotificationService, "notificationUrl", "https://dummy-url");
-    ReflectionTestUtils.setField(emailNotificationService, "fromEmail", "from@example.com");
-    ReflectionTestUtils.setField(emailNotificationService, "appName", "TestApp");
+package com.citi.olympus.validation;
 
-    String message = "Test Message";
-    String subject = "Test Subject";
-    String toEmail = "test@example.com";
-    String ccEmail = "cc@example.com";
+import org.junit.jupiter.api.Test;
 
-    HttpHeaders headers = new HttpHeaders();
+import java.lang.reflect.Field;
 
-    when(restConsumerService.getHttpHeaders()).thenReturn(headers);
-    when(restConsumerService.getRestTemplateSSL()).thenReturn(restTemplate);
-    when(restTemplate.postForEntity(eq("https://dummy-url"), any(HttpEntity.class), eq(String.class)))
-            .thenReturn(new ResponseEntity<>("Bad Request", HttpStatus.BAD_REQUEST));
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-    IllegalStateException exception = assertThrows(
-            IllegalStateException.class,
-            () -> emailNotificationService.sendMail(message, subject, toEmail, ccEmail)
-    );
+class AllowedEmailDomainsValidatorTest {
 
-    assertEquals("Failed to send email", exception.getMessage());
-    assertNotNull(exception.getCause());
-    assertTrue(exception.getCause().getMessage().contains("Response code: 400 BAD_REQUEST"));
+    private static class DummyClass {
+        @AllowedEmailDomainsValidator
+        private String email;
+    }
 
-    verify(restTemplate, times(1))
-            .postForEntity(eq("https://dummy-url"), any(HttpEntity.class), eq(String.class));
+    @Test
+    void testAnnotationDefaults() throws NoSuchFieldException {
+        Field field = DummyClass.class.getDeclaredField("email");
+        AllowedEmailDomainsValidator annotation = field.getAnnotation(AllowedEmailDomainsValidator.class);
+
+        assertNotNull(annotation);
+        assertEquals("Email domain not allowed", annotation.message());
+        assertEquals(0, annotation.groups().length);
+        assertEquals(0, annotation.payload().length);
+    }
 }
+    
 
 
 
