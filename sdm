@@ -1,64 +1,51 @@
 
+package com.citi.olympus.utils;
 
-package com.citi.olympus.validation;
-
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.test.util.ReflectionTestUtils;
 
-import javax.validation.ConstraintValidatorContext;
-import java.util.HashSet;
-import java.util.Set;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 
-import static org.junit.jupiter.api.Assertions.*;
+class SecretUtilTest {
 
-class AllowedEmailDomainsValidatorImplTest {
+    @Test
+    void testGetOracleDbPassword_ReturnsSetValue() {
+        SecretUtil secretUtil = new SecretUtil();
+        ReflectionTestUtils.setField(secretUtil, "oraasDbPassword", "testPassword123");
 
-    private AllowedEmailDomainsValidatorImpl validator;
-    private ConstraintValidatorContext context;
+        String result = secretUtil.getOraasDbPassword();
 
-    @BeforeEach
-    void setUp() {
-        validator = new AllowedEmailDomainsValidatorImpl();
-        context = null;
-
-        Set<String> validDomains = new HashSet<>();
-        validDomains.add("example.com");
-        validDomains.add("citi.com");
-
-        ReflectionTestUtils.setField(validator, "validDomains", validDomains);
+        assertEquals("testPassword123", result);
     }
 
     @Test
-    void testIsValid_NullEmail_ReturnsTrue() {
-        boolean result = validator.isValid(null, context);
-        assertTrue(result);
+    void testSetOracleDbPassword_UpdatesValue() {
+        SecretUtil secretUtil = new SecretUtil();
+
+        secretUtil.setOraasDbPassword("newPassword456");
+
+        assertEquals("newPassword456", secretUtil.getOraasDbPassword());
     }
 
     @Test
-    void testIsValid_EmptyEmail_ReturnsTrue() {
-        boolean result = validator.isValid("", context);
-        assertTrue(result);
+    void testInit_SetsPassword() {
+        SecretUtil secretUtil = new SecretUtil();
+
+        secretUtil.init();
+
+        assertEquals("abcde@#9", secretUtil.getOraasDbPassword());
     }
 
     @Test
-    void testIsValid_AllowedDomain_ReturnsTrue() {
-        boolean result = validator.isValid("user@example.com", context);
-        assertTrue(result);
-    }
+    void testInit_DoesNotThrowException() {
+        SecretUtil secretUtil = new SecretUtil();
 
-    @Test
-    void testIsValid_AnotherAllowedDomain_ReturnsTrue() {
-        boolean result = validator.isValid("user@citi.com", context);
-        assertTrue(result);
-    }
-
-    @Test
-    void testIsValid_DisallowedDomain_ReturnsFalse() {
-        boolean result = validator.isValid("user@gmail.com", context);
-        assertFalse(result);
+        assertDoesNotThrow(secretUtil::init);
     }
 }
+
+        
     
 
 
