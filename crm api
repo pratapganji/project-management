@@ -1,3 +1,7 @@
+
+openssl s_client -connect olympus.api.crmtoolympusnew.uat.cloudgs1.nam.nsroot.net:443 -servername olympus.api.crmtoolympusnew.uat.cloudgs1.nam.nsroot.net -showcerts
+
+
 We are not changing any business logic; we are only bypassing SSL validation for outbound secondary-host calls to resolve the PKIX certificate error causing 500 failures
 
 
