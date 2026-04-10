@@ -1,3 +1,11 @@
+doThrow(new Exception("Mocked Exception"))
+    .when(schemaBrowserService)
+    .getCsv(any(), any(), any(), anyString(), anyString(), anyString(), any());
+
+
+
+
+
 
 package com.citi.olympus.utils;
 
