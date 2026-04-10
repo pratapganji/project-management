@@ -1,6 +1,5 @@
 @Test
 void testExportSundry_Weekly() throws Exception {
-    // Arrange
     ExportTypeDTO exportTypeDTO = new ExportTypeDTO();
     exportTypeDTO.setType("WEEKLY");
     exportTypeDTO.setErrMessage("File Move failed, Contact API Team");
@@ -18,8 +17,10 @@ void testExportSundry_Weekly() throws Exception {
             .when(schemaBrowserService)
             .getCsv(any(), any(), any(), anyString(), anyString(), anyString(), any());
 
-    // Act & Assert
-    Exception exception = assertThrows(Exception.class, () -> schemaBrowserService.exportSundry(exportTypeDTO));
+    Exception exception = assertThrows(
+            Exception.class,
+            () -> schemaBrowserService.exportSundry(exportTypeDTO)
+    );
 
     assertEquals("There is an issue in exportSundry, Data is not proper", exception.getMessage());
 
@@ -27,6 +28,7 @@ void testExportSundry_Weekly() throws Exception {
     verify(schemaBrowserService, times(1))
             .getCsv(any(), any(), any(), anyString(), anyString(), anyString(), any());
 }
+
 
 
 
