@@ -1,30 +1,165 @@
+@
+
 @Test
-void testExportSundry_FullLoad() throws Exception {
-    // Arrange
+void testExportSourceSystem_Exception() throws Exception {
+    ExportTypeDTO exportTypeDTO = new ExportTypeDTO();
+    exportTypeDTO.setType("SPECIFIC");
+    exportTypeDTO.setNoOfDays(5);
+
+    when(sdmLogRepository.getLastRunTime(anyString()))
+            .thenReturn(new Timestamp(System.currentTimeMillis()));
+
+    when(catalogueSourceSystemRepository.findByInsertStatusAdhoc(anyInt()))
+            .thenThrow(new RuntimeException("DB error"));
+
+    Exception exception = assertThrows(
+            Exception.class,
+            () -> schemaBrowserService.exportSourceSystem(exportTypeDTO)
+    );
+
+    assertEquals("There is an issue in exportSourceSystem, Data is not proper", exception.getMessage());
+}
+
+
+@Test
+void testExportSourceSystem_FullLoad() throws Exception {
     ExportTypeDTO exportTypeDTO = new ExportTypeDTO();
     exportTypeDTO.setType("FULL_LOAD");
 
-    Stream<CatalogueSundry> sundryStream = Stream.of(new CatalogueSundry());
+    Timestamp lastRunTime = new Timestamp(System.currentTimeMillis());
 
-    when(catalogueSundryRepository.streamAllLatestGroupedAndOrdered())
-            .thenReturn(sundryStream);
+    Stream<CatalogueSourceSystem> insertStream = Stream.of(new CatalogueSourceSystem());
+    Stream<CatalogueSourceSystem> updateStream = Stream.of(new CatalogueSourceSystem());
 
-    doReturn(new ByteArrayResource(new byte[0]))
+    ByteArrayResource mockResource = new ByteArrayResource("full-load-data".getBytes()) {
+        @Override
+        public String getFilename() {
+            return "CatalogueSourceSystem.zip";
+        }
+    };
+
+    when(sdmLogRepository.getLastRunTime(anyString()))
+            .thenReturn(lastRunTime);
+
+    when(catalogueSourceSystemRepository.streamAllInsertStatus())
+            .thenReturn(insertStream);
+
+    when(catalogueSourceSystemRepository.streamAllUpdateStatus())
+            .thenReturn(updateStream);
+
+    when(sdmLogRepository.save(any(CatalogueSdmLog.class)))
+            .thenReturn(new CatalogueSdmLog());
+
+    doReturn(mockResource)
             .when(schemaBrowserService)
             .getCsvStream(any(), any(), any(), anyString(), anyString(), anyString(), any());
 
-    // Act
-    Resource result = schemaBrowserService.exportSundry(exportTypeDTO);
+    Resource result = schemaBrowserService.exportSourceSystem(exportTypeDTO);
 
-    // Assert
     assertNotNull(result);
-    verify(catalogueSundryRepository, times(1))
-            .streamAllLatestGroupedAndOrdered();
+    assertTrue(result.contentLength() > 0);
 
+    verify(catalogueSourceSystemRepository, times(1)).streamAllInsertStatus();
+    verify(catalogueSourceSystemRepository, times(1)).streamAllUpdateStatus();
     verify(schemaBrowserService, times(1))
-            .getCsvStream(any(), any(), any(), anyString(), anyString(), anyString(), any());
+            .getCsvStream(any(), any(), any(), anyString(), anyString(), anyString(), eq(exportTypeDTO));
+    verify(sdmLogRepository, times(1)).save(any(CatalogueSdmLog.class));
 }
 
+
+
+@Test
+void testExportSourceSystem_Adhoc() throws Exception {
+    ExportTypeDTO exportTypeDTO = new ExportTypeDTO();
+    exportTypeDTO.setType("ADHOC");
+
+    Timestamp lastRunTime = new Timestamp(System.currentTimeMillis() - 86400000L);
+
+    List<CatalogueSourceSystem> insertList = new ArrayList<>();
+    insertList.add(new CatalogueSourceSystem());
+
+    List<CatalogueSourceSystem> updateList = new ArrayList<>();
+    updateList.add(new CatalogueSourceSystem());
+
+    ByteArrayResource mockResource = new ByteArrayResource("test-data".getBytes()) {
+        @Override
+        public String getFilename() {
+            return "CatalogueSourceSystem.zip";
+        }
+    };
+
+    when(sdmLogRepository.getLastRunTime(anyString()))
+            .thenReturn(lastRunTime);
+
+    when(catalogueSourceSystemRepository.findByInsertStatusLastRun(any(Timestamp.class), any(Timestamp.class)))
+            .thenReturn(insertList);
+
+    when(catalogueSourceSystemRepository.findByUpdateStatusLastRun(any(Timestamp.class), any(Timestamp.class)))
+            .thenReturn(updateList);
+
+    when(sdmLogRepository.save(any(CatalogueSdmLog.class)))
+            .thenReturn(new CatalogueSdmLog());
+
+    doReturn(mockResource)
+            .when(schemaBrowserService)
+            .getCsv(any(), any(), any(), anyString(), anyString(), anyString(), any());
+
+    Resource result = schemaBrowserService.exportSourceSystem(exportTypeDTO);
+
+    assertNotNull(result);
+    verify(catalogueSourceSystemRepository, times(1))
+            .findByInsertStatusLastRun(any(Timestamp.class), any(Timestamp.class));
+    verify(catalogueSourceSystemRepository, times(1))
+            .findByUpdateStatusLastRun(any(Timestamp.class), any(Timestamp.class));
+    verify(schemaBrowserService, times(1))
+            .getCsv(any(), any(), any(), anyString(), anyString(), anyString(), eq(exportTypeDTO));
+}
+
+
+
+@Test
+void testExportSourceSystem_Specific() throws Exception {
+    ExportTypeDTO exportTypeDTO = new ExportTypeDTO();
+    exportTypeDTO.setType("SPECIFIC");
+    exportTypeDTO.setNoOfDays(5);
+
+    List<CatalogueSourceSystem> insertList = new ArrayList<>();
+    insertList.add(new CatalogueSourceSystem());
+
+    List<CatalogueSourceSystem> updateList = new ArrayList<>();
+    updateList.add(new CatalogueSourceSystem());
+
+    ByteArrayResource mockResource = new ByteArrayResource("test-data".getBytes()) {
+        @Override
+        public String getFilename() {
+            return "CatalogueSourceSystem.zip";
+        }
+    };
+
+    when(sdmLogRepository.getLastRunTime(anyString()))
+            .thenReturn(new Timestamp(System.currentTimeMillis()));
+
+    when(catalogueSourceSystemRepository.findByInsertStatusAdhoc(anyInt()))
+            .thenReturn(insertList);
+
+    when(catalogueSourceSystemRepository.findByUpdateStatusAdhoc(anyInt()))
+            .thenReturn(updateList);
+
+    when(sdmLogRepository.save(any(CatalogueSdmLog.class)))
+            .thenReturn(new CatalogueSdmLog());
+
+    doReturn(mockResource)
+            .when(schemaBrowserService)
+            .getCsv(any(), any(), any(), anyString(), anyString(), anyString(), any());
+
+    Resource result = schemaBrowserService.exportSourceSystem(exportTypeDTO);
+
+    assertNotNull(result);
+    verify(catalogueSourceSystemRepository, times(1)).findByInsertStatusAdhoc(5);
+    verify(catalogueSourceSystemRepository, times(1)).findByUpdateStatusAdhoc(5);
+    verify(schemaBrowserService, times(1))
+            .getCsv(any(), any(), any(), anyString(), anyString(), anyString(), eq(exportTypeDTO));
+}
 
 
 
