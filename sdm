@@ -1,4 +1,65 @@
 
+
+
+package com.citihawk.utils;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Field;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class PropertyUtilsTest {
+
+    @BeforeEach
+    void resetProperties() throws Exception {
+        Field field = PropertyUtils.class.getDeclaredField("properties");
+        field.setAccessible(true);
+        field.set(null, null);
+    }
+
+    @Test
+    void testGetProperty_validKey() {
+        String value = PropertyUtils.getProperty("test.key", "test");
+
+        assertNotNull(value);
+        assertEquals("helloValue", value);
+    }
+
+    @Test
+    void testGetProperty_invalidKey() {
+        String value = PropertyUtils.getProperty("wrong.key", "test");
+
+        assertNull(value);
+    }
+
+    @Test
+    void testGetProperty_cachedProperties_falseBranchCovered() {
+        String first = PropertyUtils.getProperty("test.key", "test");
+        String second = PropertyUtils.getProperty("test.key", "invalid-env");
+
+        assertEquals("helloValue", first);
+        assertEquals("helloValue", second);
+    }
+
+    @Test
+    void testGetProperty_invalidEnvironment_firstCall() throws Exception {
+        Field field = PropertyUtils.class.getDeclaredField("properties");
+        field.setAccessible(true);
+        field.set(null, null);
+
+        assertThrows(NullPointerException.class, () ->
+                PropertyUtils.getProperty("test.key", "invalid-env"));
+    }
+}
+
+
+
+
+
+
+
 package com.citihawk.utils;
 
 import org.junit.jupiter.api.BeforeEach;
