@@ -2,6 +2,169 @@
 
 
 
+package com.citi.olympus;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
+
+import javax.persistence.EntityManagerFactory;
+import javax.sql.DataSource;
+
+import com.citi.olympus.utils.ApplicationConstants;
+import com.citi.olympus.utils.PropertyUtils;
+import com.citi.olympus.utils.SecretUtil;
+import com.zaxxer.hikari.HikariDataSource;
+import org.junit.jupiter.api.AfterEach;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.mockito.MockedStatic;
+import org.mockito.Mockito;
+import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
+import org.springframework.boot.orm.jpa.EntityManagerFactoryBuilder;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.orm.jpa.JpaTransactionManager;
+import org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean;
+import org.springframework.test.util.ReflectionTestUtils;
+
+class DataBaseConfigStaticDataTest {
+
+    private DataBaseConfigStaticData config;
+    private SecretUtil secretUtil;
+    private MockedStatic<PropertyUtils> propertyUtilsMock;
+
+    @BeforeEach
+    void setUp() {
+        config = new DataBaseConfigStaticData();
+        secretUtil = mock(SecretUtil.class);
+
+        ReflectionTestUtils.setField(config, "secretUtil", secretUtil);
+
+        System.setProperty(ApplicationConstants.DATA_INGESTION_SERVER_ENV, "dev");
+
+        propertyUtilsMock = Mockito.mockStatic(PropertyUtils.class);
+    }
+
+    @AfterEach
+    void tearDown() {
+        if (propertyUtilsMock != null) {
+            propertyUtilsMock.close();
+        }
+        System.clearProperty(ApplicationConstants.DATA_INGESTION_SERVER_ENV);
+    }
+
+    @Test
+    void secondDataSourceProperties_shouldReturnConfiguredProperties() {
+        propertyUtilsMock.when(() ->
+                PropertyUtils.getProperty(
+                        eq(ApplicationConstants.SECOND_DATASOURCE_USERNAME),
+                        eq("dev")
+                )).thenReturn("test_user");
+
+        propertyUtilsMock.when(() ->
+                PropertyUtils.getProperty(
+                        eq(ApplicationConstants.SECOND_DATASOURCE_URL),
+                        eq("dev")
+                )).thenReturn("jdbc:h2:mem:testdb");
+
+        when(secretUtil.getOraasDbPassword()).thenReturn("test_password");
+
+        DataSourceProperties result = config.secondDataSourceProperties();
+
+        assertNotNull(result);
+        assertEquals("oracle.jdbc.OracleDriver", result.getDriverClassName());
+        assertEquals("test_user", result.getUsername());
+        assertEquals("test_password", result.getPassword());
+        assertEquals("jdbc:h2:mem:testdb", result.getUrl());
+    }
+
+    @Test
+    void secondDataSource_shouldReturnHikariDataSource() {
+        propertyUtilsMock.when(() ->
+                PropertyUtils.getProperty(
+                        eq(ApplicationConstants.SECOND_DATASOURCE_USERNAME),
+                        eq("dev")
+                )).thenReturn("test_user");
+
+        propertyUtilsMock.when(() ->
+                PropertyUtils.getProperty(
+                        eq(ApplicationConstants.SECOND_DATASOURCE_URL),
+                        eq("dev")
+                )).thenReturn("jdbc:h2:mem:testdb");
+
+        when(secretUtil.getOraasDbPassword()).thenReturn("test_password");
+
+        HikariDataSource result = config.secondDataSource();
+
+        assertNotNull(result);
+        assertEquals("oracle.jdbc.OracleDriver", result.getDriverClassName());
+        assertEquals("test_user", result.getUsername());
+        assertEquals("test_password", result.getPassword());
+        assertEquals("jdbc:h2:mem:testdb", result.getJdbcUrl());
+
+        result.close();
+    }
+
+    @Test
+    void db2JdbcTemplate_shouldReturnJdbcTemplate() {
+        DataSource dataSource = mock(DataSource.class);
+
+        JdbcTemplate result = config.db2JdbcTemplate(dataSource);
+
+        assertNotNull(result);
+    }
+
+    @Test
+    void db2EntityManagerFactory_shouldReturnFactoryBean() {
+        propertyUtilsMock.when(() ->
+                PropertyUtils.getProperty(
+                        eq(ApplicationConstants.SECOND_DATASOURCE_USERNAME),
+                        eq("dev")
+                )).thenReturn("test_user");
+
+        propertyUtilsMock.when(() ->
+                PropertyUtils.getProperty(
+                        eq(ApplicationConstants.SECOND_DATASOURCE_URL),
+                        eq("dev")
+                )).thenReturn("jdbc:h2:mem:testdb");
+
+        when(secretUtil.getOraasDbPassword()).thenReturn("test_password");
+
+        EntityManagerFactoryBuilder builder = mock(EntityManagerFactoryBuilder.class);
+        EntityManagerFactoryBuilder.Builder innerBuilder = mock(EntityManagerFactoryBuilder.Builder.class);
+        LocalContainerEntityManagerFactoryBean factoryBean = mock(LocalContainerEntityFactoryBean.class);
+
+        when(builder.dataSource(any(DataSource.class))).thenReturn(innerBuilder);
+        when(innerBuilder.packages("com.citi.olympus.staticdata.model.**")).thenReturn(innerBuilder);
+        when(innerBuilder.build()).thenReturn(factoryBean);
+
+        LocalContainerEntityManagerFactoryBean result = config.db2EntityManagerFactory(builder);
+
+        assertNotNull(result);
+        assertSame(factoryBean, result);
+    }
+
+    @Test
+    void db2TransactionManager_shouldReturnJpaTransactionManager() {
+        LocalContainerEntityManagerFactoryBean factoryBean = mock(LocalContainerEntityManagerFactoryBean.class);
+        EntityManagerFactory entityManagerFactory = mock(EntityManagerFactory.class);
+
+        when(factoryBean.getObject()).thenReturn(entityManagerFactory);
+
+        JpaTransactionManager result =
+                (JpaTransactionManager) config.db2TransactionManager(factoryBean);
+
+        assertNotNull(result);
+        assertSame(entityManagerFactory, result.getEntityManagerFactory());
+    }
+}
+
+
+
 
 
 
