@@ -1,4 +1,135 @@
 
+
+package com.citi.olympus.staticdata.repository;
+
+import com.citi.olympus.staticdata.model.CatalogueSourceSystemCoverage;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+
+import java.time.LocalDate;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@DataJpaTest
+@ContextConfiguration(classes = CatalogueSourceSystemCoverageRepositoryTest.TestConfig.class)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@TestPropertySource(properties = {
+        "spring.jpa.hibernate.ddl-auto=none",
+        "spring.sql.init.mode=never",
+        "spring.datasource.url=jdbc:h2:mem:testdb;MODE=Oracle;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
+        "spring.datasource.driver-class-name=org.h2.Driver",
+        "spring.datasource.username=sa",
+        "spring.datasource.password="
+})
+class CatalogueSourceSystemCoverageRepositoryTest {
+
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
+    @EnableJpaRepositories(basePackageClasses = CatalogueSourceSystemCoverageRepository.class)
+    @EntityScan(basePackageClasses = CatalogueSourceSystemCoverage.class)
+    static class TestConfig {
+    }
+
+    @Autowired
+    private CatalogueSourceSystemCoverageRepository repository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeEach
+    void setUp() {
+        jdbcTemplate.execute("CREATE SCHEMA IF NOT EXISTS A167969OMR");
+        jdbcTemplate.execute("CREATE SEQUENCE IF NOT EXISTS A167969OMR.SEQ_OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE START WITH 1 INCREMENT BY 1");
+        jdbcTemplate.execute("DROP TABLE IF EXISTS A167969OMR.OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE");
+
+        jdbcTemplate.execute(
+                "CREATE TABLE A167969OMR.OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE (" +
+                        "CATALOGUE_SOURCE_SYSTEM_COVERAGE_SK INT PRIMARY KEY, " +
+                        "ACTION VARCHAR(10), " +
+                        "LABEL_ID_SK INT, " +
+                        "SOURCE_SYSTEM_COVERAGE_SK INT, " +
+                        "SOURCE_SYSTEM_SK INT, " +
+                        "CONCEPT_NAME VARCHAR(255), " +
+                        "SUBCONCEPT_NAME VARCHAR(255), " +
+                        "LIVE_DATE DATE, " +
+                        "GRU_RECON_INDICATOR VARCHAR(10), " +
+                        "ACTIVE_FLAG VARCHAR(10), " +
+                        "IS_CURRENT_FLAG VARCHAR(10), " +
+                        "STATUS VARCHAR(50), " +
+                        "DWH_CREATED_BY VARCHAR(255), " +
+                        "DWH_CREATED_TIMESTAMP TIMESTAMP, " +
+                        "DWH_UPDATED_BY VARCHAR(255), " +
+                        "DWH_UPDATED_TIMESTAMP TIMESTAMP, " +
+                        "DWH_UPDATED_REASON VARCHAR(255), " +
+                        "ONBOARDING_REQUESTOR VARCHAR(255), " +
+                        "SOURCE_CONTACT VARCHAR(255), " +
+                        "SYNTHETIC_DATA_CONCEPT_L1 VARCHAR(255), " +
+                        "SYNTHETIC_DATA_CONCEPT_L2 VARCHAR(255), " +
+                        "SYNTHETIC_DATA_CONCEPT_L3 VARCHAR(255), " +
+                        "SYNTHETIC_DATA_CONCEPT_L4 VARCHAR(255), " +
+                        "SCHEMA_NAME VARCHAR(255), " +
+                        "TABLE_NAME VARCHAR(255), " +
+                        "SOURCE_SYSTEM_SK_IDENTIFIER_COLUMN VARCHAR(255), " +
+                        "CSI_IDENTIFIER_COLUMN VARCHAR(255), " +
+                        "BUSINESS_DATE_IDENTIFIER_COLUMN VARCHAR(255), " +
+                        "EOM_INDICATOR VARCHAR(10), " +
+                        "UNITY_INDICATOR VARCHAR(10), " +
+                        "EAGLE_DQ_INDICATOR VARCHAR(10), " +
+                        "GRU_RECON_IMPLEMENTATION_DATE TIMESTAMP, " +
+                        "EAGLE_DQ_IMPLEMENTATION_DATE TIMESTAMP, " +
+                        "EOM_IMPLEMENTATION_DATE TIMESTAMP, " +
+                        "UNITY_IMPLEMENTATION_DATE TIMESTAMP, " +
+                        "FLOW_RETIRE_DATE TIMESTAMP, " +
+                        "DATA_REFRESH_FREQUENCY VARCHAR(50), " +
+                        "OLYMPUS_GROUPING VARCHAR(50)" +
+                        ")"
+        );
+    }
+
+    @Test
+    void testFindAllByLabelIdSK() {
+        CatalogueSourceSystemCoverage entity = new CatalogueSourceSystemCoverage();
+        entity.setAction("I");
+        entity.setLabelIdSK(100);
+        entity.setSourceSystemCoverageSK(200);
+        entity.setSourceSystemSK(300);
+        entity.setConceptName("Concept");
+        entity.setSubConceptName("Sub");
+        entity.setLiveDate(LocalDate.of(2026, 4, 13));
+        entity.setGruReconIndicator("Y");
+        entity.setActiveFlag("Y");
+        entity.setIsCurrentFlag("Y");
+        entity.setStatus("COMPLETE");
+
+        repository.save(entity);
+
+        List<CatalogueSourceSystemCoverage> result = repository.findAllByLabelIdSK(100);
+
+        assertNotNull(result);
+        assertFalse(result.isEmpty());
+        assertEquals(100, result.get(0).getLabelIdSK());
+    }
+}
+
+
+
+
+
+
+
+
+
 package com.citi.olympus.staticdata.repository;
 
 import com.citi.olympus.staticdata.model.CatalogueSourceSystemCoverage;
