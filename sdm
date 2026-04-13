@@ -1,6 +1,5 @@
 
 
-
 package com.citihawk.utils;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -44,15 +43,18 @@ class PropertyUtilsTest {
     }
 
     @Test
-    void testGetProperty_invalidEnvironment_firstCall() throws Exception {
-        Field field = PropertyUtils.class.getDeclaredField("properties");
-        field.setAccessible(true);
-        field.set(null, null);
-
+    void testGetProperty_invalidEnvironment_firstCall() {
         assertThrows(NullPointerException.class, () ->
                 PropertyUtils.getProperty("test.key", "invalid-env"));
     }
 }
+
+
+
+
+
+
+
 
 
 
