@@ -1,7 +1,9 @@
 @Test
-void testExportSundry_Weekly() throws Exception {
+void testExportSundry_Specific() throws Exception {
+    // Arrange
     ExportTypeDTO exportTypeDTO = new ExportTypeDTO();
-    exportTypeDTO.setType("WEEKLY");
+    exportTypeDTO.setType("SPECIFIC");
+    exportTypeDTO.setNoOfDays(5);
     exportTypeDTO.setErrMessage("File Move failed, Contact API Team");
 
     List<CatalogueSundry> sundryList = new ArrayList<>();
@@ -10,13 +12,14 @@ void testExportSundry_Weekly() throws Exception {
     when(sdmLogRepository.getLastRunTime(anyString()))
             .thenReturn(new Timestamp(System.currentTimeMillis()));
 
-    when(catalogueSundryRepository.findByStatusAndIsCurrentFlag())
+    when(catalogueSundryRepository.findByStatusAndIsCurrentFlagWithDays(anyInt()))
             .thenReturn(Optional.of(sundryList));
 
     doThrow(new Exception("Mocked Exception"))
             .when(schemaBrowserService)
             .getCsv(any(), any(), any(), anyString(), anyString(), anyString(), any());
 
+    // Act & Assert
     Exception exception = assertThrows(
             Exception.class,
             () -> schemaBrowserService.exportSundry(exportTypeDTO)
@@ -24,7 +27,9 @@ void testExportSundry_Weekly() throws Exception {
 
     assertEquals("There is an issue in exportSundry, Data is not proper", exception.getMessage());
 
-    verify(catalogueSundryRepository, times(1)).findByStatusAndIsCurrentFlag();
+    verify(catalogueSundryRepository, times(1))
+            .findByStatusAndIsCurrentFlagWithDays(anyInt());
+
     verify(schemaBrowserService, times(1))
             .getCsv(any(), any(), any(), anyString(), anyString(), anyString(), any());
 }
