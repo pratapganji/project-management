@@ -2,6 +2,379 @@
 
 
 
+package com.citi.olympus.staticdata.repository;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+
+import java.sql.Timestamp;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.SpringBootConfiguration;
+import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
+import org.springframework.boot.autoconfigure.domain.EntityScan;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.ContextConfiguration;
+import org.springframework.test.context.TestPropertySource;
+
+import com.citi.olympus.staticdata.model.CatalogueSourceSystemCoverage;
+
+@DataJpaTest
+@ContextConfiguration(classes = CatalogueSourceSystemCoverageRepositoryTest.TestConfig.class)
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@TestPropertySource(properties = {
+        "spring.datasource.url=jdbc:h2:mem:testdb;MODE=Oracle;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
+        "spring.datasource.driver-class-name=org.h2.Driver",
+        "spring.datasource.username=sa",
+        "spring.datasource.password=",
+        "spring.jpa.hibernate.ddl-auto=none",
+        "spring.sql.init.mode=never"
+})
+class CatalogueSourceSystemCoverageRepositoryTest {
+
+    @SpringBootConfiguration
+    @EnableAutoConfiguration
+    @EnableJpaRepositories(basePackageClasses = CatalogueSourceSystemCoverageRepository.class)
+    @EntityScan(basePackageClasses = CatalogueSourceSystemCoverage.class)
+    @ComponentScan(basePackages = {
+            "com.citi.olympus.staticdata.repository"
+    })
+    static class TestConfig {
+    }
+
+    @Autowired
+    private CatalogueSourceSystemCoverageRepository repository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeEach
+    void setUp() {
+        jdbcTemplate.execute("DROP TABLE IF EXISTS OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE");
+
+        jdbcTemplate.execute(
+                "CREATE TABLE OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE (" +
+                        "CATALOGUE_SOURCE_SYSTEM_COVERAGE_SK INT PRIMARY KEY, " +
+                        "ACTION VARCHAR(5), " +
+                        "LABEL_ID_SK INT, " +
+                        "SOURCE_SYSTEM_COVERAGE_SK INT, " +
+                        "SOURCE_SYSTEM_SK INT, " +
+                        "CONCEPT_NAME VARCHAR(255), " +
+                        "SUBCONCEPT_NAME VARCHAR(255), " +
+                        "LIVE_DATE DATE, " +
+                        "GRU_RECON_INDICATOR VARCHAR(5), " +
+                        "ACTIVE_FLAG VARCHAR(5), " +
+                        "IS_CURRENT_FLAG VARCHAR(5), " +
+                        "STATUS VARCHAR(50), " +
+                        "DWH_CREATED_BY VARCHAR(100), " +
+                        "DWH_CREATED_TIMESTAMP TIMESTAMP, " +
+                        "DWH_UPDATED_BY VARCHAR(100), " +
+                        "DWH_UPDATED_TIMESTAMP TIMESTAMP, " +
+                        "DWH_UPDATED_REASON VARCHAR(255), " +
+                        "ONBOARDING_REQUESTOR VARCHAR(100), " +
+                        "SOURCE_CONTACT VARCHAR(100), " +
+                        "SYNTHETIC_DATA_CONCEPT_L1 VARCHAR(100), " +
+                        "SYNTHETIC_DATA_CONCEPT_L2 VARCHAR(100), " +
+                        "SYNTHETIC_DATA_CONCEPT_L3 VARCHAR(100), " +
+                        "SYNTHETIC_DATA_CONCEPT_L4 VARCHAR(100), " +
+                        "SCHEMA_NAME VARCHAR(100), " +
+                        "TABLE_NAME VARCHAR(100), " +
+                        "SOURCE_SYSTEM_SK_IDENTIFIER_COLUMN VARCHAR(100), " +
+                        "CSI_IDENTIFIER_COLUMN VARCHAR(100), " +
+                        "BUSINESS_DATE_IDENTIFIER_COLUMN VARCHAR(100), " +
+                        "EOM_INDICATOR VARCHAR(5), " +
+                        "UNITY_INDICATOR VARCHAR(5), " +
+                        "EAGLE_DQ_INDICATOR VARCHAR(5), " +
+                        "GRU_RECON_IMPLEMENTATION_DATE TIMESTAMP, " +
+                        "EAGLE_DQ_IMPLEMENTATION_DATE TIMESTAMP, " +
+                        "EOM_IMPLEMENTATION_DATE TIMESTAMP, " +
+                        "UNITY_IMPLEMENTATION_DATE TIMESTAMP, " +
+                        "FLOW_RETIRE_DATE TIMESTAMP, " +
+                        "DATA_REFRESH_FREQUENCY VARCHAR(50), " +
+                        "OLYMPUS_GROUPING VARCHAR(50)" +
+                        ")"
+        );
+    }
+
+    @Test
+    void testFindAllByLabelIdSK_ReturnsMatchingRows() {
+        insertCoverageRow(1, 1001, 2001, "I", "COMPLETE", "Y", 777,
+                nowMinusHours(1), "ConceptA", "SubA");
+        insertCoverageRow(2, 1002, 2002, "U", "COMPLETE", "N", 777,
+                nowMinusHours(2), "ConceptB", "SubB");
+        insertCoverageRow(3, 1003, 2003, "I", "COMPLETE", "Y", 999,
+                nowMinusHours(3), "ConceptC", "SubC");
+
+        List<CatalogueSourceSystemCoverage> result = repository.findAllByLabelIdSK(777);
+
+        assertEquals(2, result.size());
+    }
+
+    @Test
+    void testFindByInsertStatusAndIsCurrentFlag_ReturnsLatestInsertRecordsInCurrentWindow() {
+        insertCoverageRow(10, 5001, 6001, "I", "COMPLETE", "Y",
+                101, nowMinusHours(1), "Concept1", "Sub1");
+
+        insertCoverageRow(11, 5001, 6001, "I", "COMPLETE", "Y",
+                101, nowMinusHours(3), "Concept1", "Sub1");
+
+        insertCoverageRow(12, 5002, 6002, "U", "COMPLETE", "Y",
+                101, nowMinusHours(1), "Concept2", "Sub2");
+
+        List<CatalogueSourceSystemCoverage> result = repository.findByInsertStatusAndIsCurrentFlag();
+
+        assertEquals(1, result.size());
+        assertEquals(Integer.valueOf(10), result.get(0).getCatalogueSourceSk());
+    }
+
+    @Test
+    void testStreamAllInsertStatus_ReturnsInsertCompleteRows() {
+        insertCoverageRow(20, 7001, 8001, "I", "COMPLETE", "Y",
+                201, nowMinusHours(1), "Concept1", "Sub1");
+        insertCoverageRow(21, 7001, 8001, "I", "COMPLETE", "N",
+                201, nowMinusHours(5), "Concept1", "Sub1");
+        insertCoverageRow(22, 7002, 8002, "U", "COMPLETE", "Y",
+                201, nowMinusHours(1), "Concept2", "Sub2");
+
+        List<CatalogueSourceSystemCoverage> result;
+        try (Stream<CatalogueSourceSystemCoverage> stream = repository.streamAllInsertStatus()) {
+            result = stream.collect(Collectors.toList());
+        }
+
+        assertEquals(1, result.size());
+        assertEquals(Integer.valueOf(20), result.get(0).getCatalogueSourceSk());
+    }
+
+    @Test
+    void testFindByInsertStatusAdhoc_ReturnsRowsWithinDays() {
+        insertCoverageRow(30, 9001, 9101, "I", "COMPLETE", "Y",
+                301, nowMinusHours(2), "Concept1", "Sub1");
+        insertCoverageRow(31, 9001, 9101, "I", "COMPLETE", "Y",
+                301, nowMinusDays(3), "Concept1", "Sub1");
+
+        List<CatalogueSourceSystemCoverage> result = repository.findByInsertStatusAdhoc(2);
+
+        assertEquals(1, result.size());
+        assertEquals(Integer.valueOf(30), result.get(0).getCatalogueSourceSk());
+    }
+
+    @Test
+    void testFindByUpdateStatusAndIsCurrentFlag_ReturnsLatestUpdateRecordsInCurrentWindow() {
+        insertCoverageRow(40, 9201, 9301, "U", "COMPLETE", "Y",
+                401, nowMinusHours(1), "ConceptU", "SubU");
+        insertCoverageRow(41, 9201, 9301, "U", "COMPLETE", "Y",
+                401, nowMinusHours(6), "ConceptU", "SubU");
+        insertCoverageRow(42, 9202, 9302, "I", "COMPLETE", "Y",
+                401, nowMinusHours(1), "ConceptI", "SubI");
+
+        List<CatalogueSourceSystemCoverage> result = repository.findByUpdateStatusAndIsCurrentFlag();
+
+        assertEquals(1, result.size());
+        assertEquals(Integer.valueOf(40), result.get(0).getCatalogueSourceSk());
+    }
+
+    @Test
+    void testStreamAllUpdateStatus_ReturnsUpdateCompleteRows() {
+        insertCoverageRow(50, 9401, 9501, "U", "COMPLETE", "Y",
+                501, nowMinusHours(1), "ConceptU", "SubU");
+        insertCoverageRow(51, 9401, 9501, "U", "COMPLETE", "N",
+                501, nowMinusHours(4), "ConceptU", "SubU");
+        insertCoverageRow(52, 9402, 9502, "I", "COMPLETE", "Y",
+                501, nowMinusHours(1), "ConceptI", "SubI");
+
+        List<CatalogueSourceSystemCoverage> result;
+        try (Stream<CatalogueSourceSystemCoverage> stream = repository.streamAllUpdateStatus()) {
+            result = stream.collect(Collectors.toList());
+        }
+
+        assertEquals(1, result.size());
+        assertEquals(Integer.valueOf(50), result.get(0).getCatalogueSourceSk());
+    }
+
+    @Test
+    void testFindByUpdateStatusAdhoc_ReturnsRowsWithinDays() {
+        insertCoverageRow(60, 9601, 9701, "U", "COMPLETE", "Y",
+                601, nowMinusHours(2), "ConceptU", "SubU");
+        insertCoverageRow(61, 9601, 9701, "U", "COMPLETE", "Y",
+                601, nowMinusDays(4), "ConceptU", "SubU");
+
+        List<CatalogueSourceSystemCoverage> result = repository.findByUpdateStatusAdhoc(2);
+
+        assertEquals(1, result.size());
+        assertEquals(Integer.valueOf(60), result.get(0).getCatalogueSourceSk());
+    }
+
+    @Test
+    void testFindByInsertStatusLastRun_ReturnsRowsBetweenTimestamps() {
+        Timestamp lastRun = nowMinusHours(5);
+        Timestamp currentTime = nowPlusHours(1);
+
+        insertCoverageRow(70, 9801, 9901, "I", "COMPLETE", "Y",
+                701, nowMinusHours(2), "ConceptI", "SubI");
+        insertCoverageRow(71, 9801, 9901, "I", "COMPLETE", "Y",
+                701, nowMinusDays(2), "ConceptI", "SubI");
+
+        List<CatalogueSourceSystemCoverage> result =
+                repository.findByInsertStatusLastRun(lastRun, currentTime);
+
+        assertEquals(1, result.size());
+        assertEquals(Integer.valueOf(70), result.get(0).getCatalogueSourceSk());
+    }
+
+    @Test
+    void testFindByUpdateStatusLastRun_ReturnsRowsBetweenTimestamps() {
+        Timestamp lastRun = nowMinusHours(5);
+        Timestamp currentTime = nowPlusHours(1);
+
+        insertCoverageRow(80, 9911, 9921, "U", "COMPLETE", "Y",
+                801, nowMinusHours(2), "ConceptU", "SubU");
+        insertCoverageRow(81, 9911, 9921, "U", "COMPLETE", "Y",
+                801, nowMinusDays(2), "ConceptU", "SubU");
+
+        List<CatalogueSourceSystemCoverage> result =
+                repository.findByUpdateStatusLastRun(lastRun, currentTime);
+
+        assertEquals(1, result.size());
+        assertEquals(Integer.valueOf(80), result.get(0).getCatalogueSourceSk());
+    }
+
+    @Test
+    void testFindByInsertStatusAndIsCurrentFlag_ReturnsEmptyWhenNoMatchingRows() {
+        insertCoverageRow(90, 1111, 2222, "U", "COMPLETE", "Y",
+                901, nowMinusHours(1), "ConceptX", "SubX");
+
+        List<CatalogueSourceSystemCoverage> result = repository.findByInsertStatusAndIsCurrentFlag();
+
+        assertFalse(result.iterator().hasNext());
+    }
+
+    private void insertCoverageRow(
+            int catalogueSourceSystemCoverageSk,
+            int sourceSystemCoverageSk,
+            int sourceSystemSk,
+            String action,
+            String status,
+            String isCurrentFlag,
+            int labelIdSk,
+            Timestamp updatedTimestamp,
+            String conceptName,
+            String subConceptName) {
+
+        jdbcTemplate.update(
+                "INSERT INTO OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE (" +
+                        "CATALOGUE_SOURCE_SYSTEM_COVERAGE_SK, " +
+                        "ACTION, " +
+                        "LABEL_ID_SK, " +
+                        "SOURCE_SYSTEM_COVERAGE_SK, " +
+                        "SOURCE_SYSTEM_SK, " +
+                        "CONCEPT_NAME, " +
+                        "SUBCONCEPT_NAME, " +
+                        "LIVE_DATE, " +
+                        "GRU_RECON_INDICATOR, " +
+                        "ACTIVE_FLAG, " +
+                        "IS_CURRENT_FLAG, " +
+                        "STATUS, " +
+                        "DWH_CREATED_BY, " +
+                        "DWH_CREATED_TIMESTAMP, " +
+                        "DWH_UPDATED_BY, " +
+                        "DWH_UPDATED_TIMESTAMP, " +
+                        "DWH_UPDATED_REASON, " +
+                        "ONBOARDING_REQUESTOR, " +
+                        "SOURCE_CONTACT, " +
+                        "SYNTHETIC_DATA_CONCEPT_L1, " +
+                        "SYNTHETIC_DATA_CONCEPT_L2, " +
+                        "SYNTHETIC_DATA_CONCEPT_L3, " +
+                        "SYNTHETIC_DATA_CONCEPT_L4, " +
+                        "SCHEMA_NAME, " +
+                        "TABLE_NAME, " +
+                        "SOURCE_SYSTEM_SK_IDENTIFIER_COLUMN, " +
+                        "CSI_IDENTIFIER_COLUMN, " +
+                        "BUSINESS_DATE_IDENTIFIER_COLUMN, " +
+                        "EOM_INDICATOR, " +
+                        "UNITY_INDICATOR, " +
+                        "EAGLE_DQ_INDICATOR, " +
+                        "GRU_RECON_IMPLEMENTATION_DATE, " +
+                        "EAGLE_DQ_IMPLEMENTATION_DATE, " +
+                        "EOM_IMPLEMENTATION_DATE, " +
+                        "UNITY_IMPLEMENTATION_DATE, " +
+                        "FLOW_RETIRE_DATE, " +
+                        "DATA_REFRESH_FREQUENCY, " +
+                        "OLYMPUS_GROUPING" +
+                        ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+                catalogueSourceSystemCoverageSk,
+                action,
+                labelIdSk,
+                sourceSystemCoverageSk,
+                sourceSystemSk,
+                conceptName,
+                subConceptName,
+                java.sql.Date.valueOf(LocalDate.now()),
+                "Y",
+                "Y",
+                isCurrentFlag,
+                status,
+                "creator",
+                nowMinusDays(5),
+                "updater",
+                updatedTimestamp,
+                "reason",
+                "requestor",
+                "contact",
+                "l1",
+                "l2",
+                "l3",
+                "l4",
+                "schema1",
+                "table1",
+                "ssk_col",
+                "csi_col",
+                "biz_col",
+                "N",
+                "N",
+                "N",
+                nowMinusDays(10),
+                nowMinusDays(9),
+                nowMinusDays(8),
+                nowMinusDays(7),
+                nowPlusDays(30),
+                "DAILY",
+                "OG"
+        );
+    }
+
+    private Timestamp nowMinusHours(int hours) {
+        return Timestamp.valueOf(LocalDateTime.now().minusHours(hours));
+    }
+
+    private Timestamp nowMinusDays(int days) {
+        return Timestamp.valueOf(LocalDateTime.now().minusDays(days));
+    }
+
+    private Timestamp nowPlusHours(int hours) {
+        return Timestamp.valueOf(LocalDateTime.now().plusHours(hours));
+    }
+
+    private Timestamp nowPlusDays(int days) {
+        return Timestamp.valueOf(LocalDateTime.now().plusDays(days));
+    }
+}
+
+
+
+
+
+
 
 
 
