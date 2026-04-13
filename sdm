@@ -4,7 +4,228 @@
     
     
     
+package com.citi.olympus.staticdata.repository;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+
+import java.sql.Timestamp;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.test.context.TestPropertySource;
+
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@TestPropertySource(properties = {
+        "spring.jpa.hibernate.ddl-auto=none",
+        "spring.datasource.url=jdbc:h2:mem:testdb;MODE=Oracle;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false",
+        "spring.datasource.driverClassName=org.h2.Driver",
+        "spring.datasource.username=sa",
+        "spring.datasource.password="
+})
+class CatalogueSdmLogRepositoryTest {
+
+    @Autowired
+    private CatalogueSdmLogRepository catalogueSdmLogRepository;
+
+    @Autowired
+    private JdbcTemplate jdbcTemplate;
+
+    @BeforeEach
+    void setUp() {
+        jdbcTemplate.execute("DROP TABLE IF EXISTS OM_CATALOGUE_SDM_LOG");
+        jdbcTemplate.execute("CREATE SCHEMA IF NOT EXISTS C167969RPC");
+        jdbcTemplate.execute("DROP TABLE IF EXISTS C167969RPC.OM_CATALOGUE_SDM_LOG");
+
+        jdbcTemplate.execute(
+                "CREATE TABLE OM_CATALOGUE_SDM_LOG (" +
+                        "sdm_log_id_sk INT PRIMARY KEY, " +
+                        "run_timestamp TIMESTAMP, " +
+                        "table_name VARCHAR(100), " +
+                        "transfer_method VARCHAR(50), " +
+                        "status VARCHAR(10), " +
+                        "dwh_updated_reason VARCHAR(255), " +
+                        "requestor_soeid VARCHAR(100), " +
+                        "total_record_count INT" +
+                        ")"
+        );
+
+        jdbcTemplate.execute(
+                "CREATE TABLE C167969RPC.OM_CATALOGUE_SDM_LOG (" +
+                        "sdm_log_id_sk INT PRIMARY KEY, " +
+                        "run_timestamp TIMESTAMP, " +
+                        "table_name VARCHAR(100), " +
+                        "transfer_method VARCHAR(50), " +
+                        "status VARCHAR(10), " +
+                        "dwh_updated_reason VARCHAR(255), " +
+                        "requestor_soeid VARCHAR(100), " +
+                        "total_record_count INT" +
+                        ")"
+        );
+    }
+
+    @Test
+    void testGetLastRunTime_ReturnsLatestWeeklySuccessRunTimestamp() {
+        jdbcTemplate.update(
+                "INSERT INTO OM_CATALOGUE_SDM_LOG " +
+                        "(sdm_log_id_sk, run_timestamp, table_name, transfer_method, status, dwh_updated_reason, requestor_soeid, total_record_count) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                1,
+                Timestamp.valueOf("2026-04-10 10:00:00"),
+                "OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE",
+                "WEEKLY",
+                "S",
+                "reason1",
+                "user1",
+                10
+        );
+
+        jdbcTemplate.update(
+                "INSERT INTO OM_CATALOGUE_SDM_LOG " +
+                        "(sdm_log_id_sk, run_timestamp, table_name, transfer_method, status, dwh_updated_reason, requestor_soeid, total_record_count) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                2,
+                Timestamp.valueOf("2026-04-11 10:00:00"),
+                "OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE",
+                "WEEKLY",
+                "F",
+                "reason2",
+                "user2",
+                20
+        );
+
+        jdbcTemplate.update(
+                "INSERT INTO OM_CATALOGUE_SDM_LOG " +
+                        "(sdm_log_id_sk, run_timestamp, table_name, transfer_method, status, dwh_updated_reason, requestor_soeid, total_record_count) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                3,
+                Timestamp.valueOf("2026-04-12 10:00:00"),
+                "OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE",
+                "WEEKLY",
+                "S",
+                "reason3",
+                "user3",
+                30
+        );
+
+        Timestamp result = catalogueSdmLogRepository.getLastRunTime("OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE");
+
+        assertNotNull(result);
+        assertEquals(Timestamp.valueOf("2026-04-12 10:00:00"), result);
+    }
+
+    @Test
+    void testGetLastRunType_ReturnsTransferMethod() {
+        jdbcTemplate.update(
+                "INSERT INTO OM_CATALOGUE_SDM_LOG " +
+                        "(sdm_log_id_sk, run_timestamp, table_name, transfer_method, status, dwh_updated_reason, requestor_soeid, total_record_count) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                1,
+                Timestamp.valueOf("2026-04-10 08:30:00"),
+                "OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE",
+                "WEEKLY",
+                "S",
+                "initial load",
+                "testUser",
+                100
+        );
+
+        String result = catalogueSdmLogRepository.getLastRunType("OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE");
+
+        assertNotNull(result);
+        assertEquals("WEEKLY", result);
+    }
+
+    @Test
+    void testUpdateSDMLog_UpdatesRecordSuccessfully() {
+        jdbcTemplate.update(
+                "INSERT INTO C167969RPC.OM_CATALOGUE_SDM_LOG " +
+                        "(sdm_log_id_sk, run_timestamp, table_name, transfer_method, status, dwh_updated_reason, requestor_soeid, total_record_count) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+                1,
+                Timestamp.valueOf("2026-04-10 08:30:00"),
+                "OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE",
+                "WEEKLY",
+                "F",
+                "old reason",
+                "oldUser",
+                10
+        );
+
+        int rowsUpdated = catalogueSdmLogRepository.updateSDMLog(
+                "2026-04-13 11:15:00",
+                "updated reason",
+                "OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE",
+                "ADHOC",
+                "newUser",
+                250
+        );
+
+        assertEquals(1, rowsUpdated);
+
+        String status = jdbcTemplate.queryForObject(
+                "SELECT status FROM C167969RPC.OM_CATALOGUE_SDM_LOG WHERE table_name = ?",
+                String.class,
+                "OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE"
+        );
+
+        String transferMethod = jdbcTemplate.queryForObject(
+                "SELECT transfer_method FROM C167969RPC.OM_CATALOGUE_SDM_LOG WHERE table_name = ?",
+                String.class,
+                "OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE"
+        );
+
+        String reason = jdbcTemplate.queryForObject(
+                "SELECT dwh_updated_reason FROM C167969RPC.OM_CATALOGUE_SDM_LOG WHERE table_name = ?",
+                String.class,
+                "OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE"
+        );
+
+        String soeid = jdbcTemplate.queryForObject(
+                "SELECT requestor_soeid FROM C167969RPC.OM_CATALOGUE_SDM_LOG WHERE table_name = ?",
+                String.class,
+                "OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE"
+        );
+
+        Integer recordCount = jdbcTemplate.queryForObject(
+                "SELECT total_record_count FROM C167969RPC.OM_CATALOGUE_SDM_LOG WHERE table_name = ?",
+                Integer.class,
+                "OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE"
+        );
+
+        Timestamp runTimestamp = jdbcTemplate.queryForObject(
+                "SELECT run_timestamp FROM C167969RPC.OM_CATALOGUE_SDM_LOG WHERE table_name = ?",
+                Timestamp.class,
+                "OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE"
+        );
+
+        assertEquals("S", status);
+        assertEquals("ADHOC", transferMethod);
+        assertEquals("updated reason", reason);
+        assertEquals("newUser", soeid);
+        assertEquals(250, recordCount);
+        assertEquals(Timestamp.valueOf("2026-04-13 11:15:00"), runTimestamp);
+    }
+
+    @Test
+    void testUpdateSDMLog_WhenNoMatchingTable_ReturnsZero() {
+        int rowsUpdated = catalogueSdmLogRepository.updateSDMLog(
+                "2026-04-13 11:15:00",
+                "updated reason",
+                "TABLE_NOT_PRESENT",
+                "ADHOC",
+                "newUser",
+                250
+        );
+
+        assertEquals(0, rowsUpdated);
+    }
+}
     
 
 
