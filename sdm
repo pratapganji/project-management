@@ -1,5 +1,20 @@
 
 
+
+
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@TestPropertySource(properties = {
+        "spring.sql.init.mode=never",
+        "spring.jpa.hibernate.ddl-auto=none",
+        "spring.autoconfigure.exclude=com.citi.olympus.DataBaseConfigStaticData",
+        "spring.datasource.driverClassName=org.h2.Driver",
+        "spring.datasource.url=jdbc:h2:mem:testdb;MODE=Oracle;DB_CLOSE_DELAY=-1;DATABASE_TO_UPPER=false;INIT=CREATE SCHEMA IF NOT EXISTS C167969RPC\\;SET SCHEMA C167969RPC",
+        "spring.datasource.username=sa",
+        "spring.datasource.password="
+})
+class CatalogueSdmLogRepositoryTest {
+
  
 
 
