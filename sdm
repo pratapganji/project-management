@@ -1,39 +1,29 @@
 @Test
-void testExportSundry_Specific() throws Exception {
+void testExportSundry_FullLoad() throws Exception {
     // Arrange
     ExportTypeDTO exportTypeDTO = new ExportTypeDTO();
-    exportTypeDTO.setType("SPECIFIC");
-    exportTypeDTO.setNoOfDays(5);
-    exportTypeDTO.setErrMessage("File Move failed, Contact API Team");
+    exportTypeDTO.setType("FULL_LOAD");
 
-    List<CatalogueSundry> sundryList = new ArrayList<>();
-    sundryList.add(new CatalogueSundry());
+    Stream<CatalogueSundry> sundryStream = Stream.of(new CatalogueSundry());
 
-    when(sdmLogRepository.getLastRunTime(anyString()))
-            .thenReturn(new Timestamp(System.currentTimeMillis()));
+    when(catalogueSundryRepository.streamAllLatestGroupedAndOrdered())
+            .thenReturn(sundryStream);
 
-    when(catalogueSundryRepository.findByStatusAndIsCurrentFlagWithDays(anyInt()))
-            .thenReturn(Optional.of(sundryList));
-
-    doThrow(new Exception("Mocked Exception"))
+    doReturn(new ByteArrayResource(new byte[0]))
             .when(schemaBrowserService)
-            .getCsv(any(), any(), any(), anyString(), anyString(), anyString(), any());
+            .getCsvStream(any(), any(), any(), anyString(), anyString(), anyString(), any());
 
-    // Act & Assert
-    Exception exception = assertThrows(
-            Exception.class,
-            () -> schemaBrowserService.exportSundry(exportTypeDTO)
-    );
+    // Act
+    Resource result = schemaBrowserService.exportSundry(exportTypeDTO);
 
-    assertEquals("There is an issue in exportSundry, Data is not proper", exception.getMessage());
-
+    // Assert
+    assertNotNull(result);
     verify(catalogueSundryRepository, times(1))
-            .findByStatusAndIsCurrentFlagWithDays(anyInt());
+            .streamAllLatestGroupedAndOrdered();
 
     verify(schemaBrowserService, times(1))
-            .getCsv(any(), any(), any(), anyString(), anyString(), anyString(), any());
+            .getCsvStream(any(), any(), any(), anyString(), anyString(), anyString(), any());
 }
-
 
 
 
