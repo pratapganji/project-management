@@ -1,11 +1,21 @@
 
 package com.citihawk.utils;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+
+import java.lang.reflect.Field;
 
 import static org.junit.jupiter.api.Assertions.*;
 
 class PropertyUtilsTest {
+
+    @BeforeEach
+    void resetProperties() throws Exception {
+        Field field = PropertyUtils.class.getDeclaredField("properties");
+        field.setAccessible(true);
+        field.set(null, null);
+    }
 
     @Test
     void testGetProperty_validKey() {
