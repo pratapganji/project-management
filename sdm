@@ -1,6 +1,27 @@
 
 
 
+@DataJpaTest
+@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
+@ComponentScan(
+    excludeFilters = @ComponentScan.Filter(
+        type = FilterType.ASSIGNABLE_TYPE,
+        classes = {
+            com.citi.olympus.staticdata.config.DataBaseConfigStaticData.class
+        }
+    )
+)
+@TestPropertySource(properties = {
+    "spring.sql.init.mode=never",
+    "spring.jpa.hibernate.ddl-auto=none",
+    "spring.datasource.url=jdbc:h2:mem:testdb;MODE=Oracle;DB_CLOSE_DELAY=-1",
+    "spring.datasource.driverClassName=org.h2.Driver",
+    "spring.datasource.username=sa",
+    "spring.datasource.password="
+})
+class CatalogueSdmLogRepositoryTest {
+
+
 
 package com.citi.olympus.staticdata.repository;
 
