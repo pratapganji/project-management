@@ -2,6 +2,29 @@
 
 
 
+@Test
+void testGetLastRunType_ReturnsTransferMethod() {
+    jdbcTemplate.update(
+        "INSERT INTO OM_CATALOGUE_SDM_LOG " +
+        "(sdm_log_id_sk, run_timestamp, table_name, transfer_method, status, dwh_updated_reason, requestor_soeid, total_record_count) " +
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
+        1,
+        Timestamp.valueOf("2026-04-10 10:00:00"),
+        "OM_CATALOGUE_SOURCE_SYSTEM",
+        "DAILY",
+        "S",
+        "reason",
+        "user1",
+        10
+    );
+
+    String result = catalogueSdmLogRepository.getLastRunType("OM_CATALOGUE_SOURCE_SYSTEM");
+
+    assertEquals("DAILY", result);
+}
+
+
+
 @BeforeEach
 void setUp() {
 
