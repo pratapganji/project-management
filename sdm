@@ -2,7 +2,8 @@
 
 
 
-    @Test
+
+@Test
 void testGetCsv_InvalidSourceTable_Exception() throws Exception {
     ExportTypeDTO exportTypeDTO = new ExportTypeDTO();
     exportTypeDTO.setRequestor("testUser");
@@ -26,10 +27,12 @@ void testGetCsv_InvalidSourceTable_Exception() throws Exception {
             )
     );
 
-    assertTrue(exception.getMessage().contains("creating csv"));
+    assertEquals("There is an exception in creating csv {}", exception.getMessage());
     assertNotNull(exception.getCause());
-    assertTrue(exception.getCause().getMessage().contains("fetching sourceTable"));
-    assertTrue(exception.getCause().getMessage().contains("INVALID_TABLE"));
+    assertEquals(
+            "There is an exception in fetching sourceTable: INVALID_TABLE",
+            exception.getCause().getMessage()
+    );
 }
 
 
