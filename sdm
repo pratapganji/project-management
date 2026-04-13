@@ -1,4 +1,37 @@
 
+package com.citihawk.utils;
+
+import org.junit.jupiter.api.Test;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class PropertyUtilsTest {
+
+    @Test
+    void testGetProperty_validKey() {
+        String value = PropertyUtils.getProperty("test.key", "test");
+
+        assertNotNull(value);
+        assertEquals("helloValue", value);
+    }
+
+    @Test
+    void testGetProperty_invalidKey() {
+        String value = PropertyUtils.getProperty("wrong.key", "test");
+
+        assertNull(value);
+    }
+
+    @Test
+    void testGetProperty_invalidEnvironment() {
+        String value = PropertyUtils.getProperty("test.key", "invalid-env");
+
+        assertNull(value);
+    }
+}
+
+
+
 
 package com.citi.olympus.staticdata.repository;
 
