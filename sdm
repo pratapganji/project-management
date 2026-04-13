@@ -1,4 +1,71 @@
 
+package com.citi.olympus.staticdata.repository;
+
+import com.citi.olympus.staticdata.model.CatalogueSourceSystemCoverage;
+import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+
+import java.time.LocalDate;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+@DataJpaTest
+class CatalogueSourceSystemCoverageRepositoryTest {
+
+    @Autowired
+    private CatalogueSourceSystemCoverageRepository repository;
+
+    @Test
+    void testSaveAndFindByLabelIdSK() {
+        CatalogueSourceSystemCoverage entity = new CatalogueSourceSystemCoverage();
+
+        entity.setAction("I");
+        entity.setLabelIdSK(100);
+        entity.setSourceSystemCoverageSK(200);
+        entity.setSourceSystemSK(300);
+        entity.setConceptName("TestConcept");
+        entity.setSubConceptName("SubConcept");
+        entity.setLiveDate(LocalDate.now());
+        entity.setStatus("COMPLETE");
+
+        repository.save(entity);
+
+        var result = repository.findAllByLabelIdSK(100);
+
+        assertThat(result).isNotEmpty();
+        assertThat(result.get(0).getLabelIdSK()).isEqualTo(100);
+    }
+
+    @Test
+    void testSaveEntity() {
+        CatalogueSourceSystemCoverage entity = new CatalogueSourceSystemCoverage();
+
+        entity.setAction("I");
+        entity.setLabelIdSK(101);
+
+        CatalogueSourceSystemCoverage saved = repository.save(entity);
+
+        assertThat(saved.getCatalogueSourceSk()).isNotNull();
+    }
+
+    @Test
+    void testFindAll() {
+        CatalogueSourceSystemCoverage entity = new CatalogueSourceSystemCoverage();
+        entity.setAction("I");
+        entity.setLabelIdSK(102);
+
+        repository.save(entity);
+
+        Iterable<CatalogueSourceSystemCoverage> all = repository.findAll();
+
+        assertThat(all).isNotEmpty();
+    }
+}
+
+
+
+
 
 
 
