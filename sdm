@@ -1,14 +1,10 @@
 
-
-
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @ComponentScan(
     excludeFilters = @ComponentScan.Filter(
         type = FilterType.ASSIGNABLE_TYPE,
-        classes = {
-            com.citi.olympus.staticdata.config.DataBaseConfigStaticData.class
-        }
+        classes = { DataBaseConfigStaticData.class }
     )
 )
 @TestPropertySource(properties = {
@@ -20,6 +16,8 @@
     "spring.datasource.password="
 })
 class CatalogueSdmLogRepositoryTest {
+
+
 
 
 
