@@ -1,6 +1,36 @@
 
 
 
+
+@BeforeEach
+void setUp() {
+
+    // ✅ FIRST create schema
+    jdbcTemplate.execute("CREATE SCHEMA IF NOT EXISTS C167969RPC");
+
+    // ✅ THEN drop table (if exists inside schema)
+    jdbcTemplate.execute("DROP TABLE IF EXISTS C167969RPC.OM_CATALOGUE_SDM_LOG");
+
+    // ✅ THEN create table
+    jdbcTemplate.execute(
+        "CREATE TABLE C167969RPC.OM_CATALOGUE_SDM_LOG (" +
+            "sdm_log_id_sk INT PRIMARY KEY, " +
+            "run_timestamp TIMESTAMP, " +
+            "table_name VARCHAR(255), " +
+            "transfer_method VARCHAR(50), " +
+            "status VARCHAR(10), " +
+            "dwh_updated_reason VARCHAR(255), " +
+            "requestor_soeid VARCHAR(100), " +
+            "total_record_count INT" +
+        ")"
+    );
+}
+
+
+
+
+
+
 package com.citi.olympus.staticdata.repository;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
