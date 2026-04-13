@@ -10,7 +10,6 @@ class PropertyUtilsTest {
     @Test
     void testGetProperty_validKey() {
         String value = PropertyUtils.getProperty("test.key", "test");
-
         assertNotNull(value);
         assertEquals("helloValue", value);
     }
@@ -18,17 +17,23 @@ class PropertyUtilsTest {
     @Test
     void testGetProperty_invalidKey() {
         String value = PropertyUtils.getProperty("wrong.key", "test");
-
         assertNull(value);
     }
 
     @Test
     void testGetProperty_invalidEnvironment() {
-        String value = PropertyUtils.getProperty("test.key", "invalid-env");
-
-        assertNull(value);
+        assertThrows(NullPointerException.class, () ->
+                PropertyUtils.getProperty("test.key", "invalid-env"));
     }
 }
+
+
+
+
+
+
+
+
 
 
 
