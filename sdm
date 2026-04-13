@@ -1,6 +1,38 @@
 
 
 
+@Test
+void testGetCsv_InvalidSourceTable_Exception() throws Exception {
+    ExportTypeDTO exportTypeDTO = new ExportTypeDTO();
+    exportTypeDTO.setRequestor("testUser");
+
+    String sourcePathLocation = System.getProperty("java.io.tmpdir") + "/invalid_test.csv";
+    String controlFileName = "InvalidControl";
+
+    doNothing().when(schemaBrowserService)
+            .sendEmailNotification(anyString(), anyBoolean(), anyString(), any(), any());
+
+    Exception exception = assertThrows(
+            Exception.class,
+            () -> schemaBrowserService.getCsv(
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    "INVALID_TABLE",
+                    sourcePathLocation,
+                    controlFileName,
+                    exportTypeDTO
+            )
+    );
+
+    assertTrue(
+            exception.getMessage().contains("fetching sourceTable")
+            || exception.getMessage().contains("creating csv")
+            || exception.getMessage().contains("INVALID_TABLE")
+    );
+}
+
+
 
 @Test
 void testGetCsv_Coverage_Success() throws Exception {
