@@ -1,5 +1,38 @@
 
 
+@Test
+void testGetCsv_InvalidSourceTable_Exception() throws Exception {
+    ExportTypeDTO exportTypeDTO = new ExportTypeDTO();
+    exportTypeDTO.setRequestor("testUser");
+
+    String sourcePathLocation = System.getProperty("java.io.tmpdir") + "/invalid_test.csv";
+    String controlFileName = "InvalidControl";
+
+    doNothing().when(schemaBrowserService)
+            .sendEmailNotification(anyString(), anyBoolean(), anyString(), any(), any());
+
+    Exception exception = assertThrows(
+            Exception.class,
+            () -> schemaBrowserService.getCsv(
+                    Optional.empty(),
+                    Optional.empty(),
+                    Optional.empty(),
+                    "INVALID_TABLE",
+                    sourcePathLocation,
+                    controlFileName,
+                    exportTypeDTO
+            )
+    );
+
+    assertEquals("There is an exception in creating CSV :{}", exception.getMessage());
+    assertNotNull(exception.getCause());
+    assertEquals(
+            "There is an exception in fetching sourceTable: INVALID_TABLE",
+            exception.getCause().getMessage()
+    );
+}
+
+
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertEquals;
