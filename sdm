@@ -1,5 +1,132 @@
 
 
+package com.citi.olympus.staticdata.model;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Set;
+
+import javax.validation.ConstraintViolation;
+import javax.validation.Validation;
+import javax.validation.Validator;
+import javax.validation.ValidatorFactory;
+
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.api.Test;
+
+class EmailNotificationRequestTest {
+
+    private static Validator validator;
+
+    @BeforeAll
+    static void setup() {
+        ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+        validator = factory.getValidator();
+    }
+
+    private EmailNotificationRequest createValidObject() {
+        EmailNotificationRequest req = new EmailNotificationRequest();
+        req.setEmailFrom("test@example.com");
+        req.setEmailTo(Arrays.asList("to@example.com"));
+        req.setEmailCc(Arrays.asList("cc@example.com"));
+        req.setEmailSubject("Test Subject");
+        req.setMessage("Test Message");
+        req.setEmailHtmlFormat("Y");
+        return req;
+    }
+
+    // ✅ 1. Getter/Setter coverage
+    @Test
+    void testGettersAndSetters() {
+        EmailNotificationRequest req = new EmailNotificationRequest();
+
+        req.setEmailFrom("from@test.com");
+        req.setEmailTo(Arrays.asList("to@test.com"));
+        req.setEmailCc(Arrays.asList("cc@test.com"));
+        req.setEmailSubject("subject");
+        req.setMessage("message");
+        req.setEmailHtmlFormat("N");
+
+        assertEquals("from@test.com", req.getEmailFrom());
+        assertEquals(Arrays.asList("to@test.com"), req.getEmailTo());
+        assertEquals(Arrays.asList("cc@test.com"), req.getEmailCc());
+        assertEquals("subject", req.getEmailSubject());
+        assertEquals("message", req.getMessage());
+        assertEquals("N", req.getEmailHtmlFormat());
+    }
+
+    // ✅ 2. Valid case
+    @Test
+    void testValidEmailNotificationRequest() {
+        EmailNotificationRequest req = createValidObject();
+
+        Set<ConstraintViolation<EmailNotificationRequest>> violations =
+                validator.validate(req);
+
+        assertTrue(violations.isEmpty());
+    }
+
+    // ❌ 3. Invalid emailFrom
+    @Test
+    void testInvalidEmailFrom() {
+        EmailNotificationRequest req = createValidObject();
+        req.setEmailFrom("invalid-email");
+
+        Set<ConstraintViolation<EmailNotificationRequest>> violations =
+                validator.validate(req);
+
+        assertFalse(violations.isEmpty());
+    }
+
+    // ❌ 4. emailTo empty
+    @Test
+    void testEmptyEmailTo() {
+        EmailNotificationRequest req = createValidObject();
+        req.setEmailTo(Collections.emptyList());
+
+        Set<ConstraintViolation<EmailNotificationRequest>> violations =
+                validator.validate(req);
+
+        assertFalse(violations.isEmpty());
+    }
+
+    // ❌ 5. emailHtmlFormat invalid
+    @Test
+    void testInvalidEmailHtmlFormat() {
+        EmailNotificationRequest req = createValidObject();
+        req.setEmailHtmlFormat("INVALID");
+
+        Set<ConstraintViolation<EmailNotificationRequest>> violations =
+                validator.validate(req);
+
+        assertFalse(violations.isEmpty());
+    }
+
+    // ❌ 6. Null required fields
+    @Test
+    void testNullFields() {
+        EmailNotificationRequest req = new EmailNotificationRequest();
+
+        Set<ConstraintViolation<EmailNotificationRequest>> violations =
+                validator.validate(req);
+
+        assertFalse(violations.isEmpty());
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
 package com.citi.olympus.utils;
 
 import org.junit.jupiter.api.BeforeEach;
