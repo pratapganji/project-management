@@ -1,5 +1,47 @@
 
 
+public class AllowedEmailDomainsListValidatorImpl
+        implements ConstraintValidator<AllowedEmailDomainsListValidator, List<String>> {
+
+    private static final Logger logger =
+            LoggerFactory.getLogger(AllowedEmailDomainsListValidatorImpl.class);
+
+    @Value("${notification.email.validDomains}")
+    private Set<String> validDomains;
+
+    @Override
+    public boolean isValid(List<String> emails, ConstraintValidatorContext context) {
+        if (emails == null || emails.isEmpty()) {
+            return true;
+        }
+
+        for (String email : emails) {
+            if (email == null || email.isBlank()) {
+                return false;
+            }
+
+            if (!email.contains("@")) {
+                return false;
+            }
+
+            String domain = email.substring(email.indexOf("@") + 1);
+
+            if (!validDomains.contains("@" + domain)) {
+                logger.error("Domain '{}' is not allowed", domain);
+                return false;
+            }
+        }
+
+        return true;
+    }
+}
+
+
+
+
+
+
+
 package com.citi.olympus.staticdata.model;
 
 import org.junit.jupiter.api.Test;
