@@ -1,4 +1,46 @@
 
+package com.citi.olympus.staticdata.model;
+
+import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class EmailNotificationRequestTest {
+
+    @Test
+    void testGettersAndSetters() {
+        EmailNotificationRequest req = new EmailNotificationRequest();
+
+        req.setEmailFrom("from@test.com");
+        req.setEmailTo(Arrays.asList("to@test.com"));
+        req.setEmailCc(Arrays.asList("cc@test.com"));
+        req.setEmailSubject("subject");
+        req.setMessage("message");
+        req.setEmailHtmlFormat("Y");
+
+        assertEquals("from@test.com", req.getEmailFrom());
+        assertEquals(Arrays.asList("to@test.com"), req.getEmailTo());
+        assertEquals(Arrays.asList("cc@test.com"), req.getEmailCc());
+        assertEquals("subject", req.getEmailSubject());
+        assertEquals("message", req.getMessage());
+        assertEquals("Y", req.getEmailHtmlFormat());
+    }
+
+    @Test
+    void testInheritance() {
+        EmailNotificationRequest req = new EmailNotificationRequest();
+        assertTrue(req instanceof NotificationRequest);
+    }
+}
+
+
+
+
+
+
+
 
 package com.citi.olympus.staticdata.model;
 
