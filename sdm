@@ -1,4 +1,101 @@
 
+
+package com.citi.olympus.staticdata.model;
+
+import org.junit.jupiter.api.Test;
+
+import java.sql.Timestamp;
+import java.time.LocalDate;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class CatalogueSourceSystemCoverageTest {
+
+    @Test
+    void testRemainingGettersAndSetters() {
+        CatalogueSourceSystemCoverage obj = new CatalogueSourceSystemCoverage();
+
+        Timestamp ts1 = Timestamp.valueOf("2024-01-01 10:15:30");
+        Timestamp ts2 = Timestamp.valueOf("2024-01-02 11:15:30");
+        Timestamp ts3 = Timestamp.valueOf("2024-01-03 12:15:30");
+        Timestamp ts4 = Timestamp.valueOf("2024-01-04 13:15:30");
+        Timestamp ts5 = Timestamp.valueOf("2024-01-05 14:15:30");
+        LocalDate liveDate = LocalDate.of(2024, 1, 10);
+
+        obj.setOnboardingRequestor("requestor1");
+        obj.setSourceContact("source.contact@citi.com");
+        obj.setSyntheticDataconceptl1("synL1");
+        obj.setSyntheticDataconceptl2("synL2");
+        obj.setSyntheticDataconceptl3("synL3");
+        obj.setSyntheticDataconceptl4("synL4");
+        obj.setSchemaName("TEST_SCHEMA");
+        obj.setTableName("TEST_TABLE");
+        obj.setSourceSystemSkIdentifierColumn("SRC_SYS_SK_COL");
+        obj.setCsiIdentifierColumn("CSI_ID_COL");
+        obj.setBusinessDateIdentifierColumn("BUSINESS_DATE_COL");
+        obj.setEomIndicator("Y");
+        obj.setUnityIndicator("N");
+        obj.setEagleDqindicator("Y");
+        obj.setGruReconImplementationDate(ts1);
+        obj.setEagleDqImplementation(ts2);
+        obj.setEomImplementationDate(ts3);
+        obj.setUnityImplementationDate(ts4);
+        obj.setFlowRetireDate(ts5);
+        obj.setDataRefreshFrequency("DAILY");
+        obj.setOlympusGrouping("GROUP_A");
+
+        // also safe to cover a few around this area if needed
+        obj.setLiveDate(liveDate);
+        obj.setGruReconIndicator("GRU");
+        obj.setActiveFlag("Y");
+        obj.setIsCurrentFlag("Y");
+        obj.setStatus("ACTIVE");
+        obj.setDwhCreatedBy("creator");
+        obj.setUpdatedBy("updater");
+        obj.setUpdatedReason("updated for junit");
+
+        assertEquals("requestor1", obj.getOnboardingRequestor());
+        assertEquals("source.contact@citi.com", obj.getSourceContact());
+        assertEquals("synL1", obj.getSyntheticDataconceptl1());
+        assertEquals("synL2", obj.getSyntheticDataconceptl2());
+        assertEquals("synL3", obj.getSyntheticDataconceptl3());
+        assertEquals("synL4", obj.getSyntheticDataconceptl4());
+        assertEquals("TEST_SCHEMA", obj.getSchemaName());
+        assertEquals("TEST_TABLE", obj.getTableName());
+        assertEquals("SRC_SYS_SK_COL", obj.getSourceSystemSkIdentifierColumn());
+        assertEquals("CSI_ID_COL", obj.getCsiIdentifierColumn());
+        assertEquals("BUSINESS_DATE_COL", obj.getBusinessDateIdentifierColumn());
+        assertEquals("Y", obj.getEomIndicator());
+        assertEquals("N", obj.getUnityIndicator());
+        assertEquals("Y", obj.getEagleDqindicator());
+        assertEquals(ts1, obj.getGruReconImplementationDate());
+        assertEquals(ts2, obj.getEagleDqImplementation());
+        assertEquals(ts3, obj.getEomImplementationDate());
+        assertEquals(ts4, obj.getUnityImplementationDate());
+        assertEquals(ts5, obj.getFlowRetireDate());
+        assertEquals("DAILY", obj.getDataRefreshFrequency());
+        assertEquals("GROUP_A", obj.getOlympusGrouping());
+
+        // optional nearby validations
+        assertEquals(liveDate, obj.getLiveDate());
+        assertEquals("GRU", obj.getGruReconIndicator());
+        assertEquals("Y", obj.getActiveFlag());
+        assertEquals("Y", obj.getIsCurrentFlag());
+        assertEquals("ACTIVE", obj.getStatus());
+        assertEquals("creator", obj.getDwhCreatedBy());
+        assertEquals("updater", obj.getUpdatedBy());
+        assertEquals("updated for junit", obj.getUpdatedReason());
+    }
+}
+
+
+
+
+
+
+
+
+
 package com.citi.olympus.staticdata.model;
 
 import org.junit.jupiter.api.Test;
