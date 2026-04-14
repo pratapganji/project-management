@@ -1,5 +1,57 @@
 
 
+package com.citi.olympus.utils;
+
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.springframework.test.util.ReflectionTestUtils;
+
+import java.util.Properties;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+class PropertyUtilsTest {
+
+    @BeforeEach
+    void setUp() {
+        ReflectionTestUtils.setField(PropertyUtils.class, "properties", null);
+    }
+
+    @Test
+    void testGetProperty_shouldLoadFromDevFile_whenPropertiesIsNull() {
+        // use a REAL key from src/main/resources/application-dev.properties
+        // replace below key with one that actually exists in your file
+        String value = PropertyUtils.getProperty("YOUR_REAL_DEV_KEY", "ignored");
+
+        assertNotNull(value);
+    }
+
+    @Test
+    void testGetProperty_shouldReturnFromCachedProperties_whenPropertiesAlreadyLoaded() {
+        Properties mockProperties = new Properties();
+        mockProperties.setProperty("someKey", "someValue");
+
+        ReflectionTestUtils.setField(PropertyUtils.class, "properties", mockProperties);
+
+        String value = PropertyUtils.getProperty("someKey", "ignored");
+
+        assertEquals("someValue", value);
+    }
+
+    @Test
+    void testGetProperty_shouldReturnNull_whenKeyNotPresentInCachedProperties() {
+        Properties mockProperties = new Properties();
+        mockProperties.setProperty("someKey", "someValue");
+
+        ReflectionTestUtils.setField(PropertyUtils.class, "properties", mockProperties);
+
+        String value = PropertyUtils.getProperty("missingKey", "ignored");
+
+        assertNull(value);
+    }
+}
+
+
 
 
 package com.citi.olympus;
