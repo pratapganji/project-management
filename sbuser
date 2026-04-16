@@ -1,4 +1,203 @@
 
+🔹 SB User Consumption – End-to-End Validation Document (FINAL)
+
+---
+
+🔹 Job / Process Details
+
+Job Name:
+restart-olympus-sb-user-consumption-pod
+
+Namespace / Project:
+icg-isg-olympus-data-176352
+
+Trigger Type:
+OpenShift CronJob
+
+Schedule:
+0 2 * * 1 (Runs every Monday at 2:00 AM)
+
+---
+
+🔹 Process Flow (Corrected)
+
+1. CronJob triggers restart pod  
+2. Restart pod deletes existing SB user consumption application pod  
+3. Kubernetes recreates the main application pod  
+4. On startup, main pod executes Python job (gen_user_consumption.py)  
+5. Source data is read (last 7 days)  
+6. Target table (OM_CATALOGUE_USER_CONSUMPTION) is cleaned  
+7. Fresh data is loaded into target table  
+8. Process completes successfully  
+
+---
+
+🔹 Execution Flow
+
+CronJob → Restart Pod → Main Pod Recreation → Application Startup → Python Job Execution → Data Load  
+
+---
+
+🔹 Source / Input Details
+
+Source System:
+STARBURST  
+
+Source Tables:
+- gfolydal_managed.jdbc_centralized_audit_log  
+- gfolydal_managed.jdbc_centralized_audit_common  
+- jdbc_centralized_audit_log (used multiple times in joins)  
+
+Date Range Read:
+Last 7 days data (as per job logs)  
+
+API / Usage Type:
+JDBC  
+
+Source Query Fetches:
+- log.client_id AS USER_ID  
+- log.status  
+- st.start_time, et.end_time  
+- log.query_text AS request_json  
+- comm.datasource_type AS application_name  
+- 'JDBC API' AS API  
+
+Authentication / Dependencies:
+- NGC secrets used for credential retrieval  
+- Oracle DB connection established using retrieved credentials  
+- Truststore file used: config/uat/UAT_cacerts.jks  
+
+---
+
+🔹 Target / Load Details
+
+Target Table:
+OM_CATALOGUE_USER_CONSUMPTION  
+
+Data Source Confirmation:
+Query executed from data source: STARBURST  
+
+Load Process:
+- Data fetched from API logs  
+- Tables metadata fetched  
+- Data loaded into target table  
+
+File Handling:
+- Staging file generated during execution  
+- File removed after successful load  
+
+Execution Time:
+Captured from logs  
+
+Final Status:
+Process completed successfully  
+
+---
+
+🔹 Validation / Verification Details
+
+Source Date Range:
+(As per job run logs)
+
+---
+
+1. Source vs Target Row Count Validation
+
+Source (Logs):
+- Total rows read from source = (value from main pod logs)
+
+Target (DB):
+- Rows created during job run = (value from DB query)
+
+Explanation:
+- Source system returns query execution level records  
+- Target table stores data at detailed (column/table) level  
+- Each source record expands into multiple target rows based on:  
+  • FIELD_LOGICAL_NAME  
+  • TABLE_PHYSICAL_NAME  
+  • USAGE_TYPE  
+
+Conclusion:
+- Target row count will always be higher than source row count  
+- This is expected behavior  
+
+---
+
+2. Date Range Validation
+
+SELECT COUNT()
+FROM <SCHEMA>.OM_CATALOGUE_USER_CONSUMPTION
+WHERE DWH_BUSINESS_DATE BETWEEN DATE '<START_DATE>' AND DATE '<END_DATE>';
+
+---
+
+3. Usage Type Validation
+
+SELECT COUNT()
+FROM <SCHEMA>.OM_CATALOGUE_USER_CONSUMPTION
+WHERE DWH_BUSINESS_DATE BETWEEN DATE '<START_DATE>' AND DATE '<END_DATE>'
+  AND USAGE_METHOD = '<EXPECTED_METHOD>';
+
+---
+
+4. Current Run Validation
+
+SELECT COUNT(*)
+FROM <SCHEMA>.OM_CATALOGUE_USER_CONSUMPTION
+WHERE TRUNC(DWH_CREATED_TIMESTAMP) = DATE '<RUN_DATE>';
+
+---
+
+5. Sample Data Verification
+
+SELECT *
+FROM <SCHEMA>.OM_CATALOGUE_USER_CONSUMPTION
+WHERE DWH_BUSINESS_DATE BETWEEN DATE '<START_DATE>' AND DATE '<END_DATE>'
+FETCH FIRST 20 ROWS ONLY;
+
+Validation:
+- Verify key columns:
+  • USER_ID  
+  • USAGE_METHOD  
+  • API_ID  
+  • SCHEMA_NAME  
+  • TABLE_PHYSICAL_NAME  
+  • FIELD_LOGICAL_NAME  
+  • QUERY_EXECUTION_TIMESTAMP  
+- Ensure DATA_SOURCE = expected source (e.g., STARBURST)
+
+---
+
+6. Log Validation (OpenShift)
+
+Check logs from MAIN APPLICATION POD (not restart pod):
+
+- Source data read for correct date range  
+- Query executed from expected data source  
+- Total rows read from source  
+- Total error rows = 0  
+- Data load into target table started  
+- Process completed successfully  
+
+---
+
+🔹 Final Conclusion
+
+- CronJob executed successfully  
+- Restart pod triggered application restart correctly  
+- Main application pod executed data processing job  
+- Data fetched from source correctly  
+- No processing errors observed  
+- Target table populated as expected  
+- Validation performed using main pod logs, DB queries, and sample data  
+
+---
+
+
+
+
+
+
 🔹 Validation / Verification Details – SB User Consumption
 
 Source Date Range:
