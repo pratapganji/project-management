@@ -1,4 +1,115 @@
 
+🔹 Validation / Verification Details – SB User Consumption
+
+Source Date Range:
+(As per job run logs)
+
+---
+
+1. Source vs Target Row Count Validation
+
+Source (Logs):
+- Total rows read from source = (value from logs)
+
+Target (DB):
+- Rows created during job run = (value from DB query)
+
+Explanation:
+- Source system returns query execution level records
+- Target table stores data at detailed (column/table) level
+- Each source record expands into multiple target rows based on:
+  • FIELD_LOGICAL_NAME  
+  • TABLE_PHYSICAL_NAME  
+  • USAGE_TYPE  
+
+Conclusion:
+- Target row count will always be higher than source row count
+- This is expected behavior
+
+---
+
+2. Date Range Validation
+
+Query:
+SELECT COUNT()
+FROM <SCHEMA>.OM_CATALOGUE_USER_CONSUMPTION
+WHERE DWH_BUSINESS_DATE BETWEEN DATE '<START_DATE>' AND DATE '<END_DATE>';
+
+Validation:
+- Ensure records exist for the full date range processed by the job
+
+---
+
+3. Usage Type Validation
+
+Query:
+SELECT COUNT()
+FROM <SCHEMA>.OM_CATALOGUE_USER_CONSUMPTION
+WHERE DWH_BUSINESS_DATE BETWEEN DATE '<START_DATE>' AND DATE '<END_DATE>'
+  AND USAGE_METHOD = '<EXPECTED_METHOD>';
+
+Validation:
+- Ensure data is loaded for expected usage type (e.g., JDBC API)
+
+---
+
+4. Current Run Validation
+
+Query:
+SELECT COUNT(*)
+FROM <SCHEMA>.OM_CATALOGUE_USER_CONSUMPTION
+WHERE TRUNC(DWH_CREATED_TIMESTAMP) = DATE '<RUN_DATE>';
+
+Validation:
+- Confirms data was inserted during current job execution
+
+---
+
+5. Sample Data Verification
+
+Query:
+SELECT *
+FROM <SCHEMA>.OM_CATALOGUE_USER_CONSUMPTION
+WHERE DWH_BUSINESS_DATE BETWEEN DATE '<START_DATE>' AND DATE '<END_DATE>'
+FETCH FIRST 20 ROWS ONLY;
+
+Validation:
+- Verify key columns:
+  • USER_ID  
+  • USAGE_METHOD  
+  • API_ID  
+  • SCHEMA_NAME  
+  • TABLE_PHYSICAL_NAME  
+  • FIELD_LOGICAL_NAME  
+  • QUERY_EXECUTION_TIMESTAMP  
+- Ensure DATA_SOURCE = expected source (e.g., STARBURST)
+
+---
+
+6. Log Validation (OpenShift)
+
+Check logs for:
+- Source data read for correct date range  
+- Query executed from expected data source  
+- Total rows read from source  
+- Total error rows = 0  
+- Data load into target table started  
+- Process completed successfully  
+
+---
+
+Final Conclusion:
+- CronJob executed successfully  
+- Data fetched from source correctly  
+- No processing errors observed  
+- Target table populated as expected  
+- Validation performed using logs, queries, and sample data
+
+
+
+
+
+
 SELECT COUNT(*)
 FROM C167969RPC.OM_CATALOGUE_USER_CONSUMPTION
 WHERE TRUNC(DWH_CREATED_TIMESTAMP) = DATE '2026-04-13'
