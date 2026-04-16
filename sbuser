@@ -1,4 +1,91 @@
 
+SB User Consumption – Automation Testing Details
+
+🔹 Job / Process Details
+Job Name:
+restart-olympus-sb-user-consumption-pod
+
+Namespace / Project:
+icg-isg-olympus-data-176352
+
+Trigger Type:
+OpenShift CronJob
+
+Schedule:
+0 2 * * 1 (Runs every Monday at 2:00 AM)
+
+---
+
+🔹 Source / Input Details
+
+Source System:
+STARBURST
+
+Source Tables:
+1. gfolydal_managed.jdbc_centralized_audit_log
+2. gfolydal_managed.jdbc_centralized_audit_common
+3. gfolydal_managed.jdbc_centralized_audit_log (used multiple times in joins)
+
+Date Range Read:
+Last 7 days data  
+Example: 2026-04-06 to 2026-04-12
+
+API / Usage Type:
+JDBC
+
+Source Query Fetches:
+- log.client_id AS USER_ID
+- log.status
+- st.start_time, et.end_time
+- log.query_text AS request_json
+- comm.datasource_type AS application_name
+- 'JDBC API' AS API
+
+Authentication / Dependencies:
+- NGC secrets used for credential retrieval
+- Oracle DB connection established using retrieved credentials
+- Truststore file used: config/uat/UAT_cacerts.jks
+
+---
+
+🔹 Target / Load Details
+
+Target Table:
+OM_CATALOGUE_USER_CONSUMPTION
+
+Data Source Confirmation:
+Query executed from data source: STARBURST
+
+Data Fetch Summary:
+- Batch 1 size: 50000 (Cumulative: 50000)
+- Batch 2 size: 50000 (Cumulative: 100000)
+- Batch 3 size: 9681 (Cumulative: 109681)
+- Server sent all rows successfully
+
+Total Rows Read From Source:
+109681
+
+Total Error Rows:
+0
+
+Load Process:
+- Data fetched from API logs
+- Tables metadata fetched
+- Data loaded into target table OM_CATALOGUE_USER_CONSUMPTION
+
+File Handling:
+- Staging file generated:
+  /home/eqcdrpt/citidigital/cd_user_consumption/autosys_logs/staging_user_consumption_20260413020102527256.csv
+- File removed after successful load
+
+Execution Time:
+625 minutes 27 seconds
+
+Final Status:
+Process completed successfully
+
+
+
 
 Job / Process Details – SB User Consumption
 
