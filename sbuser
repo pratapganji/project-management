@@ -1,5 +1,43 @@
 
 
+Job / Process Details – SB User Consumption
+
+Job Name:
+restart-olympus-sb-user-consumption-pod
+
+Namespace / Project:
+icg-isg-olympus-data-176352
+
+Trigger Type:
+OpenShift CronJob
+
+Schedule:
+0 2 * * 1 (Runs every Monday at 2:00 AM)
+
+Process Flow:
+1. CronJob triggers pod restart for SB user consumption
+2. Existing pod is deleted
+3. New pod is created
+4. On startup, user consumption process is triggered
+5. Reads source data (last 7 days)
+6. Cleans target table (OM_CATALOGUE_USER_CONSUMPTION)
+7. Loads fresh data into target table
+8. Process completes successfully
+
+Sample Logs:
+- Deleting the pod olympus-sb-user-consumption
+- Waiting for the pod to be recreated
+- Pod restart completed successfully
+
+Data Behavior:
+- Weekly job
+- Processes last 7 days data
+- Refreshes (cleans and reloads) target table data
+
+Execution Flow:
+CronJob → Pod Restart → Application Startup → Python Job Execution → Data Load
+
+
 
 
 
