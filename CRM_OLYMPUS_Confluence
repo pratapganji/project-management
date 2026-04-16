@@ -1,1 +1,142 @@
+📄 Confluence Page: CRM to Olympus – HTTP to HTTPS Migration Guide
 
+⸻
+
+🧭 1. Objective
+
+The objective of this document is to provide a step-by-step guide to migrate applications from HTTP to HTTPS based on the implementation done for:
+
+CRM to Olympus Application
+
+This guide can be used by other teams for similar HTTPS migrations.
+
+⸻
+
+🏗️ 2. Existing Architecture (Before Change)
+
+Client → Apigee → VIP URL (HTTP) → Application
+	•	Communication between components was over HTTP
+	•	No SSL/TLS encryption
+	•	Traffic was not secured
+	•	No certificate validation involved
+
+⸻
+
+🔐 3. Target Architecture (After Change)
+
+Client → Apigee → VIP URL → WIP URL → Application (HTTPS)
+	•	HTTPS enabled between all components
+	•	Traffic is encrypted using SSL/TLS
+	•	WIP URL introduced for internal routing
+	•	Certificates used for secure communication
+
+⸻
+
+📜 4. Certificate Setup (Actual Implementation Followed)
+
+Instead of using CMP-issued certificates directly, the following approach was used:
+	•	Downloaded CA certificates from Citi PKI Portal (Production CA → Java JKS format)
+	•	Generated a self-signed certificate with:
+	•	CN = WIP URL
+	•	Validity = 1 year
+	•	Imported Root CA and Intermediate CA into JKS keystore
+	•	Verified keystore for certificate chain and private key
+	•	Deployed JKS file to server
+	•	Configured application to use SSL with keystore
+
+⸻
+
+⚙️ 5. Application Changes
+
+Following changes were made in the application:
+	•	Enabled HTTPS support in Spring Boot configuration
+	•	Configured keystore path, password, and alias
+	•	Updated WebClient to call HTTPS endpoints
+	•	Introduced SSL bypass (temporary) using insecure trust manager
+	•	Added routing logic to replicate calls to secondary endpoint
+
+Replication logic conditions:
+	•	Environment = PROD or COB
+	•	Primary call is successful
+	•	Route flag is false
+
+⸻
+
+🔁 6. SSL Handling (Important)
+
+Due to certificate trust issues, SSL validation was bypassed temporarily in code.
+
+Reason:
+	•	Self-signed certificate was not trusted by default
+	•	To avoid handshake failures during migration
+
+⚠️ Note: This is not recommended for long-term production usage.
+
+⸻
+
+🚀 7. Deployment Steps
+	•	Built application using Maven with SSL flags enabled
+	•	Fixed Jenkins pipeline issues related to artifact copy
+	•	Ensured correct target and install directory structure
+	•	Deployed application using UDeploy
+	•	Restarted application/pods after deployment
+
+⸻
+
+🧪 8. Validation Steps
+	•	Verified HTTPS endpoint using curl command
+	•	Checked SSL handshake and certificate details
+	•	Validated application logs for successful requests
+	•	Ensured replication to secondary endpoint is working
+	•	Confirmed no runtime SSL errors
+
+⸻
+
+⚠️ 9. Issues Faced
+	•	SSL error: “Untrusted Root Certificate”
+	•	Cause: Self-signed certificate not trusted
+	•	Jenkins failure due to incorrect file path in copy stage
+	•	SSL handshake failures before bypass implementation
+
+⸻
+
+🛠️ 10. Fixes Applied
+	•	Imported CA certificates into keystore
+	•	Used insecure trust manager to bypass SSL validation
+	•	Corrected Jenkins copy paths and ensured build artifacts exist
+	•	Validated certificate setup using curl and openssl
+
+⸻
+
+📌 11. Key Learnings
+	•	Always validate certificate chain before deployment
+	•	Ensure CN matches WIP/VIP URL
+	•	Avoid wildcard paths in Jenkins scripts
+	•	SSL bypass should only be temporary
+	•	Proper CA-signed certificates are required for production
+
+⸻
+
+✅ 12. Recommended Approach for Future
+	•	Use CMP-issued certificates signed by Citi CA
+	•	Avoid self-signed certificates in production
+	•	Remove SSL bypass logic
+	•	Ensure full certificate trust chain
+	•	Perform proper SSL validation
+
+⸻
+
+📊 13. Summary
+	•	HTTP to HTTPS migration completed successfully
+	•	Secure communication established
+	•	Temporary SSL bypass used for stability
+	•	Deployment pipeline issues resolved
+	•	Solution ready for reuse by other teams
+
+⸻
+
+📘 14. Conclusion
+
+The CRM to Olympus application was successfully migrated from HTTP to HTTPS with minimal impact. The implementation included certificate setup, application updates, and deployment fixes.
+
+This document can be used as a standard reference for similar migrations across teams.
