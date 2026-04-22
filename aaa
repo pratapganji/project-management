@@ -1,4 +1,11 @@
 
+service:
+  name: olympus-api-sb-extract
+  port: 8080
+  targetPort: 8080
+
+
+
 
 DELETE FROM A167969NURAREC.ROLE_ROW_RULE
 WHERE ROLE_NAME = 'OLYMPUS_ABAC_LIMITED_ROLE'
