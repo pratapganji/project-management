@@ -1,8 +1,14 @@
 
-service:
-  name: olympus-api-sb-extract
-  port: 8080
-  targetPort: 8080
+public static void main(String[] args) {
+
+    ConfigurableApplicationContext context =
+            SpringApplication.run(OlympusCitihawkExtractApplication.class, args);
+
+    Environment env = context.getEnvironment();
+
+    System.out.println("DB PASSWORD = " +
+            env.getProperty("spring.datasource.password"));
+}
 
 
 
