@@ -1,4 +1,18 @@
 
+This is not an API-based process. It is a backend batch job that reads JDBC audit logs from the Starburst/Impala system. The job fetches query execution data for a given date range from audit tables like jdbc_centralized_audit_log and jdbc_centralized_audit_common, processes the queries to extract table and column usage, enriches the data using catalogue metadata, and then loads the final user consumption data into the OM_CATALOGUE_USER_CONSUMPTION table after cleaning existing records for the current run.”
+
+⸻
+
+🔥 If you want slightly simpler version:
+
+“This is not an API flow; it’s a backend batch process that reads JDBC audit logs from Starburst, processes query usage into table and column-level data, and loads it into the OM_CATALOGUE_USER_CONSUMPTION table after cleaning current run data.
+
+
+
+
+
+
+
 SB User Consumption – Complete Process Explanation (sb_uat)
 
 Purpose:
