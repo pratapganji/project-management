@@ -1,4 +1,318 @@
 
+SB User Consumption – Complete Process Explanation (sb_uat)
+
+Purpose:
+This process is a backend batch job that reads JDBC audit logs, processes query usage, and loads table/column-level consumption data into OM_CATALOGUE_USER_CONSUMPTION.
+
+Environment:
+- sb_uat
+- Target ORAAS user: A167969RPC
+
+Trigger:
+- OpenShift CronJob: restart-olympus-sb-user-consumption-pod
+- Schedule: Every Monday 2 AM
+
+Execution Flow:
+1. CronJob triggers restart pod
+2. Restart pod deletes existing application pod
+3. Kubernetes recreates main application pod
+4. On startup, main pod runs gen_user_consumption.py
+5. Job execution begins
+
+Input / Date Handling:
+- Job reads input parameters using read_input_params()
+- from_date and to_date define the data range
+- If not passed, system calculates last 7 days automatically
+- This date is used only to fetch data, not for cleaning
+
+Source System (Current Setup):
+- Data is fetched from STARBURST (Impala)
+- Connection created using get_impala_connection()
+
+Source Tables:
+- gfolydal_managed.jdbc_centralized_audit_log
+- gfolydal_managed.jdbc_centralized_audit_common
+
+What Source Contains:
+- Query execution logs
+- user_id
+- query_text
+- start_time, end_time
+- datasource type
+
+Fetching Logic:
+- Method: fetch_api_logs()
+- Filters data using:
+  start_time >= from_date
+  end_time <= to_date
+
+- Logs example:
+  "Reading source data from <from_date> to <to_date>"
+  "Total rows read from source = X"
+
+Target System:
+- Oracle DB (ORAAS)
+- Connection created using get_oraas_connection()
+
+Target Table:
+- OM_CATALOGUE_USER_CONSUMPTION
+
+Cleaning Logic:
+- Method: clean_target()
+- Deletes existing records from:
+  OM_CATALOGUE_USER_CONSUMPTION
+
+- Condition:
+  TRUNC(DWH_CREATED_TIMESTAMP) = current run date
+  AND USAGE_METHOD = 'JDBC API'
+
+- Important:
+  Cleaning is NOT based on from_date/to_date
+  It only deletes data created during the current run date
+
+Processing Logic:
+- SQL queries from source are parsed using sql_parser
+- Extracts:
+  - schema name
+  - table name
+  - column name
+  - usage type (SELECT, FILTER, etc.)
+
+- Metadata enrichment using:
+  - OM_CATALOGUE_TABLE
+  - OM_CATALOGUE_FIELD
+
+CSV Generation:
+- Processed data is written to a staging file:
+  staging_user_consumption_<timestamp>.csv
+
+- Location:
+  autosys_logs directory
+
+Target Load:
+- Method: load_csv_into_database()
+- Reads CSV and inserts into:
+  OM_CATALOGUE_USER_CONSUMPTION
+
+- Batch insert size: 20000
+
+- After successful load:
+  CSV file is deleted
+
+Important Behavior:
+- No new data is created by this job
+- It only reads existing audit logs and transforms them
+
+Row Count Explanation:
+- Source logs contain query-level records
+- Target table stores column/table-level records
+- One source row expands into multiple target rows
+- So target row count is higher (expected)
+
+Validation Steps for QE:
+1. Verify CronJob execution
+2. Check restart pod logs (pod restarted)
+3. Check main pod logs:
+   - Source data read
+   - Target cleaned
+   - Data loaded
+   - No errors
+4. Verify DB:
+   - Data present for date range
+   - USAGE_METHOD = 'JDBC API'
+   - Sample rows populated
+5. Confirm:
+   - Total error rows = 0
+   - Process completed successfully
+
+Final Summary:
+This is a backend JDBC audit log processing job. It reads query execution logs from STARBURST, processes them into table and column-level usage data, and loads the results into OM_CATALOGUE_USER_CONSUMPTION after cleaning current run data.
+
+
+
+
+
+
+
+
+SB User Consumption – Process Explanation for QE
+
+Purpose:
+SB User Consumption is a backend data processing job. It reads usage/audit logs for REST, JDBC, or BULK activity, parses the request/query details, enriches them with catalogue metadata, and loads the final table/column-level usage data into OM_CATALOGUE_USER_CONSUMPTION.
+
+Environment:
+sb_uat
+
+Main Script:
+gen_user_consumption.py
+
+Trigger:
+OpenShift CronJob restarts the SB User Consumption application pod. After the main pod starts, gen_user_consumption.py executes.
+
+Execution Flow:
+CronJob → Restart Pod → Main Application Pod Restart → gen_user_consumption.py → Fetch Logs → Clean Target → Parse/Enrich Data → Create CSV → Load CSV to Oracle Target → Delete CSV → Complete
+
+Input Parameters:
+The script reads input values using read_input_params():
+- env
+- api_source
+- from_date
+- to_date
+
+If dates are not manually passed, the code calculates the default date range:
+- from_date = current date - 7 days
+- to_date = current date - 1 day
+
+Source Connections:
+1. For JDBC:
+- Connects to STARBURST / Impala using get_impala_connection()
+- Uses JayDeBeApi connection
+- Reads JDBC audit logs
+
+2. For REST and BULK:
+- Connects to ORAAS Oracle using get_oraas_connection()
+- Uses cx_Oracle connection
+- Reads REST/BULK audit log tables
+
+Target Connection:
+- Connects to Oracle target using get_oraas_connection()
+- In sb_uat, target ORAAS user is A167969RPC
+- Target table is OM_CATALOGUE_USER_CONSUMPTION
+
+Source Tables:
+
+For JDBC source:
+- gfolydal_managed.jdbc_centralized_audit_log
+- gfolydal_managed.jdbc_centralized_audit_common
+- jdbc_centralized_audit_log is also used again in joins for start/end execution time
+
+For REST source:
+- DALE_API_CALL_LOG
+- DALC_CLIENT_API
+- DALC_CLIENT_API_QUERY
+- DALC_DATABASE_PLATFORM
+
+For BULK source:
+- DALC_BULK_API_JOB_REQUEST
+
+Metadata Tables:
+The job also reads catalogue metadata from:
+- OM_CATALOGUE_TABLE
+- OM_CATALOGUE_FIELD
+
+Purpose of metadata:
+- To map schema, table, and column information
+- To validate extracted tables/columns from the request/query
+- To create detailed consumption records
+
+Fetch Logic:
+The job calls fetch_api_logs(conn_str, from_date, to_date, config, api_source).
+
+For JDBC:
+- It fetches query execution logs from STARBURST audit tables
+- It selects details like:
+  - USER_ID
+  - STATUS
+  - START_TIME
+  - END_TIME
+  - QUERY_TEXT as request_json
+  - DATASOURCE_TYPE as application_name
+  - 'JDBC API' as API
+  - SEQ_ID as API_ID
+
+For REST:
+- It fetches request JSON from API call log tables
+
+For BULK:
+- It fetches executed query details from DALC_BULK_API_JOB_REQUEST
+
+Target Cleaning:
+Before loading fresh data, the job calls clean_target(conn_str, today, api_source).
+
+It deletes data from:
+OM_CATALOGUE_USER_CONSUMPTION
+
+Cleanup condition:
+- DWH_CREATED_TIMESTAMP = current run date
+- Usage method filter based on source:
+  - api_source = jdbc → USAGE_METHOD = 'JDBC API'
+  - api_source = bulk → USAGE_METHOD = 'BULK_API'
+  - otherwise → USAGE_METHOD NOT IN ('JDBC API', 'BULK_API')
+
+Purpose of cleanup:
+- Remove existing records for the same run/source
+- Avoid duplicate data
+- Reload fresh processed data
+
+Processing Logic:
+After fetching source logs:
+- REST payloads are parsed from JSON
+- JDBC/BULK SQL queries are parsed using sql_parser
+- The process extracts:
+  - schema name
+  - table name
+  - column name
+  - usage type such as SELECT, FILTER, AGGREGATE, GROUP BY
+  - query execution timestamp
+  - query completion timestamp
+  - data source
+
+CSV Generation:
+The job creates a staging CSV file using:
+staging_user_consumption_<timestamp>.csv
+
+CSV location:
+Configured data_dir path, for example:
+citidigital/cd_user_consumption/autosys_logs
+
+The CSV contains processed/enriched rows that will be inserted into the target table.
+
+Target Load:
+The job calls load_csv_into_database().
+
+It reads the staging CSV and inserts records into:
+OM_CATALOGUE_USER_CONSUMPTION
+
+Insert columns:
+- USER_ID
+- USAGE_METHOD
+- SCHEMA_NAME
+- TABLE_PHYSICAL_NAME
+- API_ID
+- FIELD_LOGICAL_NAME
+- USAGE_TYPE
+- QUERY_EXECUTION_TIMESTAMP
+- QUERY_COMPLETION_TIMESTAMP
+- DATA_SOURCE
+
+Load behavior:
+- Data is inserted in batches
+- Batch size is 20000
+- After successful load, staging CSV file is removed
+
+Important Note:
+The job does not create source data. It only reads already-existing audit logs, parses/enriches them, and loads user consumption details into the target table.
+
+Validation Points for QE:
+1. Verify CronJob restarted the main pod
+2. Verify main pod logs show source date range
+3. Verify logs show successful source fetch
+4. Verify logs show “Target cleaned”
+5. Verify logs show “Loading data into table OM_CATALOGUE_USER_CONSUMPTION”
+6. Verify logs show “Total error rows = 0”
+7. Verify logs show “Process completed successfully”
+8. Verify target table has records for the run date/date range
+9. Verify sample records contain USER_ID, USAGE_METHOD, SCHEMA_NAME, TABLE_PHYSICAL_NAME, FIELD_LOGICAL_NAME, USAGE_TYPE, and DATA_SOURCE
+
+Simple Summary:
+This is not a REST API call flow. It is a backend batch process that reads audit log data from source systems, processes query/request usage into table and column-level consumption records, and loads them into OM_CATALOGUE_USER_CONSUMPTION.
+
+
+
+
+
+
+
 🔹 SB User Consumption – End-to-End Validation Document (FINAL)
 
 ---
