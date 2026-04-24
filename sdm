@@ -1,4 +1,440 @@
 
+The application exports data from Oracle catalogue tables into CSV files.
+
+For each export:
+- A CSV file is generated containing actual table data.
+- A control file (.csv.ready) is generated containing only the record count.
+
+Both files are zipped and returned via API.
+
+Primary keys like SUNDRY_SK, CATALOGUE_SOURCE_SYSTEM_SK, and CATALOGUE_SOURCE_SYSTEM_COVERAGE_SK uniquely identify records in their respective tables.
+
+The OM_CATALOGUE_SDM_LOG table is used to track export runs, including status, timestamp, and record count.
+
+
+
+
+
+
+
+Application: SDM File Export API
+
+Purpose:
+SDM File Export API is used to export SDM catalogue data from Oracle DB tables into CSV format. When QE calls the export endpoints with SOEID in the request header, the application reads data from Oracle DB, generates a CSV data file, creates a control file containing the exported record count, zips both files together, returns the ZIP file in the API response, updates OM_CATALOGUE_SDM_LOG for successful exports, and sends success/failure email notifications.
+
+In simple words:
+This application is not creating business data. It is extracting existing catalogue data from Oracle DB tables, converting that data into CSV files, creating a ready/control file, packaging both into a ZIP file, and returning that ZIP to the caller.
+
+Controller:
+SchemaBrowserController
+
+Base URL:
+ /citihawk/schemabrowser
+
+Total Export Endpoints:
+There are 5 endpoints.
+
+1. /exportSundry
+2. /exportSourceSystem
+3. /exportSourceSystemCoverage
+4. /exportSourceSystemAdhocLatestFetch
+5. /exportSourceSystemCoverageAdhocLatestFetch
+
+Full endpoint URLs:
+1. POST /citihawk/schemabrowser/exportSundry
+2. POST /citihawk/schemabrowser/exportSourceSystem
+3. POST /citihawk/schemabrowser/exportSourceSystemCoverage
+4. POST /citihawk/schemabrowser/exportSourceSystemAdhocLatestFetch
+5. POST /citihawk/schemabrowser/exportSourceSystemCoverageAdhocLatestFetch
+
+Load Types:
+
+1. Full Load
+If load parameter is not passed or does not match 1 or 7, application treats it as FULL_LOAD.
+Full load exports latest grouped full data.
+For full load, the service uses stream-based processing because data volume can be high.
+
+Example:
+POST /citihawk/schemabrowser/exportSourceSystem
+
+2. 7-Day Load
+If load=7, application treats it as WEEKLY load.
+It exports records updated in the last 7 days.
+This uses list-based repository query.
+
+Example:
+POST /citihawk/schemabrowser/exportSourceSystem?load=7
+
+3. 1-Day / Specific Load
+If load=1 or another specific day value, application treats it as SPECIFIC load.
+It exports records based on given day range.
+This uses list-based repository query.
+
+Example:
+POST /citihawk/schemabrowser/exportSourceSystem?load=1
+
+4. Adhoc Load
+Adhoc load is available for SourceSystem and SourceSystemCoverage.
+It uses last successful run timestamp from OM_CATALOGUE_SDM_LOG and exports records changed after that timestamp.
+
+Adhoc endpoints:
+POST /citihawk/schemabrowser/exportSourceSystemAdhocLatestFetch
+POST /citihawk/schemabrowser/exportSourceSystemCoverageAdhocLatestFetch
+
+Tables Exported:
+
+1. OM_CATALOGUE_SUNDRY
+Exported by:
+/exportSundry
+
+2. OM_CATALOGUE_SOURCE_SYSTEM
+Exported by:
+/exportSourceSystem
+/exportSourceSystemAdhocLatestFetch
+
+3. OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE
+Exported by:
+/exportSourceSystemCoverage
+/exportSourceSystemCoverageAdhocLatestFetch
+
+Repositories Used:
+
+1. CatalogueSundryRepository
+Used to fetch Sundry data.
+
+2. CatalogueSourceSystemRepository
+Used to fetch Source System data.
+
+3. CatalogueSourceSystemCoverageRepository
+Used to fetch Source System Coverage data.
+
+4. CatalogueSdmLogRepository
+Used to fetch last successful run timestamp and update SDM log table after export.
+
+Database Details:
+
+The application connects to Oracle DB using second datasource configuration.
+
+Property keys:
+spring.second.datasource.username
+spring.second.datasource.url
+spring.second.datasource.driverclass
+
+UAT DB username:
+C167969RPC
+
+UAT DB URL:
+jdbc:oracle:thin:@...HOST=ORFIUAT.oraas.dyn.nsroot.net...PORT=8889...SERVICE_NAME=HAORF1UAT...
+
+Driver:
+oracle.jdbc.driver.OracleDriver
+
+Environment:
+custom.app.env=UAT
+
+Database usage:
+The application reads data from SDM catalogue tables and writes export status into OM_CATALOGUE_SDM_LOG.
+
+Main DB tables:
+1. OM_CATALOGUE_SUNDRY
+2. OM_CATALOGUE_SOURCE_SYSTEM
+3. OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE
+4. OM_CATALOGUE_SDM_LOG
+
+CSV File:
+
+The CSV file contains actual exported table data.
+
+For Sundry CSV:
+- SUNDRY_SK
+- ACTION
+- DIMENSION_GROUP_NAME
+- ELEMENT_CODE
+- ELEMENT_NAME
+- REPORT_DESCRIPTION
+- SOURCE_CODE
+- SOURCE_DESCRIPTION
+- IS_CURRENT_FLAG
+- STATUS
+- LABEL_ID_SK
+- DWH_CREATED_BY
+- DWH_CREATED_TIMESTAMP
+- DWH_UPDATED_BY
+- DWH_UPDATED_TIMESTAMP
+- DWH_UPDATED_REASON
+- ACTIVE_FLAG
+
+Note:
+SUNDRY_SK is the primary key / unique identifier column for records from OM_CATALOGUE_SUNDRY.
+
+For SourceSystem CSV:
+- CATALOGUE_SOURCE_SYSTEM_SK
+- SOURCE_SYSTEM_SK
+- ACTION
+- ASSET_CLASS
+- BUSINESS_REGION_CODE
+- BUSINESS_REGION_SHORT_CODE
+- COUNTRY_CODE
+- CSI_ID
+- SOURCE_SYSTEM_CODE
+- OLYMPUS_DATA_FLOW_NAME
+- and other source system related fields from OM_CATALOGUE_SOURCE_SYSTEM
+
+Note:
+CATALOGUE_SOURCE_SYSTEM_SK is the unique catalogue record key for OM_CATALOGUE_SOURCE_SYSTEM.
+SOURCE_SYSTEM_SK is the actual source system identifier.
+
+For SourceSystemCoverage CSV:
+- CATALOGUE_SOURCE_SYSTEM_COVERAGE_SK
+- ACTION
+- LABEL_ID_SK
+- SOURCE_SYSTEM_COVERAGE_SK
+- SOURCE_SYSTEM_SK
+- CONCEPT_NAME
+- SUBCONCEPT_NAME
+- LIVE_DATE
+- GRU_RECON_INDICATOR
+- ACTIVE_FLAG
+- STATUS
+- DWH_CREATED_BY
+- DWH_CREATED_TIMESTAMP
+- DWH_UPDATED_BY
+- DWH_UPDATED_TIMESTAMP
+- DWH_UPDATED_REASON
+- ONBOARDING_REQUESTOR
+- SOURCE_CONTACT
+- SYNTHETIC_DATA_CONCEPT_L1
+- SYNTHETIC_DATA_CONCEPT_L2
+- SYNTHETIC_DATA_CONCEPT_L3
+- SYNTHETIC_DATA_CONCEPT_L4
+- SCHEMA_NAME
+- TABLE_NAME
+- SOURCE_SYSTEM_SK_IDENTIFIER_COLUMN
+- CSI_IDENTIFIER_COLUMN
+- BUSINESS_DATE_IDENTIFIER_COLUMN
+- EOM_INDICATOR
+- UNITY_INDICATOR
+- EAGLE_DQ_INDICATOR
+- GRU_RECON_IMPLEMENTATION_DATE
+- EAGLE_DQ_IMPLEMENTATION_DATE
+- EOM_IMPLEMENTATION_DATE
+- UNITY_IMPLEMENTATION_DATE
+- FLOW_RETIRE_DATE
+- DATA_REFRESH_FREQUENCY
+- OLYMPUS_GROUPING
+
+Note:
+CATALOGUE_SOURCE_SYSTEM_COVERAGE_SK is the unique catalogue record key for OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE.
+SOURCE_SYSTEM_COVERAGE_SK identifies the coverage mapping.
+SOURCE_SYSTEM_SK links the coverage record back to the source system.
+
+Control File:
+
+The control file is generated by processDimControlFile().
+
+It contains only the record count of the exported CSV data.
+
+Control file name format:
+<controlFileName>.<date>.csv.ready
+
+Example:
+CatalogueSourceSystem.20260423.csv.ready
+
+If 100 records are exported in CSV, the control file contains 100.
+
+ZIP File:
+
+The API response returns one ZIP file.
+
+ZIP contains:
+1. CSV data file
+2. .csv.ready control file
+
+Example ZIP content:
+CatalogueSourceSystem.20260423.csv
+CatalogueSourceSystem.20260423.csv.ready
+
+Output:
+
+API returns ZIP file as ByteArrayResource.
+
+Response header:
+Content-Disposition: attachment; filename="<fileName>.zip"
+
+Content type:
+application/octet-stream
+
+Processing Flow:
+
+1. QE calls one of the 5 export endpoints.
+2. QE passes SOEID in request header.
+3. Controller creates ExportTypeDTO.
+4. Controller checks load value.
+5. Based on load value, type is set as:
+   - WEEKLY for load=7
+   - SPECIFIC for load=1 or given days
+   - FULL_LOAD when no load is passed
+   - ADHOC for adhoc endpoints
+6. Controller calls SchemaBrowserService.
+7. Service calls the respective repository.
+8. Repository fetches data from Oracle DB table.
+9. Service converts DB records into CSV rows.
+10. Service creates control file with record count.
+11. Service zips CSV file and control file.
+12. Service returns ZIP as resource.
+13. Controller returns ZIP file in API response.
+14. If export is successful, OM_CATALOGUE_SDM_LOG is updated.
+15. Success email notification is sent.
+16. If failure occurs, failure email notification is sent and error response is returned.
+
+OM_CATALOGUE_SDM_LOG:
+
+This table stores export execution details.
+
+It stores:
+- TABLE_NAME
+- RUN_TIMESTAMP
+- STATUS
+- TRANSFER_METHOD
+- REQUESTOR_SOEID
+- TOTAL_RECORD_COUNT
+- DWH_CREATED_BY
+- DWH_CREATED_TIMESTAMP
+- DWH_UPDATED_REASON
+
+Purpose of OM_CATALOGUE_SDM_LOG:
+1. Track successful export runs.
+2. Store latest run timestamp.
+3. Store record count exported.
+4. Support adhoc latest fetch logic.
+5. Help audit export execution history.
+
+Adhoc Load Explanation:
+
+Adhoc endpoints use OM_CATALOGUE_SDM_LOG to find the last successful run timestamp.
+
+Example:
+If SourceSystemCoverage was successfully exported at 10 AM yesterday, then adhoc endpoint fetches records changed after that timestamp.
+
+Adhoc endpoints:
+1. /exportSourceSystemAdhocLatestFetch
+2. /exportSourceSystemCoverageAdhocLatestFetch
+
+Email Notification:
+
+EmailNotificationService sends email after export.
+
+Success email:
+Sent when CSV/control/ZIP generation completes successfully.
+
+Failure email:
+Sent when CSV generation, DB fetch, ZIP creation, or export process fails.
+
+Notification properties are read from application properties.
+
+Important configured properties:
+notification.url
+notification.fromEmail
+notification.appName
+notification.ccEmail
+notification.toEmail
+notification.email.validDomains
+
+Example notification URL:
+https://olympus.api.notification.uat.cloudgsl.nam.nsroot.net/olympus/notification/api/notify/emails
+
+Curl Commands for QE:
+
+Replace <HOST> with actual UAT route/host.
+Replace <SOEID> with tester SOEID.
+
+1. Export Sundry - Full Load
+curl -X POST "<HOST>/citihawk/schemabrowser/exportSundry" \
+  -H "x-citiportal-ssoid: <SOEID>" \
+  --output exportSundry_full.zip
+
+2. Export Sundry - 7-Day Load
+curl -X POST "<HOST>/citihawk/schemabrowser/exportSundry?load=7" \
+  -H "x-citiportal-ssoid: <SOEID>" \
+  --output exportSundry_7day.zip
+
+3. Export Sundry - 1-Day Load
+curl -X POST "<HOST>/citihawk/schemabrowser/exportSundry?load=1" \
+  -H "x-citiportal-ssoid: <SOEID>" \
+  --output exportSundry_1day.zip
+
+4. Export SourceSystem - Full Load
+curl -X POST "<HOST>/citihawk/schemabrowser/exportSourceSystem" \
+  -H "x-citiportal-ssoid: <SOEID>" \
+  --output exportSourceSystem_full.zip
+
+5. Export SourceSystem - 7-Day Load
+curl -X POST "<HOST>/citihawk/schemabrowser/exportSourceSystem?load=7" \
+  -H "x-citiportal-ssoid: <SOEID>" \
+  --output exportSourceSystem_7day.zip
+
+6. Export SourceSystem - 1-Day Load
+curl -X POST "<HOST>/citihawk/schemabrowser/exportSourceSystem?load=1" \
+  -H "x-citiportal-ssoid: <SOEID>" \
+  --output exportSourceSystem_1day.zip
+
+7. Export SourceSystemCoverage - Full Load
+curl -X POST "<HOST>/citihawk/schemabrowser/exportSourceSystemCoverage" \
+  -H "x-citiportal-ssoid: <SOEID>" \
+  --output exportSourceSystemCoverage_full.zip
+
+8. Export SourceSystemCoverage - 7-Day Load
+curl -X POST "<HOST>/citihawk/schemabrowser/exportSourceSystemCoverage?load=7" \
+  -H "x-citiportal-ssoid: <SOEID>" \
+  --output exportSourceSystemCoverage_7day.zip
+
+9. Export SourceSystemCoverage - 1-Day Load
+curl -X POST "<HOST>/citihawk/schemabrowser/exportSourceSystemCoverage?load=1" \
+  -H "x-citiportal-ssoid: <SOEID>" \
+  --output exportSourceSystemCoverage_1day.zip
+
+10. Export SourceSystem - Adhoc Latest Fetch
+curl -X POST "<HOST>/citihawk/schemabrowser/exportSourceSystemAdhocLatestFetch" \
+  -H "x-citiportal-ssoid: <SOEID>" \
+  --output exportSourceSystem_adhoc.zip
+
+11. Export SourceSystemCoverage - Adhoc Latest Fetch
+curl -X POST "<HOST>/citihawk/schemabrowser/exportSourceSystemCoverageAdhocLatestFetch" \
+  -H "x-citiportal-ssoid: <SOEID>" \
+  --output exportSourceSystemCoverage_adhoc.zip
+
+QE Validation Points:
+
+1. Verify all 5 endpoints are accessible.
+2. Verify each endpoint returns HTTP 200 for successful export.
+3. Verify ZIP file is downloaded.
+4. Verify ZIP contains exactly:
+   - CSV data file
+   - .csv.ready control file
+5. Verify CSV file has expected headers.
+6. Verify CSV contains records based on load type.
+7. Verify control file record count matches CSV data row count.
+8. Verify full load works for Sundry, SourceSystem, and SourceSystemCoverage.
+9. Verify load=7 returns weekly/seven-day data.
+10. Verify load=1 returns specific day data.
+11. Verify adhoc SourceSystem endpoint uses last successful run timestamp.
+12. Verify adhoc SourceSystemCoverage endpoint uses last successful run timestamp.
+13. Verify OM_CATALOGUE_SDM_LOG is updated after successful export.
+14. Verify requestor SOEID is captured in log table.
+15. Verify success email notification is triggered.
+16. Verify failure email notification is triggered when DB/query/file generation fails.
+17. Verify error response is returned if export fails.
+18. Verify downloaded ZIP file can be opened.
+19. Verify CSV data mapping against source Oracle table.
+20. Verify no empty ZIP is returned for valid data scenario.
+
+One paragraph summary for QE:
+
+SDM File Export API has 5 export endpoints under /citihawk/schemabrowser. QE can call these endpoints by passing SOEID in the x-citiportal-ssoid header. Based on the endpoint and load parameter, the application exports data from OM_CATALOGUE_SUNDRY, OM_CATALOGUE_SOURCE_SYSTEM, or OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE. For load=7 it performs weekly load, for load=1 it performs specific day load, without load it performs full load, and adhoc endpoints export records based on last successful run from OM_CATALOGUE_SDM_LOG. Each successful API call downloads a ZIP file containing one CSV data file and one .csv.ready control file. The CSV contains exported Oracle table data, the control file contains record count, the SDM log table is updated, and success/failure notification email is triggered.
+
+
+
+
 
 public class AllowedEmailDomainsListValidatorImpl
         implements ConstraintValidator<AllowedEmailDomainsListValidator, List<String>> {
