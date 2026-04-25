@@ -1,5 +1,11 @@
 
 
+git rm derby.log lib/ImpalaJDBC41-2.5.36.1056.jar
+git commit -m "C167969S-136568 Remove unsupported derby.log and Impala JDBC jar for migration"
+git push
+
+
+
 git branch --set-upstream-to=origin/aj76055-uat/accessCatalogue
 
 
