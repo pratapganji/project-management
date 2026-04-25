@@ -1,4 +1,9 @@
 
+rm -rf .git/refs/remotes/origin
+rm -f .git/packed-refs.lock
+git fetch --prune origin
+
+
 
 git ls-tree -r origin/aj76055-uat/accessCatalogue --name-only | grep -E 'derby\.log|ImpalaJDBC41'
 
