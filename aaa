@@ -1,4 +1,10 @@
 
+while read branch; do
+  git ls-tree -r "$branch" --name-only | grep -E 'derby\.log|ImpalaJDBC41' && echo "❌ STILL EXISTS in $branch"
+done < affected_branches_no_master_latest.txt
+
+
+
 git ls-tree -r origin/<branch> --name-only | grep -E 'derby\.log|ImpalaJDBC41'
 
 
