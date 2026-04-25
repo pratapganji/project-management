@@ -1,5 +1,13 @@
 
 
+
+
+grep -v '^origin/master$' affected_branches.txt > affected_branches_no_master.txt
+
+
+
+
+
 git push origin feature/pg16424_vulnerabilityFix
 
 git commit -m "Remove unsupported derby.log and Impala JDBC jar for migration"
