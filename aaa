@@ -1,4 +1,12 @@
 
+
+while read branch; do
+  echo "Checking $branch"
+  git ls-tree -r "$branch" --name-only | grep -E '(^|/)derby\.log$|(^|/)ImpalaJDBC41-2\.5\.36\.1056\.jar$' || echo "CLEAN"
+done < test_3_branches.txt
+
+
+
 while read branch; do
   target="${branch#origin/}"
   echo "Processing existing branch: $target"
