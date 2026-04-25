@@ -1,4 +1,18 @@
 
+git branch -r | grep -v 'origin/HEAD' | while read branch; do
+  if git ls-tree -r "$branch" --name-only | grep -q 'derby.log'; then
+    echo "$branch"
+  fi
+done > branches_with_derby_log.txt
+
+
+
+
+
+
+
+
+
 public static void main(String[] args) {
 
     ConfigurableApplicationContext context =
