@@ -1,4 +1,15 @@
 
+
+git checkout aj76055-uat/accessCatalogue
+git pull
+
+git rm --ignore-unmatch derby.log lib/ImpalaJDBC41-2.5.36.1056.jar
+git commit -m "C167969S-136568 Remove unsupported derby.log and Impala JDBC jar for migration"
+git push
+
+
+
+
 while read branch; do
   git ls-tree -r "$branch" --name-only | grep -E 'derby\.log|ImpalaJDBC41' && echo "❌ STILL EXISTS in $branch"
 done < affected_branches_no_master_latest.txt
