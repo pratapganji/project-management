@@ -1,4 +1,4 @@
-
+grep '^origin/master$' affected_branches_no_master_latest.txt
 
 while read branch; do
   target="${branch#origin/}"
