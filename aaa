@@ -1,5 +1,7 @@
 
 
+git push origin feature/pg16424_vulnerabilityFix
+
 git commit -m "Remove unsupported derby.log and Impala JDBC jar for migration"
 
 git rm --ignore-unmatch derby.log lib/ImpalaJDBC41-2.5.36.1056.jar
