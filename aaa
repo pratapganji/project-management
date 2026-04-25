@@ -1,4 +1,9 @@
 
+
+
+rm -f .git/refs/remotes/origin/feature/C167969S-763*
+
+
 rm -rf .git/refs/remotes/origin
 rm -f .git/packed-refs.lock
 git fetch --prune origin
