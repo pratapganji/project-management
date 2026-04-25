@@ -1,5 +1,8 @@
 
 
+git ls-tree -r origin/aj76055-uat/accessCatalogue --name-only | grep -E 'derby\.log|ImpalaJDBC41'
+
+
 git checkout aj76055-uat/accessCatalogue
 git pull
 
