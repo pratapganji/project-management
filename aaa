@@ -1,5 +1,20 @@
 
 
+Hi Rajat / Anand,
+
+We have started working on the dry run issues and completed the cleanup for 231 branches by removing unsupported .log and .jar files.
+
+The remaining work is related to the master branch. Since updates to master require changes via the appropriate release branch and PR process, we request your guidance/support to identify the correct release branch aligned with the current production code.
+
+Once we have this information, we will proceed with completing the remaining fixes.
+
+Thanks & Regards,  
+Pratap
+
+
+
+
+
 git rm derby.log lib/ImpalaJDBC41-2.5.36.1056.jar
 git commit -m "C167969S-136568 Remove unsupported derby.log and Impala JDBC jar for migration"
 git push
