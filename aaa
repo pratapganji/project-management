@@ -2,6 +2,9 @@
 
 
 
+
+grep '^origin/master$' affected_branches_no_master.txt
+
 grep -v '^origin/master$' affected_branches.txt > affected_branches_no_master.txt
 
 
