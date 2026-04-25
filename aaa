@@ -1,5 +1,8 @@
 
 
+git branch --set-upstream-to=origin/aj76055-uat/accessCatalogue
+
+
 rm -rf .git/refs/remotes/origin
 rm -f .git/packed-refs
 git fetch origin
