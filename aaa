@@ -1,5 +1,11 @@
 
 
+git ls-tree -r origin/100495/dev_intermediate --name-only | grep ImpalaJDBC41
+
+
+git ls-tree -r origin/100495/dev_intermediate --name-only | grep derby.log
+
+
 wc -l affected_branches.txt
 
 
