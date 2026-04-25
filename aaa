@@ -1,5 +1,11 @@
 
 
+git ls-tree -r origin/feature/pg16424_vulnerabilityFix --name-only | grep ImpalaJDBC41
+
+git ls-tree -r origin/feature/pg16424_vulnerabilityFix --name-only | grep derby.log
+
+
+
 git ls-tree -r origin/100495/dev_intermediate --name-only | grep ImpalaJDBC41
 
 
