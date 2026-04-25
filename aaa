@@ -1,4 +1,23 @@
 
+while read branch; do
+  target="${branch#origin/}"
+  echo "Processing existing branch: $target"
+
+  git checkout -B local_cleanup "$branch"
+
+  git rm --ignore-unmatch derby.log lib/ImpalaJDBC41-2.5.36.1056.jar
+
+  if git diff --cached --quiet; then
+    echo "No changes for $target"
+  else
+    git commit -m "C167969S-136568 Remove unsupported derby.log and Impala JDBC jar for migration"
+    git push origin HEAD:"$target"
+  fi
+done < test_3_branches.txt
+
+
+head -3 affected_branches_no_master_latest.txt > test_3_branches.txt
+
 
 
 
