@@ -1,5 +1,17 @@
 
 
+git commit -m "Remove unsupported derby.log and Impala JDBC jar for migration"
+
+git rm --ignore-unmatch derby.log lib/ImpalaJDBC41-2.5.36.1056.jar
+
+git pull origin feature/pg16424_vulnerabilityFix
+
+git checkout feature/pg16424_vulnerabilityFix
+
+
+
+
+
 git ls-tree -r origin/feature/pg16424_vulnerabilityFix --name-only | grep ImpalaJDBC41
 
 git ls-tree -r origin/feature/pg16424_vulnerabilityFix --name-only | grep derby.log
