@@ -1,4 +1,12 @@
 
+for branch in $(git branch -r | grep -v HEAD); do
+  git checkout --track $branch
+  git rm <file-path-1> <file-path-2>
+  git commit -m "Remove unsupported files"
+  git push
+done
+
+
 Hi Rajat / Anand,
 
 We have started working on the dry run issues and completed the cleanup for 231 branches by removing unsupported .log and .jar files.
