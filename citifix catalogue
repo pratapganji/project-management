@@ -1,3 +1,7 @@
+curl -X POST "http://localhost:8080/citifix/excel-to-json" -F "file=@C:\pg\citifix\catalogue\ISG-Olympus-CITIFIX-Attribute.xlsx"
+
+
+
 Project Name: citifix-excel-json-poc
 Type: Maven
 Java: 17
