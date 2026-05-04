@@ -1,0 +1,175 @@
+Project Name: citifix-excel-json-poc
+Type: Maven
+Java: 17
+Spring Boot: 3.x
+
+
+
+<dependencies>
+    <dependency>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+
+    <dependency>
+        <groupId>org.apache.poi</groupId>
+        <artifactId>poi-ooxml</artifactId>
+        <version>5.2.5</version>
+    </dependency>
+
+    <dependency>
+        <groupId>com.fasterxml.jackson.core</groupId>
+        <artifactId>jackson-databind</artifactId>
+    </dependency>
+</dependencies>
+
+
+
+
+src/main/java/com/citi/datacatalog
+ ├── CitifixExcelJsonPocApplication.java
+ ├── controller
+ │    └── ExcelUploadController.java
+ └── service
+      └── ExcelToJsonService.java
+
+
+
+
+package com.citi.datacatalog;
+
+import org.springframework.boot.SpringApplication;
+import org.springframework.boot.autoconfigure.SpringBootApplication;
+
+@SpringBootApplication
+public class CitifixExcelJsonPocApplication {
+
+    public static void main(String[] args) {
+        SpringApplication.run(CitifixExcelJsonPocApplication.class, args);
+    }
+}
+
+
+
+
+
+package com.citi.datacatalog.controller;
+
+import com.citi.datacatalog.service.ExcelToJsonService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+@RestController
+@RequestMapping("/citifix")
+public class ExcelUploadController {
+
+    @Autowired
+    private ExcelToJsonService excelToJsonService;
+
+    @PostMapping(
+            value = "/excel-to-json",
+            consumes = MediaType.MULTIPART_FORM_DATA_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE
+    )
+    public String convertExcelToJson(@RequestParam("file") MultipartFile file) throws Exception {
+        return excelToJsonService.convertExcelToJson(file);
+    }
+}
+
+
+
+
+
+package com.citi.datacatalog.service;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import org.apache.poi.ss.usermodel.*;
+import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.util.*;
+
+@Service
+public class ExcelToJsonService {
+
+    public String convertExcelToJson(MultipartFile file) throws Exception {
+
+        List<Map<String, Object>> jsonList = new ArrayList<>();
+
+        Workbook workbook = WorkbookFactory.create(file.getInputStream());
+        Sheet sheet = workbook.getSheetAt(0);
+
+        Row headerRow = sheet.getRow(0);
+
+        if (headerRow == null) {
+            workbook.close();
+            throw new RuntimeException("Excel header row is missing");
+        }
+
+        List<String> headers = new ArrayList<>();
+
+        for (Cell cell : headerRow) {
+            headers.add(getCellValue(cell));
+        }
+
+        System.out.println("Excel Headers: " + headers);
+
+        for (int i = 1; i <= sheet.getLastRowNum(); i++) {
+
+            Row row = sheet.getRow(i);
+
+            if (row == null) {
+                continue;
+            }
+
+            Map<String, Object> rowData = new LinkedHashMap<>();
+
+            boolean isEmptyRow = true;
+
+            for (int j = 0; j < headers.size(); j++) {
+
+                Cell cell = row.getCell(j);
+                String cellValue = getCellValue(cell);
+
+                if (!cellValue.isEmpty()) {
+                    isEmptyRow = false;
+                }
+
+                rowData.put(headers.get(j), cellValue);
+            }
+
+            if (!isEmptyRow) {
+                jsonList.add(rowData);
+            }
+        }
+
+        workbook.close();
+
+        ObjectMapper objectMapper = new ObjectMapper();
+        objectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+
+        return objectMapper.writeValueAsString(jsonList);
+    }
+
+    private String getCellValue(Cell cell) {
+
+        if (cell == null) {
+            return "";
+        }
+
+        DataFormatter dataFormatter = new DataFormatter();
+        return dataFormatter.formatCellValue(cell).trim();
+    }
+}
+
+
+
+
+server.port=8080
+
+spring.servlet.multipart.enabled=true
+spring.servlet.multipart.max-file-size=20MB
+spring.servlet.multipart.max-request-size=20MB
