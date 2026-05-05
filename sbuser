@@ -1,4 +1,28 @@
 
+
+Hi Rajat,
+
+I reviewed the SB User Consumption test cases up to the Daylight Saving Time scenario.
+
+The functional coverage looks aligned with the job behavior, including scheduling, cleanup logic, date range validation, boundary conditions, and data processing.
+
+A few scenarios are environment/DB-level and not directly controlled by application logic:
+
+- Constraint Violation: Depends on DB schema and data conditions. The application does not perform any data modification or trimming in the final code and will fail/log appropriately if constraints are violated.
+
+- Database Connection Failure: Depends on DB/network availability.
+
+- Insufficient Privileges: Depends on DB user permissions.
+
+- Table Lock Timeout: Depends on external DB locks from other processes.
+
+These scenarios can be validated from a failure-handling perspective, but they are not controlled by the application logic.
+
+
+
+
+
+
 This is not an API-based process. It is a backend batch job that reads JDBC audit logs from the Starburst/Impala system. The job fetches query execution data for a given date range from audit tables like jdbc_centralized_audit_log and jdbc_centralized_audit_common, processes the queries to extract table and column usage, enriches the data using catalogue metadata, and then loads the final user consumption data into the OM_CATALOGUE_USER_CONSUMPTION table after cleaning existing records for the current run.”
 
 ⸻
