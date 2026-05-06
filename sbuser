@@ -1,5 +1,27 @@
 
 
+Hi Team,
+
+We are currently facing a runtime issue in the SB User Consumption application for FID sb_olympus_fid in UAT.
+
+The application is able to establish JDBC Impala connection successfully and initiates query execution, but it is failing with the below error:
+
+“Exception while requesting to server: Please onboard the FID to Olympus JDBC API Metadata”
+
+This application was working fine earlier, and we started seeing this issue only recently. I also redeployed the application, but the same issue is still occurring.
+
+Could you please review and suggest if any metadata/FID onboarding changes are required from JDBC API side?
+
+Please find the relevant pod logs attached below.
+
+Thanks,
+Pratap
+
+
+
+
+
+
 Hi Rajat,
 
 I reviewed the SB User Consumption test cases up to the Daylight Saving Time scenario.
