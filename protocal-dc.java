@@ -1,3 +1,12 @@
+datacatalogue.collection.url=http://localhost:8080/mock/data-catalogue/collection
+
+
+
+
+
+
+
+
 @Override
 public String createConcepts(MultipartFile file, String conceptRequestJson) throws Exception {
     ObjectMapper mapper = new ObjectMapper();
