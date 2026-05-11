@@ -1,5 +1,20 @@
 
 SELECT COUNT(*)
+FROM gfolydal_managed.jdbc_centralized_audit_log log
+INNER JOIN gfolydal_managed.jdbc_centralized_audit_common comm
+ON log.request_id = comm.request_id
+INNER JOIN gfolydal_managed.jdbc_centralized_audit_log st
+ON log.request_id = st.request_id
+AND st.user_action = 'Authentication In-progress'
+WHERE log.user_action = 'Entitled Query'
+AND log.start_time >= CAST('2026-05-04' AS DATE)
+AND log.start_time <= CAST('2026-05-10' AS DATE);
+
+
+
+
+
+SELECT COUNT(*)
 FROM c167969RPC.OM_CATALOGUE_USER_CONSUMPTION
 WHERE TRUNC(DWH_CREATED_TIMESTAMP) = DATE '2026-05-11'
   AND USAGE_METHOD = 'JDBC API'
