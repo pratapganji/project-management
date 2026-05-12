@@ -1,4 +1,14 @@
 
+
+Hi Rajat,
+
+In the branch shared earlier for SB User Consumption, the email notification related code was present in commented state and SMTP configuration entries were also not available in the properties files. Based on the Phase 1 requirement, we re-used the existing logic, modified it to use REST template based notification service, completed the code changes, and deployed the configuration updates in DEV and UAT.
+
+Connected with Snehal for QE testing and shared screenshots/logs for validation. Source and target table row counts are not matching because the application currently logs total source records before filtering/grouping and database insertion. Final target count reflects only the processed eligible records after validation and filtering.
+
+
+
+
 SELECT COUNT(DISTINCT USER_ID || API_ID || QUERY_EXECUTION_TIMESTAMP || QUERY_COMPLETION_TIMESTAMP)
 FROM c167969RPC.OM_CATALOGUE_USER_CONSUMPTION
 WHERE TRUNC(DWH_CREATED_TIMESTAMP) = DATE '2026-05-11'
