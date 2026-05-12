@@ -1,5 +1,18 @@
 
 
+
+SELECT COUNT(*)
+FROM c167969RPC.OM_CATALOGUE_USER_CONSUMPTION
+WHERE TRUNC(DWH_CREATED_TIMESTAMP) = DATE '2026-05-12';
+
+
+SELECT USAGE_TYPE, COUNT(*)
+FROM c167969RPC.OM_CATALOGUE_USER_CONSUMPTION
+WHERE TRUNC(DWH_CREATED_TIMESTAMP) = DATE '2026-05-12'
+GROUP BY USAGE_TYPE
+ORDER BY COUNT(*) DESC;
+
+
 Hi Rajat,
 
 In the branch shared earlier for SB User Consumption, the email notification related code was present in commented state and SMTP configuration entries were also not available in the properties files. Based on the Phase 1 requirement, we re-used the existing logic, modified it to use REST template based notification service, completed the code changes, and deployed the configuration updates in DEV and UAT.
