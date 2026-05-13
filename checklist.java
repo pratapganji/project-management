@@ -1,1 +1,24 @@
+
+INSERT INTO ROLE_ROW_RULE
+(
+ ROLE_NAME,
+ TABLE_NAME,
+ PERMISSION,
+ RULE_EXPRESSION
+)
+VALUES
+(
+ 'OLYMPUS_ABAC_LIMITED_ROLE',
+ 'validation_config_rules',
+ 'SELECT',
+ '(HIERARCHY_PATH = ''2052A~Debt''
+   AND DATA_TYPE = ''generic_validation'')
+ OR
+ (HIERARCHY_PATH = ''2052a~Loans''
+   AND DATA_TYPE = ''hop_validation'')'
+);
+
+
+
+
 https://artifactrepository.citigroup.net/ui/native/docker-enterprise-prod-local/developersvcs-python-ai/redhat-python-rhel8
