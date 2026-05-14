@@ -39,3 +39,12 @@ NOT
         AND DATA_TYPE = 'generic_validation'
     )
 );
+
+
+String normalizedSql = sql.toLowerCase();
+
+if (
+    normalizedSql.matches("(?s).*(--|/\\*|\\*/).*")
+    ||
+    normalizedSql.matches("(?s).*(['\"])(\\w+)\\1\\s*=\\s*\\1\\2\\1.*")
+)
