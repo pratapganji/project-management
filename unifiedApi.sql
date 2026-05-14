@@ -2,3 +2,10 @@ NOT (
        (HIERARCHY_PATH = '2052a~Debt'  AND DATA_TYPE = 'hop_validation')
     OR (HIERARCHY_PATH = '2052a~Loans' AND DATA_TYPE = 'generic_validation')
 )
+
+
+SELECT
+    '[' || HIERARCHY_PATH || ']' AS HP,
+    '[' || DATA_TYPE || ']' AS DT
+FROM A167969NURAREC.validation_config_rules
+WHERE HIERARCHY_PATH LIKE '%2052a%'
