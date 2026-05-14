@@ -1,5 +1,17 @@
 
 
+SB User Consumption:
+Connected with Suraj for configuration of ROD and PROD deployment pipelines. Also connected with Snehal for sign-off; sign-off is still pending from her end.
+
+SDM File Export:
+Connected with Snehal and discussed SDM File Export test cases. Helped her test curl commands in her local environment. She will provide sign-off after completing the test cases using the automation tool.
+
+Unified API:
+Connected with Prasashya regarding Unified API testing. Prasashya shared 10 pending test cases with unique positive and negative scenario combinations that required validation code changes and rule additions in the DB for FID. Completed development, tested all pending test cases locally, shared evidence with him, and deployed the changes in UAT.
+
+
+
+
 SELECT USER_ID,
        USAGE_METHOD,
        SCHEMA_NAME,
