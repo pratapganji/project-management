@@ -1,4 +1,18 @@
 
+
+String existingWhere = where == null ? null : where.toString();
+
+if (existingWhere == null) {
+    where = CCJSqlParserUtil.parseCondExpression("(" + rule + ")");
+} else {
+    where = CCJSqlParserUtil.parseCondExpression(
+        "(" + existingWhere + ") AND (" + rule + ")"
+    );
+}
+
+
+
+
 UPDATE A167969NURAREC.ROLE_ROW_RULE
 SET RULE_EXPRESSION =
 '((HIERARCHY_PATH = ''2052A~Debt'' AND DATA_TYPE = ''generic_validation'')
