@@ -47,4 +47,6 @@ if (
     normalizedSql.matches("(?s).*(--|/\\*|\\*/).*")
     ||
     normalizedSql.matches("(?s).*(['\"])(\\w+)\\1\\s*=\\s*\\1\\2\\1.*")
+       || 
+       normalizedSql.matches("(?s).*\\b(\\d+)\\s*=\\s*\\1\\b.*"))
 )
