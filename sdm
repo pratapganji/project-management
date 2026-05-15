@@ -1,4 +1,22 @@
 
+Hi Snehal,
+
+Below are the backend queries used for SDM Sundry extraction APIs.
+
+1. Full Load (/exportSundry)
+sql id="zc1g8h" SELECT * FROM om_catalogue_sundry m WHERE m.catalogue_sundry_sk IN (     SELECT MAX(s.catalogue_sundry_sk)     FROM om_catalogue_sundry s     WHERE s.status = 'COMPLETE'     GROUP BY s.dimension_group_name, s.source_code ) ORDER BY m.catalogue_sundry_sk; 
+
+2. 7-Day Load (/exportSundry?load=7)
+sql id="k72j9p" select * from om_catalogue_sundry where catalogue_sundry_sk IN (     select MAX(catalogue_sundry_sk)     FROM OM_CATALOGUE_SUNDRY s     where status = 'COMPLETE'     group by DIMENSION_GROUP_NAME, SOURCE_CODE ) and dwh_updated_timestamp BETWEEN (TRUNC(sysdate - 7) + 22/24) AND (TRUNC(sysdate) + 22/24) and status = 'COMPLETE' order by sundry_sk; 
+
+3. 1-Day Load (/exportSundry?load=1)
+sql id="wl8j2r" select * from om_catalogue_sundry where catalogue_sundry_sk IN (     select MAX(catalogue_sundry_sk)     FROM OM_CATALOGUE_SUNDRY s     where status = 'COMPLETE'     group by DIMENSION_GROUP_NAME, SOURCE_CODE ) and dwh_updated_timestamp BETWEEN (TRUNC(sysdate - 1) + 00/24) AND (TRUNC(sysdate) + 24/24) and status = 'COMPLETE' order by sundry_sk; 
+
+
+
+
+
+
 
 Just now tested using the UAT curl commands and able to retrieve data successfully for full load as well.
 
