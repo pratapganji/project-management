@@ -1,4 +1,21 @@
 
+
+Just now tested using the UAT curl commands and able to retrieve data successfully for full load as well.
+
+Observed counts:
+- exportSundry Full Load : 17355 records
+- exportSourceSystem Full Load : 2444 records
+- exportSourceSystemCoverage Full Load : 3749 records
+- exportSourceSystemCoverage load=7 : 61 records
+- exportSourceSystemCoverage load=1 : 61 records
+
+ZIP and control files are getting generated successfully.
+
+Could not reproduce the reported issue from our side.
+
+
+
+
 The application exports data from Oracle catalogue tables into CSV files.
 
 For each export:
