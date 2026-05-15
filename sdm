@@ -1,4 +1,19 @@
 
+
+Hi Kaur, Harsimran [TECH]
+
+I went through the chat and reviewed the old SDM export process. Currently I am working on migration of this functionality, so I am familiar with the existing weekly export logic.
+
+As per the current implementation, weekly jobs use a rolling 7-day window to generate export CSVs. So rerunning the API jobs now should include records missed from last week as long as they still fall within that rolling window.
+
+From the screenshots shared earlier, it looks like coverage dim job had failed in UAT while source system dim was completed successfully.
+
+If you can share the exact missed execution dates, I can help validate whether the Autosys jobs completed successfully from the application side. I currently do not have server access to verify generated files directly.
+
+
+
+
+
 Hi Snehal,
 
 Below are the backend queries used for SDM Sundry extraction APIs.
