@@ -1,4 +1,14 @@
 
+SELECT ID,
+       HIERARCHY_PATH,
+       DATA_TYPE,
+       ACTIVE_FLAG
+FROM AI67969NURAREC.validation_config_rules
+WHERE HIERARCHY_PATH = '2052A~Debt'
+AND DATA_TYPE = 'generic_validation';
+
+
+
 {
   "fid": "OLYMPUS_FID",
   "sql": "SELECT ACTIVE_FLAG FROM validation_config_rules WHERE HIERARCHY_PATH = '2052A~Debt' AND DATA_TYPE = 'generic_validation'"
