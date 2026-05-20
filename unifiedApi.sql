@@ -1,3 +1,12 @@
+
+{
+  "fid": "OLYMPUS_FID",
+  "sql": "SELECT ACTIVE_FLAG FROM validation_config_rules WHERE HIERARCHY_PATH = '2052A~Debt' AND DATA_TYPE = 'generic_validation'"
+}
+
+
+
+
 NOT (
        (HIERARCHY_PATH = '2052a~Debt'  AND DATA_TYPE = 'hop_validation')
     OR (HIERARCHY_PATH = '2052a~Loans' AND DATA_TYPE = 'generic_validation')
