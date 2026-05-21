@@ -1,5 +1,25 @@
 
 
+Service account created through Orion portal requires edit role binding in PROD cluster to perform deployment restart and pod deletion operations through scheduled cronjob execution. Same setup is already validated successfully in lower environments.
+
+
+1. Verify PROD service account created through Orion portal.
+2. Create citi_edit role binding for the service account in the required namespace.
+3. Validate role binding using oc rolebinding commands.
+4. Verify service account can perform deployment restart and pod deletion operations successfully.
+
+
+Remove/revoke the citi_edit role binding from the service account if any issue occurs after implementation.
+
+
+Similar implementation already completed and validated successfully in lower environments through INC0019966442. Verified role binding functionality and service account operations in UAT/DEV clusters.
+
+
+Validate service account role binding is present and confirm deployment restart and pod deletion operations execute successfully through cronjob.
+
+
+
+
 SELECT COUNT(*)
 FROM CL67969RPC.OM_CATALOGUE_USER_CONSUMPTION
 WHERE USER_ID = 'RECONBI_OLYMPUS_FID'
