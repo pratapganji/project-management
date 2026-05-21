@@ -1,5 +1,86 @@
 
 
+
+import lombok.Data;
+
+@Data
+public class AttributeMetadata {
+
+    private String physicalDataType;
+
+    private String attributePhysicalName;
+
+    private String isNullable;
+
+    private String infoSecurityClassification;
+
+    private String defaultValue;
+
+    private Integer minLength;
+
+    private Integer maxLength;
+
+    private String unitBytes;
+
+    private String unitChars;
+
+    private Integer leftDecimalPrecision;
+
+    private Integer rightDecimalPrecision;
+
+    private String format;
+
+    private String mask;
+
+    private String characterEncoding;
+
+    private String isArray;
+
+    private Integer arrayLength;
+
+    private String timezone;
+
+    private String isEncrypted;
+
+    private String displayName;
+
+    private String provideKey;
+
+    private String minValue;
+
+    private String maxValue;
+
+    private String isHidden;
+
+    private String isFixedLength;
+
+    private Integer fixedLengthSize;
+
+    private String paddingSymbol;
+
+    private String paddingAlignment;
+
+    private String enumValues;
+
+    private String valueType;
+
+    private String externalCollectionReference;
+
+    private String collectionReferenceReleaseVersion;
+
+    private String referenceAttribute;
+
+    private String referenceAttributeReleaseVersion;
+
+    private String groupName;
+
+    private Integer groupFieldOrder;
+}
+
+
+
+
+
 String downstreamResponse = callCollectionApi(requestBody);
 return downstreamResponse;
 
