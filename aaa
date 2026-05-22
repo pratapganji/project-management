@@ -1,4 +1,71 @@
 
+1. Query Optimization / Workstation / ISR Streams
+
+Lead asked:
+
+* Set up Texia/Textura locally so everyone can run production queries using their own SOEID.
+* Get required schema/table access like Oscar already requested.
+* Pull/share the enriched queries for all 7 ISR workstation streams.
+* Divide queries among team members and start optimization from Tuesday.
+* Do not depend only on increasing executor/profile variables; optimize SQL also.
+* Run performance checks in production, not UAT, because UAT data is not a valid benchmark.
+* Check table partitions, filters, query clauses, and data volume.
+* Get help from Mukesh / Abhishek if needed.
+
+
+
+
+15. CitiFix / Data Catalog Work
+
+Lead asked Pratap:
+
+* Continue configuring datasource and POJO modeling.
+* Build final JSON structure for Data Catalog API.
+* Understand versioning logic:
+    * Read latest CitiFix dictionary version.
+    * Increment version.
+    * Publish new version to Data Catalog.
+* Talk to Oscar about FetchModelDH API/version logic.
+
+16. CitiFix Test Dictionary
+
+Lead asked Pratap:
+
+* Do not test directly on existing CitiFix dictionary.
+* Create a new test dictionary like CitiFix Test or CitiFix QE Test.
+* Use that for development and QE testing.
+* Only after everything is good in UAT, test positive scenario on real CitiFix dictionary.
+
+17. CronJob / Build-Time Trigger
+
+Lead asked Pratap:
+
+* Check whether CronJob can be triggered during build time.
+* Current CitiFix publishing happens during Tekton/build time, not pod deployment.
+* Need to check if CronJob is suitable or another build-time trigger is needed.
+
+18. SB User Consumption Change Request
+
+Lead asked Pratap:
+
+* Monday support team will execute edit access/change request.
+* After access is added, provide command to verify edit role.
+* Then raise another change/deployment request for automation changes to production.
+
+19. Mukund ETA Follow-up
+
+Lead asked Pratap:
+
+* Ping Mukund on Teams for ETA.
+* If no reply by 10 PM IST, send email to Mukund and Amit.
+* Mention that Mukund had committed to provide ETA by end of day.
+* Say we cannot share dates with the other team until ETA is received.
+
+
+
+
+
+
 
 SB User Consumption:
 Connected with Suraj for configuration of ROD and PROD deployment pipelines. Also connected with Snehal for sign-off; sign-off is still pending from her end.
