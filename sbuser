@@ -1,5 +1,141 @@
 
 
+SB User Consumption – Production Readiness Checklist
+
+1. Code & Repository Validation
+
+* Latest approved code merged to release/prod branch
+* PR approvals completed
+* No hardcoded credentials/secrets
+* pipeline.yaml validated
+* Dockerfile validated
+* Helm charts / values files updated for PROD
+* Jenkinsfile dependency confirmed removed/not required
+* Version/tag finalized for production deployment
+
+⸻
+
+2. Build & Pipeline Validation
+
+* Lightspeed pipeline completed successfully
+* python-build stage successful
+* Unit tests passed
+* Sonar scan passed
+* Snyk/BlackDuck scans passed or approved exceptions available
+* Container image built successfully
+* Image pushed to BinaryRepo/Image Registry
+* Helm chart published successfully
+* Deployment trigger successful
+
+⸻
+
+3. OpenShift / OCP Validation
+
+* PROD namespace/project available
+* CronJob YAML deployed
+* Required ConfigMaps created
+* Required Secrets mounted
+* Persistent storage/path validated (if applicable)
+* Resource limits/requests validated
+* Service Account permissions verified
+* Edit role binding verified
+* Pod startup validated
+* Image pull successful in PROD cluster
+
+⸻
+
+4. Connectivity Validation
+
+* Oracle DB connectivity verified
+* Impala/Starburst connectivity verified
+* JDBC driver present inside container
+* NGC/CyberArk secrets accessible
+* SMTP/email connectivity verified
+* BinaryRepo access verified
+* Required firewall/network rules validated
+
+⸻
+
+5. Functional Validation
+
+* Job reads source audit logs successfully
+* CSV generation validated
+* Oracle target load validated
+* Record counts validated
+* Large volume processing validated
+* Error handling validated
+* Retry scenarios tested
+* Empty/no-data scenario tested
+* Notification email format validated
+* HTML formatting in email validated (<br> changes)
+
+⸻
+
+6. Database Validation
+
+* Target table exists in PROD
+* Required grants/permissions available
+* Column lengths validated
+* DDL changes migrated
+* Insert/update performance validated
+* Duplicate handling validated
+* Historical load validation completed
+
+⸻
+
+7. Scheduling & Operations
+
+* Cron schedule confirmed
+* Autosys/enterprise scheduling alignment confirmed (if applicable)
+* Support team notified
+* Monitoring setup completed
+* ITRS/ELK monitoring configured
+* Alert emails configured
+* Log retention validated
+
+⸻
+
+8. Deployment Readiness
+
+* Deployment plan documented
+* Rollback plan documented
+* PROD support contacts available
+* Change/CHG approved
+* Production deployment window confirmed
+* Smoke testing steps documented
+
+⸻
+
+9. Post Deployment Validation
+
+* Pod running successfully
+* CronJob triggered successfully
+* Logs verified
+* Email notification received
+* Data inserted into OM_CATALOGUE_USER_CONSUMPTION
+* Counts validated against source
+* No errors in pod logs
+* Monitoring dashboards healthy
+
+⸻
+
+10. Sign-Off
+
+* QE sign-off
+* Dev sign-off
+* Infra/OCP sign-off
+* DBA sign-off
+* Production support sign-off
+* Business/consumer confirmation received
+
+
+
+
+
+
+
+
+
 Service account created through Orion portal requires edit role binding in PROD cluster to perform deployment restart and pod deletion operations through scheduled cronjob execution. Same setup is already validated successfully in lower environments.
 
 
