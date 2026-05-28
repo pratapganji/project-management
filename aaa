@@ -1,4 +1,8 @@
 
+Hi Rajat, there seems to be an issue with the ROD build/package version visibility in the ROD page. The versions are not appearing correctly due to the current manifest configuration in the pipeline. Preethi and Suraj are currently looking into the manifest setup and deployment flow to identify the root cause.
+
+
+
 
 Hi Mukund,
 
