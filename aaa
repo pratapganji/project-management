@@ -1,6 +1,14 @@
 
 Hi Harsimran,
 
+I verified the jobs. PROD jobs completed successfully, while the UAT API jobs failed. The Autosys logs indicate that the API was not reachable during execution.
+
+Since this is part of the existing flow and I don’t have access to the API server logs, I have reached out to the respective team for further investigation and will share updates once I hear back.
+
+
+
+Hi Harsimran,
+
 I verified the UAT and PROD Autosys jobs. The PROD jobs completed successfully, whereas the UAT API jobs failed.
 
 From the UAT Autosys logs, the failure indicates that the API was not reachable during execution. Since I do not have access to the existing API servers/application logs, I have reached out to the respective team to help investigate the issue and identify the root cause.
