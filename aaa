@@ -1,4 +1,19 @@
 
+
+• SB User Consumption application must be successfully deployed to Production OpenShift clusters.
+
+• CronJob configuration, secrets, certificates, routes, and database connectivity must be validated in Production.
+
+• Weekly user consumption processing must execute successfully and load data into OM_CATALOGUE_USER_CONSUMPTION without errors.
+
+• Generated reports and notification emails must be delivered successfully.
+
+• Validate no impact on downstream consumers and existing Olympus reporting processes post-migration.
+
+• Verify Production deployment complies with OpenShift, security, and operational standards.
+
+
+
 Acceptance Criteria:
 
 SB User Consumption application is successfully deployed to the production OpenShift clusters. CronJob configuration, secrets, routes, certificates, and database connectivity are validated. Weekly job execution completes successfully, user consumption data is loaded into OM_CATALOGUE_USER_CONSUMPTION, notifications are generated, and no production deployment or runtime issues are observed.
