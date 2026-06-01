@@ -1,4 +1,14 @@
 
+Acceptance Criteria:
+
+SB User Consumption application is successfully deployed to the production OpenShift clusters. CronJob configuration, secrets, routes, certificates, and database connectivity are validated. Weekly job execution completes successfully, user consumption data is loaded into OM_CATALOGUE_USER_CONSUMPTION, notifications are generated, and no production deployment or runtime issues are observed.
+
+
+
+
+
+
+
 Hi Harsimran,
 
 I verified the jobs. PROD jobs completed successfully, while the UAT API jobs failed. The Autosys logs indicate that the API was not reachable during execution.
