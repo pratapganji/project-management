@@ -1,4 +1,201 @@
 
+
+Hi Team,
+
+Today I will walk through the SDM File Export API flow. The purpose of this application is to export SDM data for three tables: Sundry, Source System, and Source System Coverage.
+
+The API generates CSV and control files, packages them as ZIP files, and returns the ZIP as a downloadable response. This is mainly a technical migration from the old file export process to API-based ZIP download. The functional data extraction logic is intended to remain aligned with the existing process.
+
+1. Start with Controller
+
+Show:
+
+SchemaBrowserController.java
+
+Explain:
+
+“This is the entry point. Autosys or curl calls these POST endpoints.”
+
+Show these methods:
+/exportSundry
+/exportSourceSystem
+/exportSourceSystemCoverage
+/exportSourceSystemAdhocLatestFetch
+/exportSourceSystemCoverageAdhocLatestFetch
+
+Say:
+Here we receive the request. Based on the load parameter, we decide whether it is weekly 7-day load, 1-day/specific load, or full load.
+
+Important lines to show:
+
+Where it checks:
+
+if load == 7 -> WEEKLY
+else if load != null -> SPECIFIC
+else -> FULL_LOAD
+
+2. Show ExportTypeDTO
+
+Show:
+
+ExportTypeDTO.java
+
+Explain:
+This DTO carries the export type to the service layer. It contains type, requestor, and number of days.
+
+Important fields:
+type
+requestor
+noOfDays
+
+Say:
+For load=7, type becomes WEEKLY. For load=1, type becomes SPECIFIC and noOfDays becomes 1. If no load is passed, it becomes FULL_LOAD.
+
+3. Show Service Implementation
+
+Show:
+
+SchemaBrowserServiceImpl.java
+
+Explain:
+This is where the main business logic is implemented. Based on export type, it calls the repository query, generates CSV, creates control file, zips both files, and returns the file as resource.
+
+Show methods:
+exportSundry()
+exportSourceSystem()
+exportSourceSystemCoverage()
+
+Then show the switch block:
+case WEEKLY
+case SPECIFIC
+case FULL_LOAD
+
+Say:
+For weekly load, it calls the 7-day repository query. For specific load, it calls the query with number of days. For full load, it streams all latest grouped records.
+
+4. Show Repository Queries
+
+Show these files:
+CatalogueSundryRepository.java
+CatalogueSourceSystemRepository.java
+CatalogueSourceSystemCoverageRepository.java
+Explain:
+These repository classes contain the actual backend SQL queries used for extraction.
+
+For Source System, show:
+findByInsertStatusAndIsCurrentFlag()
+findByInsertStatusAdhoc(int days)
+findByUpdateStatusAndIsCurrentFlag()
+
+Say:
+The weekly query uses dwh_updated_timestamp between sysdate minus 7 days and current sysdate window. It selects only COMPLETE records and filters by action I or U depending on insert/update query.
+
+Important point:
+We need to validate the cutoff time difference because old PPT showed 18/24 for some tables, while current code shows 22/24 in some places.
+
+5. Show CSV and ZIP generation
+
+In SchemaBrowserServiceImpl.java, show methods like:
+
+getCsvStream()
+getCsv()
+processDimControlFile()
+zip file creation logic
+
+Say:
+After data is fetched, service writes the data into CSV format. Then it creates a control file with the record count. Finally, CSV and control file are packaged into ZIP and returned to the caller.
+
+6. Show DB Connection
+
+Show:
+
+DataBaseConfigStaticData.java
+
+Say:
+This class configures the Oracle datasource. It creates HikariDataSource and JdbcTemplate/EntityManager for static data repositories.
+Then show:
+secretUtil.getOraasDbPassword()
+
+Say:
+The DB password is not hardcoded. It is fetched using SecretUtil.
+
+7. Show SecretUtil
+
+Show:
+
+SecretUtil.java
+
+Say:
+SecretUtil uses NgcClient to fetch the Oracle DB password from NGC/CyberArk using CSIID and secret key.
+
+Show:
+CSIID = 176352
+SDM_DB_PASSWORD = "SDM_ORACLE_PSWD"
+ngc.getSecret(CSIID, SDM_DB_PASSWORD)
+
+8. Show Helm Deployment Secret
+
+Show:
+
+deployment.yaml
+
+and values files:
+
+dev-namicggtd152d-values.yaml
+uat-namicgswd20u-values.yaml
+prod-*.yaml
+
+Say:
+The Helm values pass the secret nickname using SECRET_FID_PASSWORD. This allows the pod to access the required secret at runtime.
+
+Show:
+SECRET_FID_PASSWORD: olympus_oraas_db_password
+
+and:
+ecs.o2c.secretsnicknames: {{ .Values.SECRET_FID_PASSWORD }}
+
+9. Closing statement
+To summarize, the application flow is:
+
+Autosys/curl calls the API endpoint → Controller determines load type → Service calls repository query → Data is fetched from Oracle → CSV and control file are generated → Files are zipped → ZIP is returned to caller.
+
+From our side, the migration is mainly technical. The key validation point is to confirm that the current extraction query and cutoff window match the old process expectations for all three tables.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Subject: Follow-up on SDM Extraction APIs Testing Status and QE ETA
 
 Hi Snehal,
