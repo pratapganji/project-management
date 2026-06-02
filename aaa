@@ -1,22 +1,11 @@
 
 
-• SB User Consumption application must be successfully deployed to Production OpenShift clusters.
+Hi Oscar, Rajat asked me to connect with you regarding the Data Catalog publishing flow you implemented from Schema Browser.
 
-• CronJob configuration, secrets, certificates, routes, and database connectivity must be validated in Production.
+Could you please share the details of the APIs you used, especially the GET API for version/details and the POST/PUT API used to publish the payload? I also need to understand the Swagger contract and required JSON payload structure, so I can follow a similar approach for CityFix data publishing.
 
-• Weekly user consumption processing must execute successfully and load data into OM_CATALOGUE_USER_CONSUMPTION without errors.
+I am currently facing issues where the collection/data is not updating, so I want to confirm the correct endpoint and payload structure before proceeding.
 
-• Generated reports and notification emails must be delivered successfully.
-
-• Validate no impact on downstream consumers and existing Olympus reporting processes post-migration.
-
-• Verify Production deployment complies with OpenShift, security, and operational standards.
-
-
-
-Acceptance Criteria:
-
-SB User Consumption application is successfully deployed to the production OpenShift clusters. CronJob configuration, secrets, routes, certificates, and database connectivity are validated. Weekly job execution completes successfully, user consumption data is loaded into OM_CATALOGUE_USER_CONSUMPTION, notifications are generated, and no production deployment or runtime issues are observed.
 
 
 
