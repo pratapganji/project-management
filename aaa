@@ -1,4 +1,155 @@
 
+Hi Team,
+
+I will walk through the SDM File Export API flow, its purpose, current implementation, old vs new approach, and the important classes involved.
+
+1. Application Overview
+
+This application is SDM File Export API. Its purpose is to export SDM catalogue/reference data from Oracle DB tables into CSV format, create a control/ready file with record count, package both files into a ZIP, and return the ZIP file to the caller.
+
+This application is not creating or modifying business data. It is only reading existing catalogue data from Oracle DB and exporting it in file format for downstream processing.
+
+The main exported tables are:
+
+1. OM_CATALOGUE_SUNDRY
+2. OM_CATALOGUE_SOURCE_SYSTEM
+3. OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE
+4. OM_CATALOGUE_SDM_LOG is used only for logging successful export runs.
+
+2. Old vs New Approach
+
+Earlier, the SDM files were generated/pushed through the existing old process and the consuming team used to pick files from the server/Hive incoming location.
+
+As part of the new approach, we are exposing APIs through the SDM File Export API. The consuming team can call the API, download the ZIP file, extract CSV and control file, and place/upload them to their expected server/Hive path.
+
+There is no functional change in the data selection logic. The same table data and same filtering logic are being used. The change is mainly technical: instead of relying on the old file generation/push process, we are exposing API-based ZIP download.
+
+3. API Endpoints
+
+The controller is SchemaBrowserController.
+
+Show this file:
+
+src/main/java/com/citi/olympus/controller/SchemaBrowserController.java
+
+@RequestMapping(value = "/citihawk/schemabrowser")
+
+POST /citihawk/schemabrowser/exportSundry
+POST /citihawk/schemabrowser/exportSourceSystem
+POST /citihawk/schemabrowser/exportSourceSystemCoverage
+
+Adhoc/latest fetch endpoints are available for:
+
+/exportSourceSystemAdhocLatestFetch
+/exportSourceSystemCoverageAdhocLatestFetch
+
+Sundry does not appear to have a separate adhoc controller endpoint.
+
+4. Load Type Logic
+
+In SchemaBrowserController, each endpoint reads optional request parameter:
+
+@RequestParam(name = "load", required = false) String load
+
+logic
+load=7  → WEEKLY load
+load=1  → SPECIFIC / 1-day load
+no load or other value → FULL_LOAD
+
+Show these lines in SchemaBrowserController:
+
+if (load != null && load.equalsIgnoreCase("7")) {
+    exportTypeDTO.setType(WEEKLY);
+} else if (load != null && load.equalsIgnoreCase("1")) {
+    exportTypeDTO.setType(SPECIFIC);
+    exportTypeDTO.setNoOfDays(Integer.parseInt(load));
+} else {
+    exportTypeDTO.setType(FULL_LOAD);
+}
+
+The controller then calls the service:
+schemabrowserService.exportSundry(exportTypeDTO)
+schemabrowserService.exportSourceSystem(exportTypeDTO)
+schemabrowserService.exportSourceSystemCoverage(exportTypeDTO)
+
+and returns the ZIP as API response using:
+
+ResponseEntity.ok()
+.header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=...")
+.contentType(MediaType.APPLICATION_OCTET_STREAM)
+.body(resource)
+
+5. Service Layer Flow
+
+Main service implementation:
+
+src/main/java/com/citi/olympus/service/impl/SchemaBrowserServiceImpl.java
+
+whoe methods 
+exportSundry(...)
+exportSourceSystem(...)
+exportSourceSystemCoverage(...)
+
+High-level service flow:
+
+1. Identify export type: WEEKLY / SPECIFIC / FULL_LOAD / ADHOC
+2. Call repository query based on export type
+3. Convert DB results into CSV rows
+4. Create control file with record count
+5. Zip CSV + control file
+6. Update OM_CATALOGUE_SDM_LOG after successful export
+7. Send success/failure email notification
+8. Return ZIP file to controller
+
+6. Repository / Query Layer
+
+Repository classes:
+
+CatalogueSundryRepository
+CatalogueSourceSystemRepository
+CatalogueSourceSystemCoverageRepository
+CatalogueSdmLogRepository
+
+Show these files under:
+src/main/java/com/citi/olympus/staticdata/repository
+
+Sundry
+
+Table:
+OM_CATALOGUE_SUNDRY
+
+weekly
+findByStatusAndIsCurrentFlag()
+Specific/day query uses:
+findByStatusAndIsCurrentFlagWithDays(days)
+Full load uses stream:
+streamAllLatestGroupedAndOrdered()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 Hi Oscar, Rajat asked me to connect with you regarding the Data Catalog publishing flow you implemented from Schema Browser.
 
