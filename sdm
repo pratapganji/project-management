@@ -1,3 +1,519 @@
+Good morning everyone.
+
+Today I will provide a walkthrough of the SDM File Export application, explain the overall architecture, the old and new approaches, and then walk through the code flow end-to-end.
+
+Before going into the code, let me first explain the purpose of the application.
+
+The purpose of the SDM File Export application is to export SDM catalogue data from Oracle database tables and provide the data as downloadable files for downstream consumers.
+
+The main tables involved are:
+
+1. OM_CATALOGUE_SUNDRY
+2. OM_CATALOGUE_SOURCE_SYSTEM
+3. OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE
+
+The application reads data from these tables, generates CSV files, creates a control (.csv.ready) file containing the record count, packages both files into a ZIP file, and returns the ZIP file to the caller.
+
+The application also maintains export execution history in:
+
+OM_CATALOGUE_SDM_LOG
+
+which stores run information such as table name, execution status, run timestamp, record count, transfer method, and requestor information.
+
+==================================================================
+
+OLD APPROACH
+
+Previously, SDM files were generated through the existing file generation process. The downstream team used to receive CSV files from the existing process and pick them from server locations for further loading into Hive or other systems.
+
+The data extraction logic already existed and was based on the SDM catalogue tables.
+
+==================================================================
+
+NEW APPROACH
+
+In the new approach, instead of relying on the old file generation mechanism, we expose REST APIs.
+
+Consumers can call the API, download a ZIP file, extract the CSV and control files, and place them into their target location.
+
+The key point is:
+
+There is no major functional change in the business data being exported.
+
+The same source tables are used.
+
+The same export concept is used.
+
+The major change is the delivery mechanism and modernization of the application for OCP deployment and API-based consumption.
+
+==================================================================
+
+APPLICATION FLOW
+
+The high-level flow is:
+
+Consumer
+↓
+SchemaBrowserController
+↓
+SchemaBrowserServiceImpl
+↓
+Repository Layer
+↓
+Oracle Database
+↓
+CSV Generation
+↓
+Control File Generation
+↓
+ZIP Generation
+↓
+SDM Log Update
+↓
+Email Notification
+↓
+ZIP Returned To Consumer
+
+==================================================================
+
+STEP 1 – CONTROLLER LAYER
+
+Now I will open:
+
+SchemaBrowserController.java
+
+This is the entry point of the application.
+
+Show:
+SchemaBrowserController.java
+
+The controller exposes the export APIs.
+
+Main endpoints are:
+
+exportSundry()
+exportSourceSystem()
+exportSourceSystemCoverage()
+
+There are also Adhoc endpoints for:
+
+exportSourceSystemAdhocLatestFetch()
+exportSourceSystemCoverageAdhocLatestFetch()
+
+I do not currently see a dedicated Adhoc controller endpoint for Sundry.
+
+The controller receives the request and determines the export type based on the load parameter.
+
+Load Types:
+
+load = 7
+→ WEEKLY
+
+load = 1
+→ SPECIFIC
+
+No load / Full request
+→ FULL_LOAD
+
+The controller creates an ExportTypeDTO object and passes it to the service layer.
+
+==================================================================
+
+STEP 2 – EXPORTTYPEDTO
+
+Now open:
+
+ExportTypeDTO.java
+
+This DTO is used to carry export information between the controller and service layers.
+
+Important fields:
+
+type
+requestor
+noOfDays
+errMessage
+
+type can be:
+
+WEEKLY
+SPECIFIC
+FULL_LOAD
+ADHOC
+
+==================================================================
+
+STEP 3 – SERVICE LAYER
+
+Now open:
+
+SchemaBrowserServiceImpl.java
+
+This is the main business logic class.
+
+Important methods:
+
+exportSundry()
+exportSourceSystem()
+exportSourceSystemCoverage()
+
+This class is responsible for:
+
+1. Determining export type.
+2. Calling repository queries.
+3. Generating CSV.
+4. Creating control file.
+5. Creating ZIP file.
+6. Updating SDM log.
+7. Sending email notifications.
+8. Returning ZIP file.
+
+Show the switch block where the service handles:
+
+WEEKLY
+SPECIFIC
+FULL_LOAD
+ADHOC
+
+==================================================================
+
+STEP 4 – DATABASE TABLES AND REPOSITORIES
+
+Now open repository classes.
+
+Repository 1:
+
+CatalogueSundryRepository.java
+
+Table:
+
+OM_CATALOGUE_SUNDRY
+
+Important methods:
+
+findByStatusAndIsCurrentFlag()
+Weekly export
+
+findByStatusAndIsCurrentFlagWithDays(days)
+Specific/Adhoc style export
+
+streamAllLatestGroupedAndOrdered()
+Full load export
+
+⸻
+
+Repository 2:
+
+CatalogueSourceSystemRepository.java
+
+Table:
+
+OM_CATALOGUE_SOURCE_SYSTEM
+
+Important methods:
+
+findByInsertStatusAndIsCurrentFlag()
+findByUpdateStatusAndIsCurrentFlag()
+
+Weekly export
+
+findByInsertStatusAdhoc(days)
+findByUpdateStatusAdhoc(days)
+
+Specific export
+
+findByInsertStatusLastRun()
+findByUpdateStatusLastRun()
+
+Adhoc export
+
+streamAllInsertStatus()
+streamAllUpdateStatus()
+
+Full load export
+
+⸻
+
+Repository 3:
+
+CatalogueSourceSystemCoverageRepository.java
+
+Table:
+
+OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE
+
+Important methods:
+
+findByInsertStatusAndIsCurrentFlag()
+findByUpdateStatusAndIsCurrentFlag()
+
+Weekly export
+
+findByInsertStatusAdhoc(days)
+findByUpdateStatusAdhoc(days)
+
+Specific export
+
+findByInsertStatusLastRun()
+findByUpdateStatusLastRun()
+
+Adhoc export
+
+streamAllInsertStatus()
+streamAllUpdateStatus()
+
+Full load export
+
+==================================================================
+
+STEP 5 – HOW DATA IS FETCHED
+
+For weekly loads, queries use DWH_UPDATED_TIMESTAMP and fetch records from the configured time window.
+
+For specific loads, queries use the provided number of days.
+
+For adhoc processing, the application uses the last successful run timestamp.
+
+For full loads, all current valid records are exported.
+
+==================================================================
+
+STEP 6 – CSV GENERATION
+
+Now remain in:
+
+SchemaBrowserServiceImpl.java
+
+Show:
+
+toStringArray()
+getCsv()
+writeToCsvStream()
+getCsvStream()
+
+Purpose:
+
+Convert entity records into CSV rows.
+
+The application creates CSV headers first and then converts every database record into a pipe-delimited row.
+
+For example:
+
+OM_CATALOGUE_SUNDRY
+→ Sundry CSV
+
+OM_CATALOGUE_SOURCE_SYSTEM
+→ Source System CSV
+
+OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE
+→ Source System Coverage CSV
+
+==================================================================
+
+STEP 7 – STREAMING VS OLD APPROACH
+
+This is one of the important technical improvements.
+
+Earlier full loads would require loading all records into memory.
+
+Now we use:
+
+streamAllInsertStatus()
+streamAllUpdateStatus()
+streamAllLatestGroupedAndOrdered()
+
+along with:
+
+writeToCsvStream()
+
+This allows the application to process records row-by-row and write directly into the CSV.
+
+Benefits:
+
+Lower memory usage
+Better scalability
+Safer execution in OCP containers
+Improved handling of large datasets
+
+==================================================================
+
+STEP 8 – CONTROL FILE GENERATION
+
+Show:
+
+processDimControlFile()
+
+Purpose:
+
+Create:
+
+<Table>.yyyyMMdd.csv.ready
+
+Example:
+
+CatalogueSourceSystem.20260603.csv.ready
+
+The control file contains only:
+
+Record Count
+
+This allows downstream consumers to validate the file before processing.
+
+==================================================================
+
+STEP 9 – ZIP GENERATION
+
+Show:
+
+getCsvStream()
+
+and ZIP creation section.
+
+The application packages:
+
+1. CSV file
+2. Control file
+
+into a ZIP file.
+
+Returned file:
+
+CatalogueSourceSystem.zip
+
+CatalogueSundry.zip
+
+CatalogueSourceSystemCoverage.zip
+
+==================================================================
+
+STEP 10 – SDM LOG TABLE
+
+Open:
+
+CatalogueSdmLog.java
+
+Table:
+
+OM_CATALOGUE_SDM_LOG
+
+Purpose:
+
+Maintain export execution history.
+
+Stored information:
+
+TABLE_NAME
+TRANSFER_METHOD
+STATUS
+TOTAL_RECORD_COUNT
+REQUESTOR_SOEID
+RUN_TIMESTAMP
+DWH_CREATED_TIMESTAMP
+DWH_UPDATED_TIMESTAMP
+
+Now open:
+
+CatalogueSdmLogRepository.java
+
+Show:
+
+getLastRunTime()
+
+This method retrieves the last successful run timestamp.
+
+It is used for Adhoc exports.
+
+==================================================================
+
+STEP 11 – EMAIL NOTIFICATION
+
+Open:
+
+EmailNotificationService.java
+
+Important methods:
+
+sendEmailNotification()
+getSuccessEmail()
+getFailureEmail()
+sendMail()
+
+Purpose:
+
+Send success notifications when export completes successfully.
+
+Send failure notifications when export fails.
+
+Templates are loaded from:
+
+resources/templates
+
+==================================================================
+
+STEP 12 – DATABASE CONFIGURATION
+
+Open:
+
+DataBaseConfigStaticData.java
+
+Purpose:
+
+Configure Oracle datasource.
+
+Now open:
+
+SecretUtil.java
+
+Database password is not hardcoded.
+
+The application retrieves credentials from NGC/CyberArk.
+
+Secret:
+
+SDM_ORACLE_PSWD
+
+This is securely loaded during application startup.
+
+==================================================================
+
+SUMMARY
+
+To summarize:
+
+The SDM File Export application exports data from:
+
+OM_CATALOGUE_SUNDRY
+OM_CATALOGUE_SOURCE_SYSTEM
+OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE
+
+The flow is:
+
+API Request
+→ Controller
+→ Service
+→ Repository
+→ Oracle Database
+→ CSV Creation
+→ Control File Creation
+→ ZIP Creation
+→ SDM Log Update
+→ Email Notification
+→ ZIP Returned
+
+The main business functionality remains the same as before.
+
+The primary modernization is API-based delivery, OCP deployment support, and streaming-based processing for large exports.
+
+
+
+
+
+
+
+
+
+
+
 
 
 Hi Team,
