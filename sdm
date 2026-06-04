@@ -1,3 +1,70 @@
+
+@Component
+public class SecretUtil {
+
+    public static Logger logger = LoggerFactory.getLogger(SecretUtil.class);
+
+    private String olympusDBSecret;
+    private NgcClient ngc;
+    private static final int CSIID = 176352;
+
+    @Value("${SECRET_NICKNAME}")
+    private String SECRET_NICKNAME;
+
+    // ADD THIS BLOCK
+    public SecretUtil() {
+        try {
+            this.ngc = new NgcClient();
+            logger.info("NgcClient initialized successfully");
+        } catch (Exception e) {
+            logger.error("Failed to initialize NgcClient", e);
+        }
+    }
+
+    @PostConstruct
+    public void init() {
+        try {
+            logger.info("SECRET_NICKNAME = {}", SECRET_NICKNAME);
+
+            setOlympusDBSecret(
+                    ngc.getSecret(CSIID, SECRET_NICKNAME)
+            );
+
+            logger.info("CyberArk secret fetched successfully");
+
+        } catch (Exception e) {
+            logger.error("Error while getting details from CyberArk", e);
+        }
+    }
+
+    public String getOlympusDBSecret() {
+        try {
+            this.olympusDBSecret = ngc.getSecret(CSIID, SECRET_NICKNAME);
+        } catch (Exception e) {
+            logger.error("Error while getting details from CyberArk", e);
+        }
+        return this.olympusDBSecret;
+    }
+
+    public String getOlympusDBSecretBasedOnNickName(String nickName) {
+        try {
+            this.olympusDBSecret = ngc.getSecret(CSIID, nickName);
+        } catch (Exception e) {
+            logger.error("Error while getting details from CyberArk", e);
+        }
+        return this.olympusDBSecret;
+    }
+
+    public void setOlympusDBSecret(String olympusDBSecret) {
+        this.olympusDBSecret = olympusDBSecret;
+    }
+}
+
+
+
+
+
+
 Good morning everyone.
 
 Today I will provide a walkthrough of the SDM File Export application, explain the overall architecture, the old and new approaches, and then walk through the code flow end-to-end.
