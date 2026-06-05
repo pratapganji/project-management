@@ -1,4 +1,8 @@
 
+Please note that Mukund’s team is still working on the REF-side changes to consume the new OCP-based export flow. Until those changes are fully completed and validated, support may still be required from the existing application/API team whenever there are API availability or server-related issues impacting the current flow.
+
+
+
 The requested UAT File Export Autosys jobs have been manually triggered and completed successfully.
 
 The following jobs were restarted:
