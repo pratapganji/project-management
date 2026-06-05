@@ -1,4 +1,23 @@
 
+
+Hi Mark,
+
+The olympus-sb-user-consumption application is a batch process that extracts user consumption/audit data from Hive and loads it into the Oracle table OM_CATALOGUE_USER_CONSUMPTION.
+
+As part of yesterday’s deployment (CR: CHG0001345928), the application was deployed in both the PROD and COB clusters. During post-deployment validation, we identified that both deployments are processing data into the same Oracle target table.
+
+To avoid duplicate processing and data loading, could you please assist with decommissioning/removing the application from the COB cluster and retaining it only in the primary PROD cluster?
+
+
+
+
+
+
+
+
+
+
+
 Please note that Mukund’s team is still working on the REF-side changes to consume the new OCP-based export flow. Until those changes are fully completed and validated, support may still be required from the existing application/API team whenever there are API availability or server-related issues impacting the current flow.
 
 
