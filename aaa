@@ -1,4 +1,26 @@
 
+The requested UAT File Export Autosys jobs have been manually triggered and completed successfully.
+
+The following jobs were restarted:
+
+* 167969_OM_OLYMPUS_API_SUNDRY_DIM_EXPORT
+* 167969_OM_OLYMPUS_API_SOURCE_SYSTEM_EXPORT
+* 167969_OM_OLYMPUS_API_SOURCE_SYSTEM_COVERAGE_EXPORT
+
+As discussed earlier, our team can manually trigger the Autosys jobs when required. However, in cases where the underlying API/server is unavailable or unreachable, we may still require support from the respective application team, as we do not have access to manage those components.
+
+Also, I had previously requested Sivakami and Mukund to share a sample INC/request process for manually triggering jobs in Production. If such documentation is available, please share it for future reference.
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
+
 
 Hi Team,
 
