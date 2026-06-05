@@ -1,5 +1,8 @@
 
 
+The application is currently deployed in both PROD and COB clusters. Both deployments process the same source data and load into the same Oracle target table, which can lead to duplicate data processing. Requesting removal of the COB deployment to ensure a single production execution path.
+
+
 Hi Mark,
 
 The olympus-sb-user-consumption application is a batch process that extracts user consumption/audit data from Hive and loads it into the Oracle table OM_CATALOGUE_USER_CONSUMPTION.
