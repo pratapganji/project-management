@@ -1,4 +1,20 @@
 
+
+Hi Team,
+
+I noticed the existing SDM API Autosys job for Source System Coverage failed today. This is the old/current flow, not the new OCP API flow. It looks similar to the API availability issue we encountered last week.
+
+Last week, Sivakami’s team brought the API back up and manually retriggered the Autosys job. Could someone please check whether the existing API/endpoint was available at the scheduled run time and retrigger the job if required?
+
+Also, if the REF team already has the required records through the new OCP 7-day extraction flow, please confirm whether any action is still needed on the old SDM API flow, or if the API and Autosys job should still be checked and retriggered.
+
+Thanks.
+
+
+
+
+
+
 Hi Team,
 
 I will walk through the SDM File Export API flow, its purpose, current implementation, old vs new approach, and the important classes involved.
