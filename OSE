@@ -1,3 +1,22 @@
+
+OSE Monitoring has been successfully deployed and validated in UAT for namespace icg-isg-olympus-data-176352.
+
+As advised by Jayanta, PROD deployment will proceed prior to ITRS Gateway/Active Console configuration.
+
+Current status:
+
+* OSE Monitoring deployment completed.
+* Pod and namespace metrics are being collected successfully.
+* ELK configuration is in place.
+* ITRS Gateway configuration is pending and will be completed separately once the required access/details are available.
+
+Next step: Deploy and validate OSE Monitoring in PROD (namicgrut20p and namicgswd20p) and then proceed with ITRS integration activities.
+
+
+
+
+
+
 Jira Description
 
 Description:
