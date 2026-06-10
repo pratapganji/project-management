@@ -1,4 +1,27 @@
 
+
+OSE Monitoring is a monitoring solution deployed in the Olympus Data OpenShift namespace. Its purpose is to monitor OpenShift resources such as pods, services, and deployments, collect operational metrics, and provide visibility into the health of the namespace.
+
+Our work in this Jira is primarily focused on deploying and configuring OSE Monitoring using the shared 147104-itrs-ose-monitoring dependency. The repository mainly contains deployment configuration (Helm charts, environment values, ELK credentials, service account configuration, etc.), while the actual monitoring logic is provided by the shared OSE Monitoring dependency.
+
+At the current stage, we have verified:
+
+* OSE Monitoring deployment is successful.
+* Monitoring pods are running.
+* The application is connecting to the configured OpenShift cluster and namespace.
+* Pod and service events are being received.
+* Metrics collection is active, as seen in the application logs.
+
+We are currently able to validate monitoring and metric collection functionality. ITRS Gateway integration and alert generation are separate activities and have not yet been configured, so end-to-end alert validation is not available at this time.
+
+
+
+
+
+
+
+
+
 OSE Monitoring – Olympus Data
 
 Purpose
