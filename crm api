@@ -1,4 +1,8 @@
+Hi Sachin,
 
+ROD draft is ready. Could you please review it, follow up with Seema for submission, and also check on the folder creation/config copy activity on the servers, as the change is scheduled for Saturday.
+
+Thanks.
 
 git checkout master
 git checkout -b release/gitignore_fix
