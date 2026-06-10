@@ -1,4 +1,82 @@
 
+OSE Monitoring – Olympus Data
+
+Purpose
+
+OSE Monitoring is a monitoring application deployed within the Olympus Data OpenShift namespace. Its purpose is to continuously monitor OpenShift resources and collect operational metrics from the cluster.
+
+Scope
+
+The application monitors resources within the namespace:
+
+* Pods
+* Services
+* Deployments
+* Namespace events
+* Resource utilization metrics
+
+Architecture
+
+OSE Monitoring is deployed using the Lightspeed Enterprise (LSE) framework and leverages the shared 147104-itrs-ose-monitoring Helm dependency.
+
+Configuration is provided through:
+
+* Helm charts
+* Environment-specific values files
+* ELK credentials
+* OpenShift service account
+
+Current Functionality
+
+The application:
+
+1. Connects to the OpenShift API server.
+2. Monitors pod and service events.
+3. Collects namespace metrics periodically.
+4. Sends monitoring data to ELK for centralized logging and analysis.
+5. Provides the foundation for future ITRS/Geneos alert integration.
+
+Validation Performed
+
+The following validations were completed:
+
+* OSE Monitoring pod deployed successfully.
+* Application started without errors.
+* Namespace monitoring confirmed.
+* Pod metrics collection confirmed.
+* Service monitoring confirmed.
+* ELK connectivity configured.
+* Logs show successful metric collection activities.
+
+Example log entries:
+
+* Updating metrics for XX pods
+* Received Pod bookmark
+* Received Service bookmark
+
+Current Status
+
+Completed:
+
+* OSE Monitoring deployment
+* ELK configuration
+* Namespace monitoring validation
+
+Pending:
+
+* ITRS Gateway integration
+* Alert configuration within ITRS
+
+Expected Outcome
+
+The application continuously monitors the Olympus Data namespace and provides operational visibility into OpenShift resources. Alerting through ITRS will be enabled once ITRS integration is completed.
+
+
+
+
+
+
+
 OSE Monitoring has been successfully deployed and validated in UAT for namespace icg-isg-olympus-data-176352.
 
 As advised by Jayanta, PROD deployment will proceed prior to ITRS Gateway/Active Console configuration.
