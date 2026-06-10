@@ -1,1 +1,48 @@
+Jira Description
 
+Description:
+
+Deploy and configure OSE Monitoring for the Olympus Data namespace (icg-isg-olympus-data-176352).
+
+Scope includes:
+
+* Create and deploy OSE Monitoring application using Lightspeed Enterprise (LSE).
+* Configure environment-specific values for UAT and PROD clusters.
+* Configure ELK endpoint and credentials for log access.
+* Configure OSE service account and namespace details.
+* Validate successful deployment and monitoring of namespace resources.
+* Enable readiness for future ITRS/Geneos alert integration.
+* Verify OSE Monitoring application is collecting pod and namespace metrics successfully.
+
+⸻
+
+Acceptance Criteria
+
+1. OSE Monitoring application is successfully deployed in the Olympus Data namespace.
+2. OSE Monitoring pod is in Running/Healthy state.
+3. Application can connect to the configured OpenShift cluster and namespace.
+4. Pod, service, and namespace metrics are being collected successfully.
+5. OSE Monitoring logs show successful metric collection without critical errors.
+6. ELK configuration and credentials are deployed successfully.
+7. Route and service endpoints are accessible.
+8. Monitoring validates Olympus Data namespace resources (pods, services, deployments).
+9. Deployment is completed in UAT and Production environments.
+10. QE validates deployment health and confirms monitoring data is being collected.
+11. No impact to existing Olympus Data applications after deployment.
+
+⸻
+
+What QE should actually test
+
+Since ITRS Gateway is not configured yet, QE cannot test alert generation.
+
+QE should only verify:
+
+* OSE Monitoring pod is running.
+* OSE Monitoring logs show:
+    * “Updating metrics for xx pods”
+    * “Received Pod bookmark”
+    * “Received Service bookmark”
+* Namespace icg-isg-olympus-data-176352 is being monitored.
+* No errors in OSE logs.
+* Route/service is accessible.
