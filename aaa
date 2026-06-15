@@ -1,4 +1,12 @@
 
+Enhance the NuraRec Callback API processing to improve performance, scalability, and data validation.
+
+1. The callback API should process requests asynchronously so that the API can acknowledge the request immediately without waiting for the complete callback processing to finish.
+2. The callback count field should be validated before sending the notification request to downstream consumers. If the count value is null, empty, or contains non-numeric data, the system should default the value to 0 to prevent downstream processing failures and ensure consistent request handling.
+3. Appropriate unit test cases should be added/updated to validate the new asynchronous processing flow and count validation logic.
+
+
+
 
 The application is currently deployed in both PROD and COB clusters. Both deployments process the same source data and load into the same Oracle target table, which can lead to duplicate data processing. Requesting removal of the COB deployment to ensure a single production execution path.
 
