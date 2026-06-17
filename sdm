@@ -1,4 +1,25 @@
 
+Hi Team,
+
+The Sundry API export job was manually triggered on 16-Jun-2026 and completed from the AutoSys side. An auto-generated completion notification was also received.
+
+Additionally, the records are available in SDM and are eligible for export processing.
+
+I do not have access to the REF server path below to verify file availability directly:
+
+/data/1/gfolyn/data/incoming/referencedata/static/sundrydim/20260617
+
+Could the REF team please verify the file generation/copy process on the target server path and confirm if any issues are observed on that side?
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
 @Component
 public class SecretUtil {
 
