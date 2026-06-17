@@ -1,4 +1,25 @@
 
+
+Hi Team,
+
+The changes for JIRA <JIRA_NUMBER> have been deployed to UAT and are ready for validation.
+
+Implemented changes:
+
+* Asynchronous callback processing.
+* Callback count validation with default value handling for invalid/null/non-numeric values.
+* Enhanced audit logging for failed Template API → Bulk API requests to capture failure details before exception propagation.
+* Unit test updates covering the new functionality.
+
+Kindly validate the changes in UAT and provide your sign-off. Please let us know if any issues are observed during testing.
+
+Thanks,
+Pratap
+
+
+
+
+
 @Test
 public void testSendRequest_Failure() {
     String url = "http://example.com";
