@@ -1,3 +1,11 @@
+
+Implement resource-aware request submission for NuraFlow Template API. Before invoking Bulk API, validate available Workstation/YARN resources based on configured profile requirements. If resources are available, reserve them and proceed with processing; otherwise, move the request to a WAITING_FOR_RESOURCE state for scheduler-based retry. Introduce resource tracking, reservation lifecycle management, and resource-aware retry handling to improve system stability and resource utilization.
+
+
+
+
+
+
 PROFILE MANAGEMENT / RESOURCE-AWARE BULK API REQUEST SUBMISSION DESIGN
 
 OVERVIEW
