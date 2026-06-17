@@ -1,0 +1,341 @@
+PROFILE MANAGEMENT / RESOURCE-AWARE BULK API REQUEST SUBMISSION DESIGN
+
+OVERVIEW
+The purpose of this design is to prevent Template API from sending requests to Bulk API when Workstation/YARN resources are already exhausted. Instead of blindly submitting requests, Template API will first perform a resource availability check, reserve resources if available, and only then call Bulk API. If resources are not available, the request will wait and be retried later through a scheduler.
+
+CURRENT FLOW
+
+Workstation
+→ Template API
+→ Audit record inserted as IN_PROGRESS
+→ Template API pulls query/profile from DB
+→ Placeholder values fetched from Starburst (if applicable)
+→ Template API calls Bulk API
+→ Bulk API validates request
+→ Bulk API sends query/profile to YAML framework
+→ YAML framework performs entitlement checks
+→ YAML framework submits query to YARN
+→ Result uploaded to S3
+→ Bulk API invokes Callback API
+→ Callback API responds back to consumer
+
+CURRENT AUDIT TABLE STATUS
+
+IN_PROGRESS
+SUCCESS
+FAILED
+
+CURRENT FAILED RETRY BEHAVIOR
+
+Failed scheduler picks FAILED audit records and retries Bulk API call.
+
+CURRENT PROBLEM
+
+1. Workstation FID has limited allocated resources.
+2. Template API does not know current resource utilization.
+3. Bulk API may reject requests when resources are already consumed.
+4. Template API unnecessarily submits requests that are likely to fail.
+5. Failed scheduler keeps retrying requests without checking resource availability.
+
+PROPOSED SOLUTION
+
+Before calling Bulk API:
+
+1. Determine profile requirements.
+2. Calculate current ACTIVE resource utilization.
+3. Verify sufficient resources are available.
+4. Reserve resources.
+5. Call Bulk API only when resources are available.
+
+If resources are unavailable:
+
+1. Do not call Bulk API.
+2. Store request as WAITING_FOR_RESOURCE.
+3. Waiting scheduler retries later.
+
+This avoids unnecessary Bulk API failures and improves workload management.
+
+CONFIGURATION
+
+Application properties will maintain total available resources for Workstation FID.
+
+Example:
+
+totalExecutors=10
+totalExecutorCores=40
+totalExecutorMemoryInGB=100
+totalDriverMemoryInGB=100
+totalDriverCores=100
+
+These values represent maximum capacity available to the workstation.
+
+PROFILE CONFIGURATION TABLE
+
+Table: OM_NURAFLOW_PROFILE_CONFIG
+
+Purpose:
+Store resource requirements for each consumer/hierarchy path/report profile.
+
+Example columns:
+
+CONSUMER
+HIERARCHY_PATH
+EXECUTORS
+EXECUTOR_CORES
+EXECUTOR_MEMORY_IN_GB
+DRIVER_MEMORY_IN_GB
+DRIVER_CORES
+ACTIVE_FLAG
+
+Example:
+
+Workstation + hierarchy_path1 requires:
+Executors = 2
+Executor Cores = 8
+Executor Memory = 20 GB
+Driver Memory = 10 GB
+Driver Cores = 2
+
+Template API uses consumer + hierarchy path to determine required resources.
+
+AUDIT TABLE
+
+Existing Table:
+OM_NURAFLOW_AUDIT_DATA
+
+Purpose:
+Tracks request processing and Bulk API submission status.
+
+Recommended statuses:
+
+RECEIVED
+WAITING_FOR_RESOURCE
+IN_PROGRESS
+SUCCESS
+FAILED
+
+RESOURCE TRACKING TABLE
+
+New Table:
+OM_NURAFLOW_RESOURCE_TRACKING
+
+Purpose:
+Track resource reservation lifecycle.
+
+Example columns:
+
+GTID
+HIERARCHY_PATH
+RESOURCE_STATUS
+CREATED_TIMESTAMP
+UPDATED_TIMESTAMP
+EXPIRY_TIME
+
+Resource statuses:
+
+WAITING_FOR_RESOURCE
+ACTIVE
+RELEASED
+EXPIRED
+
+Important:
+
+Only ACTIVE rows consume resources and count toward current usage.
+
+RESOURCE CALCULATION LOGIC
+
+Current active resource usage is calculated from ACTIVE resource tracking rows.
+
+Example:
+
+Used Executors = SUM(executors)
+Used Cores = SUM(cores)
+Used Memory = SUM(memory)
+
+Available Resources:
+
+availableExecutors = totalExecutors - usedExecutors
+availableCores = totalCores - usedCores
+availableMemory = totalMemory - usedMemory
+
+Request can proceed only if:
+
+availableExecutors >= requiredExecutors
+availableCores >= requiredCores
+availableMemory >= requiredMemory
+
+SCENARIO 1 – RESOURCE AVAILABLE
+
+1. Template API receives request.
+2. Insert audit status = RECEIVED.
+3. Read profile configuration.
+4. Check ACTIVE resource utilization.
+5. Resources available.
+6. Insert resource tracking row with ACTIVE status.
+7. Update audit status = IN_PROGRESS.
+8. Call Bulk API.
+9. Bulk API accepts request.
+10. Update audit status = SUCCESS.
+11. Resource remains ACTIVE while processing.
+12. Callback received.
+13. Update resource status = RELEASED.
+
+SCENARIO 2 – RESOURCE NOT AVAILABLE
+
+1. Template API receives request.
+2. Insert audit status = RECEIVED.
+3. Read profile configuration.
+4. Check ACTIVE resource utilization.
+5. Resources unavailable.
+6. Insert resource tracking row with WAITING_FOR_RESOURCE.
+7. Update audit status = WAITING_FOR_RESOURCE.
+8. Do not call Bulk API.
+9. Waiting scheduler retries later.
+
+SCENARIO 3 – BULK API REJECTS IMMEDIATELY
+
+1. Resource reserved as ACTIVE.
+2. Bulk API called.
+3. Bulk API rejects request immediately.
+4. Update audit status = FAILED.
+5. Release resource.
+6. Update resource status = RELEASED.
+
+Reason:
+Job never actually started consuming YARN resources.
+
+SCENARIO 4 – BULK API ACCEPTS BUT CALLBACK FAILS
+
+1. Bulk API accepts request.
+2. Resource remains ACTIVE.
+3. Callback API receives failure status.
+4. Update resource status = RELEASED.
+
+The request failed functionally, but resources are no longer in use.
+
+SCENARIO 5 – CALLBACK NEVER ARRIVES
+
+1. Resource remains ACTIVE for extended duration.
+2. Expiry scheduler checks stale ACTIVE records.
+3. Scheduler periodically rechecks status.
+4. If still running, extend expiry time.
+5. Mark EXPIRED only when framework processing has completed and resources are no longer required.
+6. Update resource status = EXPIRED.
+
+WAITING SCHEDULER
+
+Purpose:
+Submit WAITING_FOR_RESOURCE requests when capacity becomes available.
+
+Flow:
+
+1. Pick oldest WAITING_FOR_RESOURCE record.
+2. Read profile configuration.
+3. Calculate current ACTIVE usage.
+4. If resources available:
+   - Update resource status = ACTIVE
+   - Update audit status = IN_PROGRESS
+   - Call Bulk API
+5. If resources still unavailable:
+   - Leave as WAITING_FOR_RESOURCE
+
+FAILED RETRY SCHEDULER
+
+Current behavior:
+Retries FAILED requests directly.
+
+Enhanced behavior:
+
+1. Pick FAILED audit records.
+2. Check resource availability first.
+3. If resources available:
+   - Resource status = ACTIVE
+   - Audit status = IN_PROGRESS
+   - Retry Bulk API
+4. If Bulk API succeeds:
+   - Audit status = SUCCESS
+5. If Bulk API fails:
+   - Audit status = FAILED
+   - Resource status = RELEASED
+6. If resources unavailable:
+   - Audit status = WAITING_FOR_RESOURCE
+   - Resource status = WAITING_FOR_RESOURCE
+
+Important:
+
+Failed scheduler should NOT blindly call Bulk API anymore.
+
+EXPIRY / CLEANUP SCHEDULER
+
+Purpose:
+Release resources for long-running requests where callback never arrived.
+
+Flow:
+
+1. Pick ACTIVE rows older than configured timeout.
+2. Verify actual processing state.
+3. If stale:
+   - Update resource status = EXPIRED
+4. EXPIRED rows no longer consume resource capacity.
+
+CONCURRENCY CONTROL
+
+Problem:
+
+Two requests may simultaneously check available resources and both reserve the same capacity.
+
+Solution:
+
+Resource check and reservation must be atomic.
+
+Use DB locking.
+
+RESOURCE_LOCK TABLE
+
+Example:
+
+RESOURCE_LOCK
+-------------
+LOCK_NAME
+DESCRIPTION
+CREATED_AT
+UPDATED_AT
+
+Insert one row:
+
+APP_RESOURCE_POOL
+
+Acquire lock:
+
+SELECT LOCK_NAME
+FROM RESOURCE_LOCK
+WHERE LOCK_NAME = :LOCK_NAME
+FOR UPDATE;
+
+This ensures only one thread can perform resource calculation and reservation at a time.
+
+FINAL MODEL
+
+PROFILE_CONFIG
+= Defines how much resource each report/stream requires.
+
+AUDIT_TABLE
+= Tracks business processing status.
+
+RESOURCE_TRACKING
+= Tracks resource reservation status.
+
+Only ACTIVE resource tracking rows consume resources.
+
+FINAL BENEFITS
+
+1. Prevent unnecessary Bulk API failures.
+2. Avoid submitting requests when resources are exhausted.
+3. Improve YARN resource utilization.
+4. Introduce controlled admission management.
+5. Support queued execution through WAITING_FOR_RESOURCE.
+6. Improve scalability and stability.
+7. Enable resource-aware retry processing.
+8. Prevent race conditions through DB locking.
+9. Maintain full request visibility through audit and resource tracking tables.
+10. Reduce operational failures and improve overall NuraFlow processing efficiency.
