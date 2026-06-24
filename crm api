@@ -1,4 +1,9 @@
-Hi Sachin,
+
+Hi Team,
+
+Gentle reminder on INC0024096300. We are currently blocked by the UCD plugin issue. This deployment is a dependency for tomorrow’s Kafka Bootstrap Server and Schema Registry URL change. Could someone please help investigate or provide an ETA for resolution? Thanks.
+
+
 
 ROD draft is ready. Could you please review it, follow up with Seema for submission, and also check on the folder creation/config copy activity on the servers, as the change is scheduled for Saturday.
 
