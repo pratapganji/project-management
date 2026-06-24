@@ -1,4 +1,88 @@
 
+What QE can test
+
+Tell QE:
+
+At this stage, we are looking for validation of deployment and monitoring functionality only.
+
+Suggested test cases:
+
+Test Case 1
+
+Verify OSE Monitoring pod is deployed and in Running state.
+
+Expected Result:
+
+* Pod remains healthy.
+* No crash loops.
+
+Test Case 2
+
+Verify application logs.
+
+Expected Result:
+
+* Logs show monitoring activity.
+* Entries such as:
+    * Updating metrics for pods
+    * Received Pod bookmark
+    * Received Service bookmark
+
+Test Case 3
+
+Verify namespace monitoring.
+
+Expected Result:
+
+* Application continuously monitors Olympus Data namespace resources.
+
+Test Case 4
+
+Verify Swagger endpoint.
+
+Expected Result:
+
+* Swagger page is accessible.
+* Application is responding.
+
+Test Case 5
+
+Verify no application errors.
+
+Expected Result:
+
+* No ERROR or Exception entries in logs.
+
+If QE asks “How do I know monitoring is working?”
+
+Show them the logs:
+
+Updating metrics for 21 pods
+Received Pod bookmark
+Received Service bookmark
+
+And say:
+
+These logs confirm that the monitoring service is connected to the OpenShift API and is actively tracking namespace resources.
+
+If QE asks “How do I validate ELK?”
+
+You can answer:
+
+ELK credentials and configuration are present. We have not yet performed end-to-end ELK validation from the ELK side. If ELK validation is required, we will need support from the ELK/monitoring team to confirm data ingestion.
+
+Final ask to QE
+
+Based on the current scope, can QE validate deployment health, namespace monitoring activity, and application logs, and advise whether this is sufficient for QE sign-off until ITRS integration is completed?
+
+This will keep the discussion focused and prevent QE from asking for tests that are not yet possible.
+
+
+
+
+
+
+
 
 
 What to tell QE
