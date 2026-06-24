@@ -1,4 +1,19 @@
 
+SELECT *
+FROM A167969NURAREC.OM_NURAFLOW_PROFILE_CONFIG;
+
+
+DESC A167969NURAREC.OM_NURAFLOW_PROFILE_CONFIG;
+
+SELECT constraint_name,
+       constraint_type,
+       table_name
+FROM user_constraints
+WHERE constraint_name = 'SYS_C0021021';
+
+
+
+
 INSERT INTO AI67969NURAPREC.OM_NURAFLOW_PROFILE_CONFIG
 (
     ID,
