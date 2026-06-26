@@ -1,3 +1,32 @@
+public List<ResourceTracking> getResourcesInActiveState() {
+
+    try {
+        return jdbcTemplate.query(
+            NuraQueryConstants.RESOURCE_ACTIVE_STATUS_SQL,
+            (ResultSet rs, int rowNum) -> ResourceTracking.builder()
+                .gTid(rs.getString("gtid"))
+                .hierarchyPath(rs.getString("hierarchy_path"))
+                .resourceStatus(rs.getString("status"))
+                .consumer(rs.getString("consumer"))
+                .build()
+        );
+    } catch (Exception e) {
+        log.error("Error fetching resources in waiting state: {}", e.getMessage());
+        return null;
+    }
+}
+
+RESOURCE_ACTIVE_STATUS_SQL = "SELECT * FROM AI67969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING WHERE STATUS = 'ACTIVE' AND SYSDATE >= DWH_EXPIRY_TIMESTAMP"
+
+
+
+
+
+
+
+
+
+
 public static final String INSERT_RESOURCE_STATUS_SQL =
     "INSERT INTO AI67969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING " +
     "(GTID, HIERARCHY_PATH, STATUS, CONSUMER, DWH_CREATED_TIMESTAMP, DWH_EXPIRY_TIMESTAMP) " +
