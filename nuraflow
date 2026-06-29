@@ -1,3 +1,6 @@
+SELECT JSON_VALUE(json_data, '$.employee.name') AS employee_name
+FROM employee_details;
+
 public List<ResourceTracking> getResourcesInActiveState() {
 
     try {
