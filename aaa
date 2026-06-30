@@ -4,8 +4,12 @@
 void testProcessFailedRequests_Success200() throws Exception {
     Map<String, Object> record = createRecord();
 
-    ResourceTracking resourceTracking = new ResourceTracking();
-    resourceTracking.setGtid("test-gtid");
+    ResourceTracking resourceTracking = ResourceTracking.builder()
+            .gtid("test-gtid")
+            .hierarchyPath("2052a-TP")
+            .resourceStatus("ACTIVE")
+            .consumer("Workstation")
+            .build();
 
     when(jdbcTemplate.queryForList(anyString()))
             .thenReturn(List.of(record));
@@ -17,7 +21,6 @@ void testProcessFailedRequests_Success200() throws Exception {
             .thenReturn(resourceTracking);
 
     mockHealthCheck(HttpStatus.OK);
-
     mockRetryTemplateExecution(HttpStatus.OK, "SuccessBody");
 
     scheduler.initRateLimiter();
@@ -35,7 +38,6 @@ void testProcessFailedRequests_Success200() throws Exception {
             eq("RELEASED")
     );
 }
-
 
 
 
