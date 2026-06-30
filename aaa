@@ -1,5 +1,59 @@
 
 
+@Test
+void should_returnOK_getData() throws Exception {
+
+    Report report = Report.builder()
+            .report("report")
+            .product("product")
+            .entity("entity")
+            .build();
+
+    List<Report> reportList = new ArrayList<>();
+    reportList.add(report);
+
+    List<Integer> reconRunDates = new ArrayList<>(Arrays.asList(20240725));
+
+    Filter filter = Filter.builder()
+            .reportStreamName(reportList)
+            .reconrundate(reconRunDates)
+            .build();
+
+    StreamingData inputs = StreamingData.builder()
+            .datatype("OneRec_Recon_Summary")
+            .consumerSystem("Workstation")
+            .globalTransactionId("test-gtid")
+            .filter(filter)
+            .build();
+
+    Map<String, Object> responseMap = new HashMap<>();
+    responseMap.put("completionStatus", "SUCCESS");
+    responseMap.put("recordCount", 10);
+
+    when(nuraflowService.getData(any(StreamingData.class), any(HttpHeaders.class)))
+            .thenReturn(ResponseEntity.ok(responseMap));
+
+    doNothing().when(structuredLogUtil)
+            .collectData(anyString(), anyString(), any(), any());
+
+    doNothing().when(structuredLogUtil)
+            .checkResponse(anyString(), any(), anyBoolean(), anyString());
+
+    mockMvc.perform(post("/api/search")
+                    .contentType(MediaType.APPLICATION_JSON)
+                    .content(objectMapper.writeValueAsString(inputs)))
+            .andExpect(status().isOk());
+}
+
+
+
+
+
+
+
+
+
+
 Hi Team,
 
 The changes for JIRA <JIRA_NUMBER> have been deployed to UAT and are ready for validation.
