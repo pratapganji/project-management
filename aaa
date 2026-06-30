@@ -1,50 +1,40 @@
 
 
 @Test
-void should_returnOK_getData() throws Exception {
+void testProcessFailedRequests_Success200() throws Exception {
+    Map<String, Object> record = createRecord();
 
-    Report report = Report.builder()
-            .report("report")
-            .product("product")
-            .entity("entity")
-            .build();
+    ResourceTracking resourceTracking = new ResourceTracking();
+    resourceTracking.setGtid("test-gtid");
 
-    List<Report> reportList = new ArrayList<>();
-    reportList.add(report);
+    when(jdbcTemplate.queryForList(anyString()))
+            .thenReturn(List.of(record));
 
-    List<Integer> reconRunDates = new ArrayList<>(Arrays.asList(20240725));
+    when(urlUtils.extractBaseUrl(anyString()))
+            .thenReturn("http://baseurl");
 
-    Filter filter = Filter.builder()
-            .reportStreamName(reportList)
-            .reconrundate(reconRunDates)
-            .build();
+    when(resourceService.getResourceTrackingDetails(anyLong()))
+            .thenReturn(resourceTracking);
 
-    StreamingData inputs = StreamingData.builder()
-            .datatype("OneRec_Recon_Summary")
-            .consumerSystem("Workstation")
-            .globalTransactionId("test-gtid")
-            .filter(filter)
-            .build();
+    mockHealthCheck(HttpStatus.OK);
 
-    Map<String, Object> responseMap = new HashMap<>();
-    responseMap.put("completionStatus", "SUCCESS");
-    responseMap.put("recordCount", 10);
+    mockRetryTemplateExecution(HttpStatus.OK, "SuccessBody");
 
-    when(nuraflowService.getData(any(StreamingData.class), any(HttpHeaders.class)))
-            .thenReturn(ResponseEntity.ok(responseMap));
+    scheduler.initRateLimiter();
+    scheduler.processFailedRequests();
 
-    doNothing().when(structuredLogUtil)
-            .collectData(anyString(), anyString(), any(), any());
+    verify(jdbcTemplate).update(
+            anyString(),
+            eq("Success"),
+            eq("SuccessBody"),
+            eq(1L)
+    );
 
-    doNothing().when(structuredLogUtil)
-            .checkResponse(anyString(), any(), anyBoolean(), anyString());
-
-    mockMvc.perform(post("/api/search")
-                    .contentType(MediaType.APPLICATION_JSON)
-                    .content(objectMapper.writeValueAsString(inputs)))
-            .andExpect(status().isOk());
+    verify(resourceService).updateResourceStatus(
+            eq("test-gtid"),
+            eq("RELEASED")
+    );
 }
-
 
 
 
