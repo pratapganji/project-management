@@ -1,3 +1,5 @@
+String gtId = (String) row.get("GLOBAL_TRANSACTION_ID");
+
 
 @Test
 void testProcessFailedRequests_UnexpectedStatus() throws Exception {
