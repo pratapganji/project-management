@@ -1,6 +1,6 @@
 
 @Test
-public void testSendH2BulkRequest_Success() {
+public void testSendH2BulkRequest_Failure() {
     ConsumerDto consumerDto = new ConsumerDto();
     consumerDto.setGlobalTransactionId("12345");
     consumerDto.setConsumer("Workstation");
@@ -15,24 +15,15 @@ public void testSendH2BulkRequest_Success() {
 
     HttpHeaders headers = new HttpHeaders();
 
-    ResponseEntity<String> responseEntity =
-            new ResponseEntity<>("Bulk API response", HttpStatus.OK);
-
-    ProfileConfiguration profileConfig =
-            mock(ProfileConfiguration.class);
+    ProfileConfiguration profileConfig = mock(ProfileConfiguration.class);
 
     when(reportService.fetchHierarchyPath(any(ConsumerDto.class)))
             .thenReturn("mockHierarchyPath");
 
-    when(resourceService.getProfileConfig(
-            eq("mockHierarchyPath"),
-            eq("Workstation")))
+    when(resourceService.getProfileConfig(eq("mockHierarchyPath"), eq("Workstation")))
             .thenReturn(profileConfig);
 
-    when(resourceService.checkResourceAvailability(
-            eq(profileConfig),
-            eq("Workstation"),
-            eq("mockHierarchyPath")))
+    when(resourceService.checkResourceAvailability(eq(profileConfig), eq("Workstation"), eq("mockHierarchyPath")))
             .thenReturn(true);
 
     doNothing().when(resourceService).updateResourceStatusActive(
@@ -41,38 +32,19 @@ public void testSendH2BulkRequest_Success() {
             eq("ACTIVE"),
             eq("Workstation"));
 
-    when(reportService.getPayLoad(
-            any(ConsumerDto.class),
-            any(HttpHeaders.class)))
-            .thenReturn("{\"key\":\"value\"}");
+    when(restTemplateService.sendRequest(anyString(), any(), anyString(), anyMap()))
+            .thenThrow(new RuntimeException("Error"));
 
-    when(reportService.getDataSourceUrl())
-            .thenReturn("{\"ENV_PRODN\":\"http://njurl.com\",\"ENV_DFLT\":\"http://defaulturl.com\"}");
-
-    when(nuraFlowService.getValuesRequestHeader(
-            any(HttpHeaders.class),
-            eq("environment")))
-            .thenReturn("PRODN");
-
-    when(restTemplateService.sendRequest(
-            anyString(),
-            eq(HttpMethod.POST),
-            anyString(),
-            anyMap()))
-            .thenReturn(responseEntity);
-
-    when(retryTemplate.execute(any()))
-            .thenAnswer(invocation -> responseEntity);
-
-    doNothing().when(structuredLogUtil)
-            .collectData(anyString(), any(), any());
-
-    ResponseEntity<String> response =
-            templateService.sendBulkRequest(consumerDto, headers);
-
-    assertEquals(HttpStatus.OK, response.getStatusCode());
-    assertEquals("Bulk API response", response.getBody());
+    assertThrows(TokenApiException.class, () ->
+            templateService.sendBulkRequest(consumerDto, headers));
 }
+
+
+
+
+
+
+
 
 
 
