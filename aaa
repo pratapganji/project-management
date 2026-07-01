@@ -1,42 +1,77 @@
 
 @Test
-void testProcessFailedRequests_UnexpectedStatus() throws Exception {
-    Map<String, Object> record = createRecord();
-    record.put("GLOBAL_TRANSACTION_ID", "gtid-1");
+public void testSendH2BulkRequest_Success() {
+    ConsumerDto consumerDto = new ConsumerDto();
+    consumerDto.setGlobalTransactionId("12345");
+    consumerDto.setConsumer("Workstation");
 
-    ResourceTracking resourceTracking = ResourceTracking.builder()
-            .gtId("gtid-1")
-            .hierarchyPath("2052a-TP")
-            .resourceStatus("ACTIVE")
-            .consumer("Workstation")
-            .build();
+    StreamNameDto streamNameDto = new StreamNameDto();
+    streamNameDto.setReport("FRY14Q_H2");
+    streamNameDto.setProduct("Loans");
+    streamNameDto.setEntity("Facility");
 
-    ProfileConfiguration profileConfig = mock(ProfileConfiguration.class);
+    consumerDto.setReportStreamName(Collections.singletonList(streamNameDto));
+    consumerDto.setRunDate(List.of(20231010));
 
-    when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
-    when(urlUtils.extractBaseUrl(anyString())).thenReturn("http://baseurl");
-    mockHealthCheck(HttpStatus.OK);
+    HttpHeaders headers = new HttpHeaders();
 
-    when(resourceService.getResourcesForGtid("gtid-1"))
-            .thenReturn(resourceTracking);
+    ResponseEntity<String> responseEntity =
+            new ResponseEntity<>("Bulk API response", HttpStatus.OK);
 
-    when(resourceService.getProfileConfig("2052a-TP", "Workstation"))
+    ProfileConfiguration profileConfig =
+            mock(ProfileConfiguration.class);
+
+    when(reportService.fetchHierarchyPath(any(ConsumerDto.class)))
+            .thenReturn("mockHierarchyPath");
+
+    when(resourceService.getProfileConfig(
+            eq("mockHierarchyPath"),
+            eq("Workstation")))
             .thenReturn(profileConfig);
 
-    when(resourceService.checkResourceAvailability(profileConfig, "Workstation", "2052a-TP"))
+    when(resourceService.checkResourceAvailability(
+            eq(profileConfig),
+            eq("Workstation"),
+            eq("mockHierarchyPath")))
             .thenReturn(true);
 
-    mockRetryTemplateExecution(HttpStatus.MULTIPLE_CHOICES, "Unexpected");
+    doNothing().when(resourceService).updateResourceStatusActive(
+            eq("12345"),
+            eq("mockHierarchyPath"),
+            eq("ACTIVE"),
+            eq("Workstation"));
 
-    scheduler.initRateLimiter();
-    scheduler.processFailedRequests();
+    when(reportService.getPayLoad(
+            any(ConsumerDto.class),
+            any(HttpHeaders.class)))
+            .thenReturn("{\"key\":\"value\"}");
 
-    verify(jdbcTemplate).update(
+    when(reportService.getDataSourceUrl())
+            .thenReturn("{\"ENV_PRODN\":\"http://njurl.com\",\"ENV_DFLT\":\"http://defaulturl.com\"}");
+
+    when(nuraFlowService.getValuesRequestHeader(
+            any(HttpHeaders.class),
+            eq("environment")))
+            .thenReturn("PRODN");
+
+    when(restTemplateService.sendRequest(
             anyString(),
-            eq("Failed"),
-            eq("Unexpected"),
-            eq(1L)
-    );
+            eq(HttpMethod.POST),
+            anyString(),
+            anyMap()))
+            .thenReturn(responseEntity);
+
+    when(retryTemplate.execute(any()))
+            .thenAnswer(invocation -> responseEntity);
+
+    doNothing().when(structuredLogUtil)
+            .collectData(anyString(), any(), any());
+
+    ResponseEntity<String> response =
+            templateService.sendBulkRequest(consumerDto, headers);
+
+    assertEquals(HttpStatus.OK, response.getStatusCode());
+    assertEquals("Bulk API response", response.getBody());
 }
 
 
