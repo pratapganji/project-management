@@ -1,4 +1,128 @@
 
+private void setupMocksForPrepareAndSend(String gtid,
+                                         ResponseEntity<String> responseEntity) throws Exception {
+
+    Map<String, Object> failedRecord = new HashMap<>();
+    failedRecord.put(AuditTableConstants.ID, 123L);
+    failedRecord.put(AuditTableConstants.REQUEST_PAYLOAD,
+            "{\"globalTransactionId\":\"" + gtid + "\"}");
+    failedRecord.put(AuditTableConstants.HEADERS, "{}");
+
+    when(jdbcTemplate.queryForMap(
+            eq(NuraQueryConstants.RESOURCE_AUDIT_QUERY_GTID_SQL),
+            eq(gtid)
+    )).thenReturn(failedRecord);
+
+    ConsumerDto consumerDto = new ConsumerDto();
+    consumerDto.setGlobalTransactionId(gtid);
+
+    HttpHeaders httpHeaders = new HttpHeaders();
+
+    when(objectMapper.readValue(anyString(), eq(ConsumerDto.class)))
+            .thenReturn(consumerDto);
+
+    when(objectMapper.readValue(anyString(), eq(HttpHeaders.class)))
+            .thenReturn(httpHeaders);
+
+    when(templateService.buildHeaders(any(HttpHeaders.class), any(ConsumerDto.class)))
+            .thenReturn(new HashMap<>());
+
+    when(templateService.buildBody(any(ConsumerDto.class), any(HttpHeaders.class)))
+            .thenReturn("{}");
+
+    Map<String, String> datasourceMap = new HashMap<>();
+    datasourceMap.put("ENV_DFLT", "http://dummy-url.com");
+
+    when(reportService.getDataSourceUrl())
+            .thenReturn(objectMapper.writeValueAsString(datasourceMap));
+
+    when(nuraFlowService.getValuesRequestHeader(any(HttpHeaders.class), eq("environment")))
+            .thenReturn("dflt");
+
+    when(restTemplateService.sendRequest(
+            anyString(),
+            eq(HttpMethod.POST),
+            anyString(),
+            anyMap()
+    )).thenReturn(responseEntity);
+
+    Map<String, Object> checkAuditRecords = new HashMap<>();
+    checkAuditRecords.put(AuditTableConstants.ID, 123L);
+
+    when(jdbcTemplate.queryForMap(
+            eq(NuraQueryConstants.CHECK_AUDIT_QUERY_GTID_SQL),
+            eq(gtid)
+    )).thenReturn(checkAuditRecords);
+
+    when(retryTemplate.execute(any())).thenAnswer(invocation -> {
+        RetryCallback<ResponseEntity<String>, Exception> callback =
+                invocation.getArgument(0);
+        return callback.doWithRetry(null);
+    });
+}
+
+
+
+
+@Test
+void processWaitingRequests_whenResourceAvailable_sendsRequestSuccessfully() throws Exception {
+    ResourceTracking resource = mock(ResourceTracking.class);
+    when(resource.getGtId()).thenReturn("gtid-1");
+    when(resource.getHierarchyPath()).thenReturn("/path");
+    when(resource.getConsumer()).thenReturn("consumer-a");
+
+    ProfileConfiguration profileConfig = mock(ProfileConfiguration.class);
+
+    when(urlUtils.extractBaseUrl(anyString())).thenReturn("http://dummy-url.com");
+    when(restTemplate.getForEntity(anyString(), eq(String.class)))
+            .thenReturn(new ResponseEntity<>("UP", HttpStatus.OK));
+
+    when(resourceService.getResourcesInWaitingState())
+            .thenReturn(List.of(resource));
+    when(resourceService.getProfileConfig(anyString(), anyString()))
+            .thenReturn(profileConfig);
+    when(resourceService.checkResourceAvailability(any(), any(), any()))
+            .thenReturn(true);
+
+    setupMocksForPrepareAndSend("gtid-1",
+            new ResponseEntity<>("Success", HttpStatus.OK));
+
+    scheduler.processWaitingRequests();
+
+    verify(resourceService).updateResourceStatusActive(
+            eq("gtid-1"),
+            eq("/path"),
+            eq("ACTIVE"),
+            eq("consumer-a")
+    );
+
+    verify(restTemplateService).sendRequest(
+            eq("http://dummy-url.com"),
+            eq(HttpMethod.POST),
+            anyString(),
+            anyMap()
+    );
+
+    verify(jdbcTemplate).update(
+            eq(NuraQueryConstants.UPDATE_AUDIT_QUERY_PAYLOAD_WITH_TIMESTAMP),
+            eq(AuditTableConstants.SUCCESS),
+            eq("Success"),
+            eq(123L)
+    );
+
+    verify(resourceService).updateResourceStatus(
+            eq("gtid-1"),
+            eq("RELEASED")
+    );
+}
+
+
+
+
+
+
+
+
 
 @Test
 void testProcessFailedRequests_Success200() throws Exception {
