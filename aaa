@@ -1,6 +1,7 @@
 
+
 @Test
-public void testSendH2BulkRequest_Failure() {
+public void testSendH2BulkRequest_NewCode() {
     ConsumerDto consumerDto = new ConsumerDto();
     consumerDto.setGlobalTransactionId("12345");
     consumerDto.setConsumer("Workstation");
@@ -15,6 +16,10 @@ public void testSendH2BulkRequest_Failure() {
 
     HttpHeaders headers = new HttpHeaders();
 
+    ResponseEntity<String> responseEntity =
+            new ResponseEntity<>("Bulk API response", HttpStatus.BAD_REQUEST);
+
+    ReportConfiguration reportConfiguration = mock(ReportConfiguration.class);
     ProfileConfiguration profileConfig = mock(ProfileConfiguration.class);
 
     when(reportService.fetchHierarchyPath(any(ConsumerDto.class)))
@@ -23,7 +28,10 @@ public void testSendH2BulkRequest_Failure() {
     when(resourceService.getProfileConfig(eq("mockHierarchyPath"), eq("Workstation")))
             .thenReturn(profileConfig);
 
-    when(resourceService.checkResourceAvailability(eq(profileConfig), eq("Workstation"), eq("mockHierarchyPath")))
+    when(resourceService.checkResourceAvailability(
+            eq(profileConfig),
+            eq("Workstation"),
+            eq("mockHierarchyPath")))
             .thenReturn(true);
 
     doNothing().when(resourceService).updateResourceStatusActive(
@@ -32,12 +40,52 @@ public void testSendH2BulkRequest_Failure() {
             eq("ACTIVE"),
             eq("Workstation"));
 
-    when(restTemplateService.sendRequest(anyString(), any(), anyString(), anyMap()))
-            .thenThrow(new RuntimeException("Error"));
+    when(reportService.getPayLoad(any(ConsumerDto.class), any(HttpHeaders.class)))
+            .thenReturn("{\"key\":\"value\"}");
 
-    assertThrows(TokenApiException.class, () ->
-            templateService.sendBulkRequest(consumerDto, headers));
+    when(reportService.getDataSourceUrl())
+            .thenReturn("{\"ENV_PRODN\":\"http://njurl.com\",\"ENV_DFLT\":\"http://defaulturl.com\"}");
+
+    when(nuraFlowService.getValuesRequestHeader(any(HttpHeaders.class), eq("environment")))
+            .thenReturn("PRODN");
+
+    when(reportService.fetchReportConfiguration(any(String.class), any(List.class)))
+            .thenReturn(Collections.singletonList(reportConfiguration));
+
+    when(reportService.fetchDatasourceAttributes(any(String.class), any(List.class)))
+            .thenReturn(Map.of("key", "value"));
+
+    when(reportService.filterPayload(any(Map.class), any(Set.class)))
+            .thenReturn(Map.of("filteredKey", "filteredValue"));
+
+    when(reportConfiguration.getPayloadMap())
+            .thenReturn(Map.of("dataSource", "mockDataSource"));
+
+    when(reportConfiguration.getHierarchyPath())
+            .thenReturn("mockHierarchyPath");
+
+    when(restTemplateService.sendRequest(
+            anyString(),
+            eq(HttpMethod.POST),
+            anyString(),
+            anyMap()))
+            .thenReturn(responseEntity);
+
+    when(retryTemplate.execute(any()))
+            .thenAnswer(invocation -> responseEntity);
+
+    doNothing().when(structuredLogUtil)
+            .collectData(anyString(), any());
+
+    ResponseEntity<String> response =
+            templateService.sendBulkRequest(consumerDto, headers);
+
+    assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+    assertEquals("Bulk API response", response.getBody());
 }
+
+
+
 
 
 
