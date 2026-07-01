@@ -1,4 +1,48 @@
 
+@Test
+void testProcessFailedRequests_Success200() throws Exception {
+    Map<String, Object> record = createRecord();
+    record.put("GLOBAL_TRANSACTION_ID", "gtid-1");
+
+    ResourceTracking resourceTracking = ResourceTracking.builder()
+            .gtId("gtid-1")
+            .hierarchyPath("2052a-TP")
+            .resourceStatus("ACTIVE")
+            .consumer("Workstation")
+            .build();
+
+    ProfileConfiguration profileConfig = mock(ProfileConfiguration.class);
+
+    when(jdbcTemplate.queryForList(anyString())).thenReturn(List.of(record));
+    when(urlUtils.extractBaseUrl(anyString())).thenReturn("http://baseurl");
+    mockHealthCheck(HttpStatus.OK);
+
+    when(resourceService.getResourcesForGtid("gtid-1"))
+            .thenReturn(resourceTracking);
+
+    when(resourceService.getProfileConfig("2052a-TP", "Workstation"))
+            .thenReturn(profileConfig);
+
+    when(resourceService.checkResourceAvailability(profileConfig, "Workstation", "2052a-TP"))
+            .thenReturn(true);
+
+    mockRetryTemplateExecution(HttpStatus.OK, "SuccessBody");
+
+    scheduler.initRateLimiter();
+    scheduler.processFailedRequests();
+
+    verify(jdbcTemplate).update(
+            anyString(),
+            eq("Success"),
+            eq("SuccessBody"),
+            eq(1L)
+    );
+}
+
+
+
+
+
 private void setupMocksForPrepareAndSend(String gtid,
                                          ResponseEntity<String> responseEntity) throws Exception {
 
