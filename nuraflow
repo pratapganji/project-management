@@ -1,4 +1,81 @@
 
+@Test
+void testProcessFailedRequests_UnexpectedStatus() throws Exception {
+    Map<String, Object> record = createRecord();
+
+    ConsumerDto consumerDto = new ConsumerDto();
+    consumerDto.setGlobalTransactionId("test-gtid");
+
+    ResourceTracking resourceTracking = ResourceTracking.builder()
+            .gtId("test-gtid")
+            .hierarchyPath("2052a-TP")
+            .resourceStatus("ACTIVE")
+            .consumer("Workstation")
+            .build();
+
+    ProfileConfiguration profileConfig = ProfileConfiguration.builder()
+            .consumer("Workstation")
+            .hierarchyPath("2052a-TP")
+            .executors(3)
+            .executorCores(3)
+            .executorMemoryInGb(4)
+            .driverMemoryInGb(8)
+            .driverCores(1)
+            .activeFlag("Y")
+            .build();
+
+    when(jdbcTemplate.queryForList(anyString()))
+            .thenReturn(List.of(record));
+
+    when(urlUtils.extractBaseUrl(anyString()))
+            .thenReturn("http://baseurl");
+
+    when(objectMapper.readValue(anyString(), eq(ConsumerDto.class)))
+            .thenReturn(consumerDto);
+
+    when(resourceService.getResourcesForGtid(anyString()))
+            .thenReturn(resourceTracking);
+
+    when(resourceService.getProfileConfig(anyString(), anyString()))
+            .thenReturn(profileConfig);
+
+    when(resourceService.checkResourceAvailability(any(), anyString(), anyString()))
+            .thenReturn(true);
+
+    mockHealthCheck(HttpStatus.OK);
+    mockRetryTemplateExecution(HttpStatus.MULTIPLE_CHOICES, "Unexpected");
+
+    scheduler.initRateLimiter();
+    scheduler.processFailedRequests();
+
+    verify(resourceService).updateResourceStatusActive(
+            eq("test-gtid"),
+            eq("2052a-TP"),
+            eq("ACTIVE"),
+            eq("Workstation")
+    );
+
+    verify(jdbcTemplate).update(
+            anyString(),
+            eq("Failed"),
+            eq("Unexpected"),
+            eq(1L)
+    );
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 INSERT INTO A167969NURAREC.OM_NURAFLOW_PROFILE_CONFIG
 (CONSUMER, HIERARCHY_PATH, EXECUTORS, EXECUTOR_CORES, EXECUTOR_MEMORY_IN_GB, DRIVER_MEMORY_IN_GB, DRIVER_CORES, ACTIVE_FLAG, DWH_CREATED_TIMESTAMP, DWH_CREATED_BY, DWH_UPDATED_TIMESTAMP, DWH_UPDATED_BY)
 VALUES ('Workstation', '2052a-TP', 3, 3, 4, 8, 1, 'Y', SYSTIMESTAMP, USER, SYSTIMESTAMP, USER);
