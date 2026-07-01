@@ -1,6 +1,6 @@
 
 @Test
-void testProcessFailedRequests_Success200() throws Exception {
+void testProcessFailedRequests_UnexpectedStatus() throws Exception {
     Map<String, Object> record = createRecord();
     record.put("GLOBAL_TRANSACTION_ID", "gtid-1");
 
@@ -26,15 +26,15 @@ void testProcessFailedRequests_Success200() throws Exception {
     when(resourceService.checkResourceAvailability(profileConfig, "Workstation", "2052a-TP"))
             .thenReturn(true);
 
-    mockRetryTemplateExecution(HttpStatus.OK, "SuccessBody");
+    mockRetryTemplateExecution(HttpStatus.MULTIPLE_CHOICES, "Unexpected");
 
     scheduler.initRateLimiter();
     scheduler.processFailedRequests();
 
     verify(jdbcTemplate).update(
             anyString(),
-            eq("Success"),
-            eq("SuccessBody"),
+            eq("Failed"),
+            eq("Unexpected"),
             eq(1L)
     );
 }
