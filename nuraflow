@@ -1,3 +1,5 @@
+SYSDATE + INTERVAL '10' MINUTE
+
 String gtId = (String) row.get("GLOBAL_TRANSACTION_ID");
 
 
