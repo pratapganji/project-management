@@ -1,3 +1,5 @@
+ALTER SYSTEM KILL SESSION 'SID,SERIAL#' IMMEDIATE;
+
 SELECT
     s.sid,
     s.serial#,
