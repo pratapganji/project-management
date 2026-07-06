@@ -1,8 +1,8 @@
 
-if (statusResponse != null
-        && !"INPROGRESS".equalsIgnoreCase(statusResponse.getString("status"))
-        && !"PENDING".equalsIgnoreCase(statusResponse.getString("status"))
-        && !"SPARK_YAML_SUBMIT".equalsIgnoreCase(statusResponse.getString("status"))) {
+if (statusResponse != null &&
+    !("INPROGRESS".equals(statusResponse.getString("status"))
+      || "PENDING".equals(statusResponse.getString("status"))
+      || "SPARK_YAML_SUBMIT".equals(statusResponse.getString("status")))) {
 
     resourceService.updateResourceStatus(resourceTracking.getGtId(), "EXPIRED");
 
@@ -10,7 +10,6 @@ if (statusResponse != null
 
     resourceService.extendResourceExpiry(resourceTracking.getGtId());
 }
-
 
 
 
