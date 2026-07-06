@@ -1,4 +1,10 @@
 
+SELECT *
+FROM A167969NURAREC.OM_NURAFLOW_PROFILE_CONFIG
+WHERE HIERARCHY_PATH = 'FRY14Q-Loans-Facility-ISR-CRE';
+
+
+
 
     Resource Profiling using the new resource tracking tables.
 * Resource allocation and release flow.
