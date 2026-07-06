@@ -1,4 +1,25 @@
 
+Subject: Resource Profiling Changes Ready for QE Testing – Jira 
+
+Hi Team,
+
+The Resource Profiling enhancement has been completed and deployed to the testing environment.
+
+The implementation includes the new resource tracking flow, scheduler-based resource expiry handling, and the associated database changes. Based on the latest business logic:
+
+* Resources are extended for job statuses PENDING, INPROGRESS, and SPARK_YAML_SUBMIT.
+* Resources are marked as EXPIRED for all other terminal statuses.
+
+The implementation details and test scenarios are available in the Jira:
+Kindly start QE validation at your convenience. Please let us know if you encounter any issues or need any clarification during testing.
+
+Thanks,
+Pratap Ganji
+
+
+
+
+
 if (statusResponse != null &&
     !("INPROGRESS".equals(statusResponse.getString("status"))
       || "PENDING".equals(statusResponse.getString("status"))
