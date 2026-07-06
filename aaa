@@ -1,4 +1,15 @@
 
+
+    Resource Profiling using the new resource tracking tables.
+* Resource allocation and release flow.
+* Bulk Resource Waiting Scheduler.
+* Bulk Resource Expiry Scheduler (resource expiry extension/release based on Bulk API job status).
+* Bulk Retry Scheduler.
+* Database schema changes.
+* Related service and business logic changes.
+
+
+
 Subject: Resource Profiling Changes Ready for QE Testing – Jira 
 
 The changes include the complete Resource Profiling flow, including:
