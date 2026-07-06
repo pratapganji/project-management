@@ -16,6 +16,24 @@ if (statusResponse != null
 
 
 
+
+if (statusResponse != null
+        && !"INPROGRESS".equalsIgnoreCase(statusResponse.getString("status"))
+        && !"PENDING".equalsIgnoreCase(statusResponse.getString("status"))
+        && !"SPARK_YAML_SUBMIT".equalsIgnoreCase(statusResponse.getString("status"))) {
+
+    resourceService.updateResourceStatus(resourceTracking.getGtId(), "EXPIRED");
+
+} else {
+
+    resourceService.extendResourceExpiry(resourceTracking.getGtId());
+}
+
+
+
+
+
+
 @Test
 void testProcessExpiredRequestsContinuesOnExceptionForOneResource() throws Exception {
     HttpServer server = createCompletedJobStatusServer();
