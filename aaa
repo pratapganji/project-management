@@ -1,6 +1,48 @@
 
 
 @Test
+void testProcessExpiredRequestsWithOneResource() throws Exception {
+    ResourceTracking expiredResource = mock(ResourceTracking.class);
+    when(expiredResource.getGtId()).thenReturn("GT-001");
+    when(expiredResource.getGtid()).thenReturn("GT-001");
+    when(expiredResource.getHierarchyPath()).thenReturn("2052a-TP");
+    when(expiredResource.getConsumer()).thenReturn("Workstation");
+
+    AuditData auditData = mock(AuditData.class);
+    when(auditData.getReconJobId()).thenReturn("RECON-001");
+
+    when(resourceService.getResourcesInActiveState())
+            .thenReturn(Collections.singletonList(expiredResource));
+
+    when(resourceService.getAuditDataForGtid("GT-001"))
+            .thenReturn(auditData);
+
+    // If checkJobStatus internally calls restTemplate.exchange/getForObject,
+    // mock it to return completed status
+    JSONObject jsonObject = new JSONObject();
+    jsonObject.put("status", "COMPLETED");
+
+    when(restTemplate.exchange(
+            anyString(),
+            eq(HttpMethod.GET),
+            any(HttpEntity.class),
+            eq(String.class)
+    )).thenReturn(new ResponseEntity<>(jsonObject.toString(), HttpStatus.OK));
+
+    assertDoesNotThrow(() -> scheduler.processExpiredRequests());
+
+    verify(resourceService).getResourcesInActiveState();
+    verify(resourceService).getAuditDataForGtid("GT-001");
+    verify(resourceService).updateResourceStatus("GT-001", "EXPIRED");
+    verify(resourceService, never()).extendResourceExpiry(anyString());
+}
+
+
+
+
+
+
+@Test
 public void testSendH2BulkRequest_NewCode() {
     ConsumerDto consumerDto = new ConsumerDto();
     consumerDto.setGlobalTransactionId("12345");
