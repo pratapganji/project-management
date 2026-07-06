@@ -1,33 +1,22 @@
 
 @Test
-void testProcessExpiredRequestsWithMultipleResources() throws Exception {
-    HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
-    server.createContext("/job/status", exchange -> {
-        String response = "{\"status\":\"COMPLETED\"}";
-        exchange.sendResponseHeaders(200, response.getBytes().length);
-        exchange.getResponseBody().write(response.getBytes());
-        exchange.close();
-    });
-    server.start();
+void testProcessExpiredRequestsContinuesOnExceptionForOneResource() throws Exception {
+    HttpServer server = createCompletedJobStatusServer();
 
     try {
-        String mockStatusUrl = "http://localhost:" + server.getAddress().getPort() + "/job/status";
-        ReflectionTestUtils.setField(scheduler, "URL_JOBS_STATUS", mockStatusUrl);
+        ReflectionTestUtils.setField(
+                scheduler,
+                "URL_JOBS_STATUS",
+                "http://localhost:" + server.getAddress().getPort() + "/job/status"
+        );
 
         ResourceTracking expiredResource = mock(ResourceTracking.class);
         when(expiredResource.getGtId()).thenReturn("GT-001");
         when(expiredResource.getGtid()).thenReturn("GT-001");
-        when(expiredResource.getHierarchyPath()).thenReturn("2052a-TP");
-        when(expiredResource.getConsumer()).thenReturn("Workstation");
 
         ResourceTracking anotherExpiredResource = mock(ResourceTracking.class);
         when(anotherExpiredResource.getGtId()).thenReturn("GT-002");
         when(anotherExpiredResource.getGtid()).thenReturn("GT-002");
-        when(anotherExpiredResource.getHierarchyPath()).thenReturn("2052a-Loans");
-        when(anotherExpiredResource.getConsumer()).thenReturn("Workstation");
-
-        AuditData auditData1 = mock(AuditData.class);
-        when(auditData1.getReconJobId()).thenReturn("RECON-001");
 
         AuditData auditData2 = mock(AuditData.class);
         when(auditData2.getReconJobId()).thenReturn("RECON-002");
@@ -35,20 +24,114 @@ void testProcessExpiredRequestsWithMultipleResources() throws Exception {
         when(resourceService.getResourcesInActiveState())
                 .thenReturn(Arrays.asList(expiredResource, anotherExpiredResource));
 
-        when(resourceService.getAuditDataForGtid("GT-001")).thenReturn(auditData1);
-        when(resourceService.getAuditDataForGtid("GT-002")).thenReturn(auditData2);
+        when(resourceService.getAuditDataForGtid("GT-001"))
+                .thenThrow(new RuntimeException("DB error"));
+
+        when(resourceService.getAuditDataForGtid("GT-002"))
+                .thenReturn(auditData2);
 
         assertDoesNotThrow(() -> scheduler.processExpiredRequests());
 
-        verify(resourceService).updateResourceStatus("GT-001", "EXPIRED");
+        verify(resourceService, never()).updateResourceStatus("GT-001", "EXPIRED");
         verify(resourceService).updateResourceStatus("GT-002", "EXPIRED");
-
-        verify(resourceService, never()).extendResourceExpiry(anyString());
 
     } finally {
         server.stop(0);
     }
 }
+
+@Test
+void testProcessExpiredRequestsUpdateStatusThrowsExceptionContinues() throws Exception {
+    HttpServer server = createCompletedJobStatusServer();
+
+    try {
+        ReflectionTestUtils.setField(
+                scheduler,
+                "URL_JOBS_STATUS",
+                "http://localhost:" + server.getAddress().getPort() + "/job/status"
+        );
+
+        ResourceTracking expiredResource = mock(ResourceTracking.class);
+        when(expiredResource.getGtId()).thenReturn("GT-001");
+        when(expiredResource.getGtid()).thenReturn("GT-001");
+
+        AuditData auditData = mock(AuditData.class);
+        when(auditData.getReconJobId()).thenReturn("RECON-001");
+
+        when(resourceService.getResourcesInActiveState())
+                .thenReturn(Collections.singletonList(expiredResource));
+
+        when(resourceService.getAuditDataForGtid("GT-001"))
+                .thenReturn(auditData);
+
+        doThrow(new RuntimeException("Update failed"))
+                .when(resourceService)
+                .updateResourceStatus("GT-001", "EXPIRED");
+
+        assertDoesNotThrow(() -> scheduler.processExpiredRequests());
+
+        verify(resourceService).updateResourceStatus("GT-001", "EXPIRED");
+
+    } finally {
+        server.stop(0);
+    }
+}
+
+@Test
+void testProcessExpiredRequestsCallsUpdateWithCorrectStatus() throws Exception {
+    HttpServer server = createCompletedJobStatusServer();
+
+    try {
+        ReflectionTestUtils.setField(
+                scheduler,
+                "URL_JOBS_STATUS",
+                "http://localhost:" + server.getAddress().getPort() + "/job/status"
+        );
+
+        ResourceTracking expiredResource = mock(ResourceTracking.class);
+        when(expiredResource.getGtId()).thenReturn("GT-001");
+        when(expiredResource.getGtid()).thenReturn("GT-001");
+
+        AuditData auditData = mock(AuditData.class);
+        when(auditData.getReconJobId()).thenReturn("RECON-001");
+
+        when(resourceService.getResourcesInActiveState())
+                .thenReturn(Collections.singletonList(expiredResource));
+
+        when(resourceService.getAuditDataForGtid("GT-001"))
+                .thenReturn(auditData);
+
+        scheduler.processExpiredRequests();
+
+        verify(resourceService, times(1))
+                .updateResourceStatus("GT-001", "EXPIRED");
+
+        verify(resourceService, never())
+                .extendResourceExpiry(anyString());
+
+    } finally {
+        server.stop(0);
+    }
+}
+
+
+
+
+private HttpServer createCompletedJobStatusServer() throws Exception {
+    HttpServer server = HttpServer.create(new InetSocketAddress(0), 0);
+
+    server.createContext("/job/status", exchange -> {
+        String response = "{\"status\":\"COMPLETED\"}";
+        exchange.sendResponseHeaders(200, response.getBytes().length);
+        exchange.getResponseBody().write(response.getBytes());
+        exchange.close();
+    });
+
+    server.start();
+    return server;
+}
+
+
 
 
 
