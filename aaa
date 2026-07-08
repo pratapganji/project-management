@@ -1,4 +1,18 @@
 
+
+APP_RESOURCE_POOL is used as the common lock key for the resource availability check. Before allocating resources, the application tries to acquire this lock so that only one request at a time can calculate available executors/memory and insert/update OM_NURAFLOW_RESOURCE_TRACKING.
+
+Since the APP_RESOURCE_POOL row was missing in OM_NURAFLOW_RESOURCE_LOCK, the application could not acquire the lock properly. Because of that, the resource availability step failed before inserting the ACTIVE resource tracking row and before sending the request to Bulk API.
+
+After adding the missing lock row, the lock was acquired, the availability check completed, the tracking row was inserted as ACTIVE, and the request proceeded to Bulk API.
+
+Simple one-line version:
+
+APP_RESOURCE_POOL is the DB lock entry used to control concurrent resource allocation; without this row, the app could not enter the locked resource-check section, so the flow failed before Bulk API submission.
+
+
+
+
 SELECT HIERARCHY_PATH, COUNT(*)
 FROM AL67969NURAREC.OM_NURAFLOW_PROFILE_CONFIG
 GROUP BY HIERARCHY_PATH
