@@ -1,3 +1,5 @@
+StringUtils.isEmpty(statusResponse.getString("status")
+
 logging.level.org.springframework.web.client.RestTemplate=DEBUG
 logging.level.org.springframework.http=DEBUG
 logging.level.org.apache.http=DEBUG
