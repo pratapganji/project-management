@@ -1,3 +1,9 @@
+SELECT owner, table_name
+FROM all_tables
+WHERE table_name LIKE '%JIRA%'
+   OR table_name LIKE '%TRACKING%';
+
+
 
 SELECT owner, table_name
 FROM all_tables
