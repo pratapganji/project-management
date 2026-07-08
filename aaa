@@ -1,4 +1,9 @@
 
+SELECT owner, table_name
+FROM all_tables
+WHERE table_name LIKE '%JIRA%';
+
+
 
 SELECT owner, table_name
 FROM all_tables
