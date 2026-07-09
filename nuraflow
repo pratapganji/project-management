@@ -1,3 +1,675 @@
+
+
+# NuraFlow Resource Profiling – QE Test Execution Document
+
+## Project Details
+
+**Feature:** Resource Profiling & Resource Queue Management
+
+**Application:** Olympus NuraFlow API
+
+**Environment:** UAT
+
+**Developer:** _______________________
+
+**QE Engineer:** _______________________
+
+**Execution Date:** ____________________
+
+**Build Version:** _____________________
+
+---
+
+# Objective
+
+Validate the newly implemented Resource Profiling functionality to ensure:
+
+- Resources are validated before sending requests to Bulk API.
+- Global resource limits are enforced across all hierarchy paths.
+- Only requests that fit within the configured resource pool become ACTIVE.
+- Requests exceeding available resources move to WAITING_FOR_RESOURCE.
+- Waiting requests are automatically processed by the scheduler when resources become available.
+- Resource tracking records are updated correctly during the entire lifecycle.
+
+---
+
+# Resource Configuration
+
+Current Resource Configuration
+
+| Resource | Configured Value |
+|----------|------------------|
+| Executors | 3 |
+| Executor Cores | 3 |
+| Executor Memory | 4 GB |
+| Driver Memory | 8 GB |
+| Driver Cores | 1 |
+
+**Note**
+
+These are GLOBAL resources shared by all hierarchy paths.
+
+Example:
+
+If one report consumes
+
+- Executors = 3
+- Executor Cores = 3
+- Executor Memory = 4 GB
+- Driver Memory = 8 GB
+- Driver Cores = 1
+
+then no other report should become ACTIVE until this report releases the resources.
+
+---
+
+# Database Pre-requisites
+
+Verify the following tables exist and contain valid data.
+
+- OM_NURAFLOW_PROFILE_CONFIG
+- OM_NURAFLOW_RESOURCE_TRACKING
+- OM_NURAFLOW_RESOURCE_LOCK
+- OM_NURAFLOW_AUDIT_DATA
+
+---
+
+# Pre-Validation
+
+## Verify Resource Lock
+
+Execute
+
+```sql
+SELECT *
+FROM OM_NURAFLOW_RESOURCE_LOCK;
+```
+
+Expected Result
+
+- APP_RESOURCE_POOL record exists.
+- Lock table contains valid configuration.
+
+QE Result
+
+______________________________________________________
+
+Evidence
+
+______________________________________________________
+
+---
+
+## Verify Profile Configuration
+
+Execute
+
+```sql
+SELECT *
+FROM OM_NURAFLOW_PROFILE_CONFIG
+WHERE ACTIVE_FLAG='Y';
+```
+
+Expected Result
+
+- Active profile configuration exists.
+- Resource values are configured correctly.
+
+QE Result
+
+______________________________________________________
+
+Evidence
+
+______________________________________________________
+
+---
+
+# Test Case 1
+
+## Validate First Request
+
+### Steps
+
+1. Trigger Template API.
+2. Submit a report.
+
+Expected Result
+
+- Resource availability check succeeds.
+- Lock acquired successfully.
+- Resource tracking record inserted.
+- Status becomes ACTIVE.
+- Bulk API is invoked.
+- Request processed successfully.
+
+QE Result
+
+______________________________________________________
+
+Evidence
+
+______________________________________________________
+
+---
+
+# Test Case 2
+
+## Validate ACTIVE Resource Entry
+
+Execute
+
+```sql
+SELECT *
+FROM OM_NURAFLOW_RESOURCE_TRACKING;
+```
+
+Expected Result
+
+Exactly one ACTIVE record should exist.
+
+QE Result
+
+______________________________________________________
+
+Evidence
+
+______________________________________________________
+
+---
+
+# Test Case 3
+
+## Validate Second Request While First Is ACTIVE
+
+### Steps
+
+1. Keep first request ACTIVE.
+2. Submit another report (same or different hierarchy path).
+
+Expected Result
+
+Since resources are shared globally,
+
+- Second request should NOT become ACTIVE.
+- Second request should be moved to WAITING_FOR_RESOURCE.
+- Bulk API should NOT be called.
+
+QE Result
+
+______________________________________________________
+
+Evidence
+
+______________________________________________________
+
+---
+
+# Test Case 4
+
+## Verify Resource Tracking Table
+
+Execute
+
+```sql
+SELECT *
+FROM OM_NURAFLOW_RESOURCE_TRACKING
+ORDER BY DWH_CREATED_TIMESTAMP;
+```
+
+Expected Result
+
+| Request | Expected Status |
+|----------|----------------|
+| First | ACTIVE |
+| Second | WAITING_FOR_RESOURCE |
+
+QE Result
+
+______________________________________________________
+
+Evidence
+
+______________________________________________________
+
+---
+
+# Test Case 5
+
+## Verify Audit Table
+
+Execute
+
+```sql
+SELECT *
+FROM OM_NURAFLOW_AUDIT_DATA
+ORDER BY DWH_CREATED_TIMESTAMP DESC;
+```
+
+Expected Result
+
+Audit record created.
+
+Verify
+
+- Global Transaction Id
+- Request Payload
+- Status
+- Caller Service
+
+QE Result
+
+______________________________________________________
+
+Evidence
+
+______________________________________________________
+
+---
+
+# Test Case 6
+
+## Release Resources
+
+Execute
+
+```sql
+UPDATE OM_NURAFLOW_RESOURCE_TRACKING
+SET STATUS='RELEASED'
+WHERE STATUS='ACTIVE';
+
+COMMIT;
+```
+
+Expected Result
+
+No ACTIVE records remain.
+
+QE Result
+
+______________________________________________________
+
+Evidence
+
+______________________________________________________
+
+---
+
+# Test Case 7
+
+## Validate Waiting Scheduler
+
+Wait for scheduler execution.
+
+Expected Result
+
+Scheduler should
+
+- Pick oldest WAITING_FOR_RESOURCE record.
+- Check resource availability.
+- Update status to ACTIVE.
+- Invoke Bulk API automatically.
+
+QE Result
+
+______________________________________________________
+
+Evidence
+
+______________________________________________________
+
+---
+
+# Test Case 8
+
+## Validate Resource Status After Scheduler
+
+Execute
+
+```sql
+SELECT *
+FROM OM_NURAFLOW_RESOURCE_TRACKING;
+```
+
+Expected Result
+
+Waiting request should move from
+
+WAITING_FOR_RESOURCE
+
+to
+
+ACTIVE
+
+and finally
+
+RELEASED
+
+after completion.
+
+QE Result
+
+______________________________________________________
+
+Evidence
+
+______________________________________________________
+
+---
+
+# Test Case 9
+
+## Validate Global Resource Calculation
+
+### Steps
+
+Submit requests using different hierarchy paths.
+
+Example
+
+- Facility
+- Loans
+- Pricing
+- ISR
+
+Expected Result
+
+Resource availability should consider ALL ACTIVE reports globally.
+
+Hierarchy path should NOT affect resource calculation.
+
+Only requests within configured capacity should become ACTIVE.
+
+Remaining requests should wait.
+
+QE Result
+
+______________________________________________________
+
+Evidence
+
+______________________________________________________
+
+---
+
+# Test Case 10
+
+## Validate Bulk API Response
+
+Execute
+
+```sql
+SELECT *
+FROM OM_NURAFLOW_AUDIT_DATA
+ORDER BY DWH_CREATED_TIMESTAMP DESC;
+```
+
+Expected Result
+
+Verify
+
+- Request Payload
+- Response Payload
+- Status = SUCCESS
+
+QE Result
+
+______________________________________________________
+
+Evidence
+
+______________________________________________________
+
+---
+
+# Test Case 11
+
+## Negative Test – Missing Lock
+
+Delete APP_RESOURCE_POOL record.
+
+```sql
+DELETE
+FROM OM_NURAFLOW_RESOURCE_LOCK
+WHERE LOCK_NAME='APP_RESOURCE_POOL';
+
+COMMIT;
+```
+
+Expected Result
+
+- Application should fail to acquire lock.
+- Resource availability check should fail.
+- Appropriate error should be logged.
+- Request should not proceed.
+
+QE Result
+
+______________________________________________________
+
+Evidence
+
+______________________________________________________
+
+---
+
+# Test Case 12
+
+## Negative Test – Missing Profile Configuration
+
+Deactivate or remove profile configuration.
+
+Expected Result
+
+Application should report
+
+"Profile Configuration not found"
+
+Bulk API should not be called.
+
+QE Result
+
+______________________________________________________
+
+Evidence
+
+______________________________________________________
+
+---
+
+# Test Case 13
+
+## Verify Scheduler Retry
+
+After releasing ACTIVE resource,
+
+Expected Result
+
+Scheduler should
+
+- Detect waiting requests.
+- Pick oldest waiting request.
+- Update status.
+- Send request automatically.
+- Receive successful response.
+
+QE Result
+
+______________________________________________________
+
+Evidence
+
+______________________________________________________
+
+---
+
+# SQL Queries
+
+## Resource Tracking
+
+```sql
+SELECT *
+FROM OM_NURAFLOW_RESOURCE_TRACKING
+ORDER BY DWH_CREATED_TIMESTAMP;
+```
+
+---
+
+## ACTIVE Resources
+
+```sql
+SELECT *
+FROM OM_NURAFLOW_RESOURCE_TRACKING
+WHERE STATUS='ACTIVE';
+```
+
+---
+
+## Waiting Resources
+
+```sql
+SELECT *
+FROM OM_NURAFLOW_RESOURCE_TRACKING
+WHERE STATUS='WAITING_FOR_RESOURCE';
+```
+
+---
+
+## Released Resources
+
+```sql
+SELECT *
+FROM OM_NURAFLOW_RESOURCE_TRACKING
+WHERE STATUS='RELEASED';
+```
+
+---
+
+## Audit Table
+
+```sql
+SELECT *
+FROM OM_NURAFLOW_AUDIT_DATA
+ORDER BY DWH_CREATED_TIMESTAMP DESC;
+```
+
+---
+
+## Profile Configuration
+
+```sql
+SELECT *
+FROM OM_NURAFLOW_PROFILE_CONFIG
+WHERE ACTIVE_FLAG='Y';
+```
+
+---
+
+## Resource Lock
+
+```sql
+SELECT *
+FROM OM_NURAFLOW_RESOURCE_LOCK;
+```
+
+---
+
+# Log Validation Checklist
+
+| Validation | Result | Evidence |
+|------------|--------|----------|
+| Resource availability check executed | __________ | __________________ |
+| APP_RESOURCE_POOL lock acquired | __________ | __________________ |
+| ACTIVE record inserted | __________ | __________________ |
+| WAITING_FOR_RESOURCE record inserted | __________ | __________________ |
+| Scheduler picked waiting request | __________ | __________________ |
+| Scheduler updated status to ACTIVE | __________ | __________________ |
+| Bulk API invoked | __________ | __________________ |
+| Bulk API Success | __________ | __________________ |
+| Resource released successfully | __________ | __________________ |
+
+---
+
+# Defect Log
+
+| Defect ID | Description | Severity | Status |
+|-----------|-------------|----------|--------|
+| | | | |
+| | | | |
+| | | | |
+
+---
+
+# QE Sign-Off
+
+QE Engineer:
+
+______________________________________
+
+Execution Date:
+
+______________________________________
+
+Overall Result
+
+☐ PASS
+
+☐ PASS WITH OBSERVATIONS
+
+☐ FAIL
+
+Comments
+
+____________________________________________________________
+
+____________________________________________________________
+
+____________________________________________________________
+
+Attachments
+
+- ELK Logs
+- Application Logs
+- SQL Query Results
+- Screenshots
+- API Responses
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+public static final String CURRENT_ACTIVE_USAGE_SQL =
+        "SELECT NVL(SUM(p.executors), 0) AS used_executors, " +
+        "NVL(SUM(p.executor_cores), 0) AS used_executor_cores, " +
+        "NVL(SUM(p.executor_memory_in_gb), 0) AS used_executor_memory_in_gb, " +
+        "NVL(SUM(p.driver_memory_in_gb), 0) AS used_driver_memory_in_gb, " +
+        "NVL(SUM(p.driver_cores), 0) AS used_driver_cores " +
+        "FROM A167969NURAREC.OM_NURAFLOW_PROFILE_CONFIG p " +
+        "JOIN A167969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING r " +
+        "ON r.hierarchy_path = p.hierarchy_path " +
+        "AND r.consumer = p.consumer " +
+        "WHERE r.status = 'ACTIVE' " +
+        "AND p.active_flag = 'Y'";
+
+
+
+
+
 StringUtils.isEmpty(statusResponse.getString("status")
 
 logging.level.org.springframework.web.client.RestTemplate=DEBUG
