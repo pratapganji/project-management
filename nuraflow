@@ -1,4 +1,13 @@
+Long id = jdbcTemplate.queryForObject(
+    "SELECT resource_tracking_seq.NEXTVAL FROM dual",
+    Long.class
+);
 
+jdbcTemplate.update(
+    "INSERT INTO resource_tracking (id, gt_id) VALUES (?, ?)",
+    id,
+    gtId
+);
 
 SELECT resource_tracking_seq.NEXTVAL FROM dual;
 
