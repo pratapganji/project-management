@@ -1,4 +1,7 @@
-
+CREATE SEQUENCE resource_tracking_seq
+START WITH 101
+INCREMENT BY 1
+NOCACHE;
 
 # NuraFlow Resource Profiling – QE Test Execution Document
 
