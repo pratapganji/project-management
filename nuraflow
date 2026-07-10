@@ -1,3 +1,7 @@
+
+
+SELECT resource_tracking_seq.NEXTVAL FROM dual;
+
 CREATE SEQUENCE resource_tracking_seq
 START WITH 101
 INCREMENT BY 1
