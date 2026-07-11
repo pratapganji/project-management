@@ -1,4 +1,32 @@
 
+
+
+SELECT c.constraint_name,
+       c.constraint_type,
+       cc.column_name,
+       cc.position
+FROM all_constraints c
+JOIN all_cons_columns cc
+  ON cc.owner = c.owner
+ AND cc.constraint_name = c.constraint_name
+WHERE c.owner = 'A167969NURAREC'
+  AND c.table_name = 'ROLE_TABLE_PERMISSION'
+ORDER BY c.constraint_name, cc.position;
+
+
+SELECT MAX(ID) AS MAX_ID
+FROM A167969NURAREC.ROLE_COLUMN_PERMISSION;
+
+SELECT MAX(ID) AS MAX_ID
+FROM A167969NURAREC.ROLE_TABLE_PERMISSION;
+
+
+
+
+
+
+
+
 SELECT *
 FROM A167969NURAREC.ROLE_TABLE_PERMISSION
 WHERE UPPER(TABLE_NAME) = 'OM_NURAFLOW_JIRA_TRACKING';
