@@ -1,3 +1,82 @@
+public boolean columnAllowed(
+        List<String> roles,
+        String table,
+        String column,
+        String perm) {
+
+    try {
+        String placeholders = String.join(
+                ",",
+                roles.stream().map(role -> "?").toList()
+        );
+
+        String sql =
+                "SELECT COUNT(*) " +
+                "FROM A167969NURAREC.ROLE_COLUMN_PERMISSION " +
+                "WHERE UPPER(ROLE_NAME) IN (" + placeholders + ") " +
+                "AND UPPER(TABLE_NAME) = ? " +
+                "AND UPPER(COLUMN_NAME) = ? " +
+                "AND UPPER(PERMISSION) = ?";
+
+        List<Object> params = new ArrayList<>();
+
+        roles.stream()
+                .map(String::toUpperCase)
+                .forEach(params::add);
+
+        params.add(table.toUpperCase());
+        params.add(column.toUpperCase());
+        params.add(perm.toUpperCase());
+
+        log.info(
+                "Checking column permission. roles={}, parsedTable={}, column={}, permission={}, params={}",
+                roles,
+                table,
+                column,
+                perm,
+                params
+        );
+
+        Integer count = jdbc.queryForObject(
+                sql,
+                Integer.class,
+                params.toArray()
+        );
+
+        boolean allowed = count != null && count > 0;
+
+        log.info(
+                "Column permission result. table={}, column={}, permission={}, count={}, allowed={}",
+                table,
+                column,
+                perm,
+                count,
+                allowed
+        );
+
+        return allowed;
+
+    } catch (Exception e) {
+        log.error(
+                "Error executing column permission query. roles={}, table={}, column={}, permission={}",
+                roles,
+                table,
+                column,
+                perm,
+                e
+        );
+
+        throw new DataAccessException(
+                "Unable to verify role column permissions"
+        );
+    }
+}
+
+
+
+
+
+
 
 public void checkTableAccess(
         String fid,
