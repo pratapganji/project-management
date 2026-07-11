@@ -1,4 +1,9 @@
 
+SELECT MAX(ID) AS MAX_ID
+FROM A167969NURAREC.ROLE_COLUMN_PERMISSION;
+
+
+
 SELECT trigger_name,
        status,
        triggering_event
