@@ -1,4 +1,57 @@
 
+
+SELECT *
+FROM A167969NURAREC.ROLE_COLUMN_PERMISSION
+WHERE UPPER(ROLE_NAME) = 'OLYMPUS_READ_WRITE'
+  AND LOWER(TABLE_NAME) = 'validation_config_rules'
+  AND COLUMN_NAME = '*'
+  AND UPPER(PERMISSION) = 'SELECT';
+
+
+SELECT *
+FROM A167969NURAREC.ROLE_COLUMN_PERMISSION
+WHERE UPPER(ROLE_NAME) = 'OLYMPUS_READ_WRITE'
+  AND LOWER(TABLE_NAME) = 'validation_config_rules'
+  AND COLUMN_NAME = '*'
+  AND UPPER(PERMISSION) = 'SELECT';
+
+
+
+SELECT c.constraint_name,
+       c.constraint_type,
+       cc.column_name,
+       cc.position
+FROM all_constraints c
+JOIN all_cons_columns cc
+  ON cc.owner = c.owner
+ AND cc.constraint_name = c.constraint_name
+WHERE c.owner = 'A167969NURAREC'
+  AND c.table_name = 'ROLE_COLUMN_PERMISSION'
+ORDER BY c.constraint_name, cc.position;
+
+
+
+SELECT sequence_owner,
+       sequence_name,
+       last_number
+FROM all_sequences
+WHERE sequence_owner = 'A167969NURAREC'
+  AND (
+       UPPER(sequence_name) LIKE '%ROLE%COLUMN%'
+       OR UPPER(sequence_name) LIKE '%PERMISSION%'
+  );
+
+
+SELECT *
+FROM (
+    SELECT *
+    FROM A167969NURAREC.ROLE_COLUMN_PERMISSION
+    ORDER BY ID DESC
+)
+WHERE ROWNUM <= 10;
+
+
+
 SELECT *
 FROM A167969NURAREC.ROLE_COLUMN_PERMISSION
 WHERE UPPER(TABLE_NAME) = 'VALIDATION_CONFIG_RULES'
