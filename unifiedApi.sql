@@ -1,11 +1,10 @@
 
-
-SELECT *
-FROM A167969NURAREC.ROLE_COLUMN_PERMISSION
-WHERE UPPER(ROLE_NAME) = 'OLYMPUS_READ_WRITE'
-  AND LOWER(TABLE_NAME) = 'validation_config_rules'
-  AND COLUMN_NAME = '*'
-  AND UPPER(PERMISSION) = 'SELECT';
+SELECT trigger_name,
+       status,
+       triggering_event
+FROM all_triggers
+WHERE table_owner = 'A167969NURAREC'
+  AND table_name = 'ROLE_COLUMN_PERMISSION';
 
 
 SELECT *
