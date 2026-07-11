@@ -1,4 +1,30 @@
 
+public void checkTableAccess(
+        String fid,
+        List<String> roles,
+        String table,
+        String op) {
+
+    boolean allowed = repo.tableAllowed(roles, table, op);
+
+    log.info(
+            "Table authorization result. fid={}, roles={}, table={}, operation={}, allowed={}",
+            fid, roles, table, op, allowed
+    );
+
+    if (!allowed) {
+        throw new UnauthorizedException(
+                "FID " + fid + " denied " + op +
+                " access on table: " + table
+        );
+    }
+}
+
+
+
+
+
+
 public boolean tableAllowed(List<String> roles, String table, String perm) {
     try {
         String placeholders = String.join(
