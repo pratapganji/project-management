@@ -1,3 +1,57 @@
+
+public void checkColumnAccess(
+        String fid,
+        List<String> roles,
+        String table,
+        String op,
+        List<String> columns) {
+
+    boolean wildcardAllowed =
+            repo.columnAllowed(roles, table, "*", op);
+
+    log.info(
+            "Wildcard column authorization result. fid={}, roles={}, table={}, operation={}, allowed={}",
+            fid,
+            roles,
+            table,
+            op,
+            wildcardAllowed
+    );
+
+    if (wildcardAllowed) {
+        return;
+    }
+
+    for (String col : columns) {
+        boolean allowed =
+                repo.columnAllowed(roles, table, col, op);
+
+        log.info(
+                "Column authorization result. fid={}, roles={}, table={}, column={}, operation={}, allowed={}",
+                fid,
+                roles,
+                table,
+                col,
+                op,
+                allowed
+        );
+
+        if (!allowed) {
+            throw new UnauthorizedException(
+                    "FID " + fid +
+                    " denied " + op +
+                    " access on column: " + col +
+                    " in table: " + table
+            );
+        }
+    }
+}
+
+
+
+
+
+
 public boolean columnAllowed(
         List<String> roles,
         String table,
