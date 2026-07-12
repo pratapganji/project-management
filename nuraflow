@@ -1,4 +1,20 @@
 
+if (data.length > 5
+        && "RTID".equalsIgnoreCase(String.valueOf(data[4]))) {
+    try {
+        Long rtId = Long.valueOf(String.valueOf(data[5]));
+        log.info("RTID: {}", rtId);
+        logFinalReport.put("RTID", rtId);
+    } catch (NumberFormatException e) {
+        log.warn("Invalid RTID value received in failure response: {}", data[5]);
+        logFinalReport.put("RTID", 0L);
+    }
+}
+
+
+
+
+
 
 if (data.length > 4
         && "RTID".equalsIgnoreCase(String.valueOf(data[3]))) {
