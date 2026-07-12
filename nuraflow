@@ -1,5 +1,55 @@
 
 
+try {
+    log.info(
+            "Insert resource status waiting SQL for consumer {} with hierarchyPath {}: {}",
+            consumer,
+            hierarchyPath,
+            NuraQueryConstants.INSERT_RESOURCE_STATUS_WAITING_SQL
+    );
+
+    jdbcTemplate.update(
+            NuraQueryConstants.INSERT_RESOURCE_STATUS_WAITING_SQL,
+            globalTransactionId,
+            hierarchyPath,
+            status,
+            consumer
+    );
+
+    ResourceTracking resourceTracking =
+            getResourcesForGtid(globalTransactionId);
+
+    if (resourceTracking == null || resourceTracking.getId() == null) {
+        log.error(
+                "Unable to fetch resource tracking ID for waiting request. globalTransactionId: {}",
+                globalTransactionId
+        );
+        return null;
+    }
+
+    log.info(
+            "Inserted waiting resource record with ID {} for globalTransactionId: {}",
+            resourceTracking.getId(),
+            globalTransactionId
+    );
+
+    return resourceTracking.getId();
+
+} catch (Exception e) {
+    log.error(
+            "Error inserting waiting resource status for globalTransactionId {} and hierarchyPath {}: {}",
+            globalTransactionId,
+            hierarchyPath,
+            e.getMessage(),
+            e
+    );
+    return null;
+}
+
+
+
+
+
 
 ResourceTracking resourceTracking = getResourcesForGtid(globalTransactionId);
 
