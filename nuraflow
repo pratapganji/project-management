@@ -1,4 +1,42 @@
 
+if (calledService.equalsIgnoreCase(StructuredLogConstants.SPARKYAML)
+        && payloads != null
+        && payloads.length >= 4
+        && payloads[3] != null) {
+
+    logData.put(
+            "Status",
+            StructuredLogConstants.WAITING_FOR_RESOURCE
+    );
+
+} else {
+
+    logData.put(
+            "Status",
+            StructuredLogConstants.RECEIVED
+    );
+}
+
+if (calledService.equalsIgnoreCase(StructuredLogConstants.SPARKYAML)
+        && payloads != null
+        && payloads.length >= 5
+        && payloads[4] != null) {
+
+    try {
+        logData.put(
+                "RTID",
+                Long.valueOf(payloads[4].toString())
+        );
+    } catch (NumberFormatException e) {
+        log.warn("Invalid RTID value received: {}", payloads[4]);
+        logData.put("RTID", 0L);
+    }
+}
+
+
+
+
+
 
 if (data.length > 3 && data[3] instanceof String) {
     globalTransactionId = (String) data[3];
