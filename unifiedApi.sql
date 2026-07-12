@@ -1,4 +1,14 @@
 
+SELECT owner, table_name
+FROM all_tables
+WHERE owner = 'A167969NURAREC'
+  AND table_name = 'OM_NURAFLOW_JIRA_TRACKING';
+
+
+
+
+
+
 private String normalizeTableForPermission(String table) {
 
     if (table == null || table.isBlank()) {
