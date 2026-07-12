@@ -1,4 +1,46 @@
 
+private String normalizeTableForPermission(String table) {
+
+    if (table == null || table.isBlank()) {
+        throw new DataAccessException("Table name cannot be empty");
+    }
+
+    String normalizedTable = table.trim().replace("\"", "");
+
+    String[] tableParts = normalizedTable.split("\\.");
+
+    // Query contains only table name:
+    // OM_NURAFLOW_JIRA_TRACKING
+    if (tableParts.length == 1) {
+        return tableParts[0].toLowerCase();
+    }
+
+    // Query contains schema.table:
+    // A167969NURAREC.OM_NURAFLOW_JIRA_TRACKING
+    if (tableParts.length == 2) {
+
+        String schema = tableParts[0];
+        String tableName = tableParts[1];
+
+        if (!SCHEMA_NAME.equalsIgnoreCase(schema)) {
+            throw new UnauthorizedException(
+                    "Access denied for schema: " + schema
+            );
+        }
+
+        return tableName.toLowerCase();
+    }
+
+    throw new DataAccessException(
+            "Invalid table identifier: " + table
+    );
+}
+
+
+
+
+
+
     SELECT * FROM OM_NURAFLOW_JIRA_TRACKING
 * ✅ select * from om_nuraflow_jira_tracking (lowercase)
 * ✅ SeLeCt * FrOm OM_NURAFLOW_JIRA_TRACKING (mixed case)
