@@ -1,3 +1,31 @@
+
+
+if (data.length > 3 && data[3] instanceof String) {
+    globalTransactionId = (String) data[3];
+}
+
+Object errorMessage = data.length > 2 && data[2] != null
+        ? data[2]
+        : "Unknown error";
+
+String finalStatus = StructuredLogConstants.FAILED;
+
+if (data.length > 4
+        && StructuredLogConstants.WAITING_FOR_RESOURCE.equalsIgnoreCase(
+                String.valueOf(data[4]))) {
+    finalStatus = StructuredLogConstants.WAITING_FOR_RESOURCE;
+}
+
+logFinalReport.put("GlobalTransactionId", globalTransactionId);
+logFinalReport.put("Response", null);
+logFinalReport.put("Status", finalStatus);
+
+
+
+
+
+
+
 Long id = jdbcTemplate.queryForObject(
     "SELECT resource_tracking_seq.NEXTVAL FROM dual",
     Long.class
