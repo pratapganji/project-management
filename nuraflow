@@ -1,5 +1,22 @@
 
 
+if (data.length > 4
+        && "RTID".equalsIgnoreCase(String.valueOf(data[3]))) {
+    try {
+        Long rtId = Long.valueOf(String.valueOf(data[4]));
+        log.info("RTID: {}", rtId);
+        logFinalReport.put("RTID", rtId);
+    } catch (NumberFormatException e) {
+        log.warn("Invalid RTID value received in success response: {}", data[4]);
+        logFinalReport.put("RTID", 0L);
+    }
+}
+
+
+
+
+
+
 Long resourceTrackingId;
 
 if (resourceAvailable) {
