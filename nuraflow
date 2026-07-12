@@ -1,4 +1,9 @@
 
+SELECT sequence_name
+FROM all_sequences
+WHERE sequence_name LIKE '%RESOURCE%TRACK%';
+
+
 
 
 public static final String NEXT_RESOURCE_TRACKING_ID_SQL =
