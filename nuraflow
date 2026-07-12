@@ -1,4 +1,33 @@
 
+
+
+public static final String NEXT_RESOURCE_TRACKING_ID_SQL =
+    "SELECT resource_tracking_seq.NEXTVAL FROM dual";
+
+
+
+public static final String INSERT_RESOURCE_STATUS_WAITING_SQL =
+    "INSERT INTO A167969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING " +
+    "(ID, GTID, HIERARCHY_PATH, STATUS, CONSUMER, " +
+    "DWH_CREATED_TIMESTAMP) " +
+    "VALUES (?, ?, ?, ?, ?, SYSDATE)";
+
+
+
+
+
+public static final String INSERT_RESOURCE_STATUS_ACTIVE_SQL =
+    "INSERT INTO A167969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING " +
+    "(ID, GTID, HIERARCHY_PATH, STATUS, CONSUMER, " +
+    "DWH_CREATED_TIMESTAMP, DWH_EXPIRY_TIMESTAMP) " +
+    "VALUES (?, ?, ?, ?, ?, SYSDATE, " +
+    "SYSDATE + INTERVAL '25' MINUTE)";
+
+
+
+
+
+
 if (calledService.equalsIgnoreCase(StructuredLogConstants.SPARKYAML)
         && payloads != null
         && payloads.length >= 4
