@@ -1,5 +1,46 @@
 
 
+Long resourceTrackingId;
+
+if (resourceAvailable) {
+    log.info("Required resources are available for hierarchy path: {}", hierarchyPath);
+
+    resourceTrackingId = resourceService.updateResourceStatusActive(
+            consumerDto.getGlobalTransactionId(),
+            hierarchyPath,
+            "ACTIVE",
+            consumerDto.getConsumer());
+} else {
+    log.info("Required resources are not available for hierarchy path: {}", hierarchyPath);
+
+    resourceTrackingId = resourceService.updateResourceStatusWaiting(
+            consumerDto.getGlobalTransactionId(),
+            hierarchyPath,
+            "WAITING_FOR_RESOURCE",
+            consumerDto.getConsumer());
+}
+
+if (resourceTrackingId == null) {
+    throw new IllegalStateException(
+            "Resource tracking ID could not be obtained for globalTransactionId: "
+                    + consumerDto.getGlobalTransactionId());
+}
+
+return prepareAndSendRequest(
+        consumerDto,
+        headers,
+        hierarchyPath,
+        resourceAvailable,
+        resourceTrackingId);
+
+
+
+
+
+
+
+
+
 try {
     log.info(
             "Insert resource status waiting SQL for consumer {} with hierarchyPath {}: {}",
