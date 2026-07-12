@@ -1,4 +1,29 @@
 
+CREATE TABLE A167969NURAREC.OM_NURAFLOW_JIRA_TRACKING
+(
+    ID                         NUMBER             NOT NULL,
+    HOP_ID                     NUMBER(19)         NOT NULL,
+    NR_PDA_NAME                VARCHAR2(500)      NOT NULL,
+    RECON_RUN_DATE             NUMBER(8)          NOT NULL,
+    L0_DOMAIN                  VARCHAR2(200),
+    SOURCE_SYSTEM_NAME         VARCHAR2(200),
+    DESTINATION_SYSTEM_NAME    VARCHAR2(200),
+    REPORT_STREAM_NAME         VARCHAR2(100),
+    TOTAL_BREAKS               NUMBER(19),
+    PRODUCT_NM                 VARCHAR2(100),
+    JIRA_TICKET_KEY            VARCHAR2(50)       NOT NULL,
+    JIRA_STATUS                VARCHAR2(50)       NOT NULL,
+    RAISED_BY                  VARCHAR2(100),
+    DWH_CREATED_TIMESTAMP      TIMESTAMP(6),
+    DWH_CREATED_BY             VARCHAR2(100),
+    DWH_UPDATED_TIMESTAMP      TIMESTAMP(6),
+    DWH_UPDATED_BY             VARCHAR2(100),
+    DWH_EXPIRY_TIMESTAMP       TIMESTAMP(6)
+);
+
+
+
+
 SELECT owner, table_name
 FROM all_tables
 WHERE owner = 'A167969NURAREC'
