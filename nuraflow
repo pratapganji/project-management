@@ -1,4 +1,26 @@
 
+
+SELECT owner,
+       trigger_name,
+       status,
+       triggering_event
+FROM all_triggers
+WHERE table_owner = 'A167969NURAREC'
+  AND table_name = 'OM_NURAFLOW_RESOURCE_TRACKING';
+
+
+
+
+SELECT column_name,
+       identity_column,
+       data_default
+FROM all_tab_columns
+WHERE owner = 'A167969NURAREC'
+  AND table_name = 'OM_NURAFLOW_RESOURCE_TRACKING'
+  AND column_name = 'ID';
+
+
+
 SELECT sequence_name
 FROM all_sequences
 WHERE sequence_name LIKE '%RESOURCE%TRACK%';
