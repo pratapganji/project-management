@@ -1,4 +1,99 @@
 
+
+if (response.getStatusCode().is2xxSuccessful()) {
+
+    log.info(
+            "Success sending request to Bulk API: {} Response Body: {}",
+            response.getStatusCode(),
+            response.getBody()
+    );
+
+    if (checkAuditRecords != null && !checkAuditRecords.isEmpty()) {
+        updateStatusWithTimestamp(
+                id,
+                AuditTableConstants.SUCCESS,
+                response.getBody()
+        );
+    } else {
+        structuredLogUtil.checkResponse(
+                StructuredLogConstants.TEMPLATE_SERVICE,
+                response.getBody(),
+                true,
+                resourceTracking.getGtId()
+        );
+    }
+
+    // Bulk accepted the request. Keep resource ACTIVE.
+    return response;
+}
+
+String responseBody = response.getBody();
+
+String limitedBody =
+        responseBody != null && responseBody.length() > 1000
+                ? responseBody.substring(0, 1000) + "... (truncated)"
+                : responseBody;
+
+if (response.getStatusCode().is4xxClientError()) {
+
+    log.error(
+            "Client error during Bulk API request: {} Response Body: {}",
+            response.getStatusCode(),
+            response.getBody()
+    );
+
+} else if (response.getStatusCode().is5xxServerError()) {
+
+    log.warn(
+            "Server error during Bulk API request: {} Response Body: {}",
+            response.getStatusCode(),
+            response.getBody()
+    );
+
+} else {
+
+    log.warn(
+            "Unexpected status code during Bulk API request: {}",
+            response.getStatusCode()
+    );
+}
+
+if (checkAuditRecords != null && !checkAuditRecords.isEmpty()) {
+
+    updateStatusWithTimestamp(
+            id,
+            AuditTableConstants.FAILED,
+            limitedBody
+    );
+
+} else {
+
+    structuredLogUtil.checkResponse(
+            StructuredLogConstants.TEMPLATE_SERVICE,
+            null,
+            false,
+            limitedBody,
+            resourceTracking.getGtId()
+    );
+}
+
+// Bulk did not accept the request. Release the resource.
+resourceService.updateResourceStatus(
+        resourceTracking.getGtId(),
+        "RELEASED"
+);
+
+return response;
+
+
+
+
+
+
+
+
+
+
 if (response.getStatusCode().is2xxSuccessful()) {
     log.info(
         "Success sending request to Bulk API: {} Response Body: {}",
