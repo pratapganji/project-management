@@ -1,4 +1,32 @@
 
+CONSTRAINT PK_NURAFLOW_RESOURCE_TRACKING_ID
+    PRIMARY KEY (ID)
+    USING INDEX TABLESPACE TS_NURAREC_INDX
+    ENABLE
+
+
+
+SELECT column_name, identity_column, data_default
+FROM all_tab_columns
+WHERE owner = 'A167969NURAREC'
+  AND table_name = 'OM_NURAFLOW_PROFILE_CONFIG'
+  AND column_name = 'ID';
+
+
+SELECT ac.constraint_name,
+       ac.constraint_type,
+       acc.column_name
+FROM all_constraints ac
+JOIN all_cons_columns acc
+  ON ac.owner = acc.owner
+ AND ac.constraint_name = acc.constraint_name
+WHERE ac.owner = 'A167969NURAREC'
+  AND ac.table_name = 'OM_NURAFLOW_PROFILE_CONFIG'
+ORDER BY acc.position;
+
+
+
+
 SELECT constraint_name, constraint_type, status
 FROM all_constraints
 WHERE owner = 'A167969NURAREC'
