@@ -1,4 +1,29 @@
 
+catch (Exception ex) {
+
+    log.error(
+            "Error processing resource for GTID: {}",
+            resourceTracking.getGtId(),
+            ex
+    );
+
+    try {
+        resourceService.updateResourceStatus(
+                resourceTracking.getGtId(),
+                "RELEASED"
+        );
+    } catch (Exception releaseException) {
+        log.error(
+                "Unable to release resource for GTID: {}",
+                resourceTracking.getGtId(),
+                releaseException
+        );
+    }
+}
+
+
+
+
 
 if (response.getStatusCode().is2xxSuccessful()) {
 
