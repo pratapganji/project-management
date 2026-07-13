@@ -1,4 +1,142 @@
 
+SET FEEDBACK ON
+SET LINES 1000
+SET VERIFY ON
+SET DEFINE OFF
+SET SERVEROUTPUT ON
+
+PROMPT OM_NURAFLOW_RESOURCE_TRACKING.tbl-STARTS
+
+DECLARE
+    lv_cnt   NUMBER;
+    lv_owner VARCHAR2(100) := 'A167969NURAREC';
+    lv_name  VARCHAR2(100) := 'OM_NURAFLOW_RESOURCE_TRACKING';
+BEGIN
+    SELECT COUNT(1)
+      INTO lv_cnt
+      FROM all_tables
+     WHERE owner = lv_owner
+       AND table_name = lv_name;
+
+    IF lv_cnt = 0 THEN
+
+        EXECUTE IMMEDIATE q'[
+            CREATE TABLE A167969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING
+            (
+                ID                    NUMBER         NOT NULL,
+                GTID                  VARCHAR2(200)  NOT NULL,
+                HIERARCHY_PATH        VARCHAR2(100)  NOT NULL,
+                STATUS                VARCHAR2(25)   NOT NULL,
+                DWH_CREATED_TIMESTAMP TIMESTAMP(6),
+                DWH_CREATED_BY        VARCHAR2(100),
+                DWH_UPDATED_TIMESTAMP TIMESTAMP(6),
+                DWH_UPDATED_BY        VARCHAR2(100),
+                DWH_EXPIRY_TIMESTAMP  TIMESTAMP(6),
+                CONSUMER              VARCHAR2(50)   NOT NULL,
+
+                CONSTRAINT PK_NURAFLOW_RESOURCE_TRACK_ID
+                    PRIMARY KEY (ID)
+                    USING INDEX TABLESPACE TS_NURAREC_INDX
+                    ENABLE
+            )
+            SEGMENT CREATION IMMEDIATE
+            TABLESPACE TS_NURAREC_DATA
+        ]';
+
+        DBMS_OUTPUT.PUT_LINE(
+            'Table created - ' || lv_owner || '.' || lv_name
+        );
+    ELSE
+        DBMS_OUTPUT.PUT_LINE(
+            'Table already exists - ' || lv_owner || '.' || lv_name
+        );
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE(
+            'Error while creating table: ' || SQLERRM
+        );
+        DBMS_OUTPUT.PUT_LINE(
+            DBMS_UTILITY.FORMAT_ERROR_BACKTRACE
+        );
+        RAISE;
+END;
+/
+
+PROMPT CREATING RESOURCE_TRACKING_SEQ
+
+DECLARE
+    lv_cnt        NUMBER;
+    lv_start_with NUMBER;
+    lv_owner      VARCHAR2(100) := 'A167969NURAREC';
+    lv_seq_name   VARCHAR2(100) := 'RESOURCE_TRACKING_SEQ';
+BEGIN
+    SELECT COUNT(1)
+      INTO lv_cnt
+      FROM all_sequences
+     WHERE sequence_owner = lv_owner
+       AND sequence_name = lv_seq_name;
+
+    IF lv_cnt = 0 THEN
+
+        EXECUTE IMMEDIATE
+            'SELECT NVL(MAX(ID), 0) + 1
+               FROM A167969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING'
+            INTO lv_start_with;
+
+        EXECUTE IMMEDIATE
+            'CREATE SEQUENCE A167969NURAREC.RESOURCE_TRACKING_SEQ ' ||
+            'START WITH ' || lv_start_with || ' ' ||
+            'INCREMENT BY 1 ' ||
+            'NOCACHE ' ||
+            'NOCYCLE';
+
+        DBMS_OUTPUT.PUT_LINE(
+            'Sequence created - ' || lv_owner || '.' || lv_seq_name ||
+            ', starting with ' || lv_start_with
+        );
+    ELSE
+        DBMS_OUTPUT.PUT_LINE(
+            'Sequence already exists - ' || lv_owner || '.' || lv_seq_name
+        );
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE(
+            'Error while creating sequence: ' || SQLERRM
+        );
+        DBMS_OUTPUT.PUT_LINE(
+            DBMS_UTILITY.FORMAT_ERROR_BACKTRACE
+        );
+        RAISE;
+END;
+/
+
+PROMPT APPLYING GRANTS
+
+GRANT SELECT
+ON A167969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING
+TO CITI_OLYMPUS_NURAREC_RO;
+
+GRANT SELECT, INSERT, DELETE, UPDATE
+ON A167969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING
+TO CITI_OLYMPUS_NURAREC_RW;
+
+GRANT SELECT
+ON A167969NURAREC.RESOURCE_TRACKING_SEQ
+TO CITI_OLYMPUS_NURAREC_RW;
+
+PROMPT OM_NURAFLOW_RESOURCE_TRACKING.tbl-ENDS
+
+
+
+
+
+
+
+
 
 SELECT NVL(MAX(ID), 0) + 1 AS NEXT_START_VALUE
 FROM A167969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING;
