@@ -1,4 +1,31 @@
 
+if (response.getStatusCode().is2xxSuccessful()) {
+    log.info(
+        "Success sending request to Bulk API: {} Response Body: {}",
+        response.getStatusCode(),
+        response.getBody()
+    );
+
+    if (checkAuditRecords != null && !checkAuditRecords.isEmpty()) {
+        updateStatusWithTimestamp(
+            id,
+            AuditTableConstants.SUCCESS,
+            response.getBody()
+        );
+    } else {
+        structuredLogUtil.checkResponse(
+            StructuredLogConstants.TEMPLATE_SERVICE,
+            response.getBody(),
+            true,
+            resourceTracking.getGtId()
+        );
+    }
+
+    return response;   // ADD THIS LINE
+}
+
+
+
 if (data.length > 5
         && "RTID".equalsIgnoreCase(String.valueOf(data[4]))) {
     try {
