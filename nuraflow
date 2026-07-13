@@ -1,4 +1,11 @@
 
+public static final String UPDATE_RESOURCE_STATUS_BY_ID_SQL =
+        "UPDATE A167969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING " +
+        "SET STATUS = ?, DWH_UPDATED_TIMESTAMP = SYSDATE " +
+        "WHERE ID = ?";
+
+
+
 public void updateResourceStatusById(Long resourceTrackingId, String status) {
     int rowsAffected = jdbcTemplate.update(
             NuraQueryConstants.UPDATE_RESOURCE_STATUS_BY_ID_SQL,
