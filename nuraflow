@@ -1,4 +1,18 @@
 
+
+String finalStatus =
+        data.length > 4
+                && StructuredLogConstants.WAITING_FOR_RESOURCE
+                    .equalsIgnoreCase(String.valueOf(data[4]))
+                ? StructuredLogConstants.WAITING_FOR_RESOURCE
+                : StructuredLogConstants.FAILED;
+
+logFinalReport.put("Status", finalStatus);
+
+
+
+
+
 UPDATE A167969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING
 SET STATUS = 'WAITING_FOR_RESOURCE',
     DWH_UPDATED_TIMESTAMP = SYSDATE,
