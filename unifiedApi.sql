@@ -1,5 +1,126 @@
 
 
+
+SAVEPOINT before_jira_permission_change;
+
+------------------------------------------------------------
+-- 1. TABLE-LEVEL INSERT PERMISSION
+------------------------------------------------------------
+INSERT INTO A167969NURAREC.ROLE_TABLE_PERMISSION
+(
+    ID,
+    ROLE_NAME,
+    TABLE_NAME,
+    PERMISSION,
+    CREATE_DATE,
+    UPDATE_DATE,
+    CREATED_BY,
+    UPDATED_BY
+)
+VALUES
+(
+    (SELECT NVL(MAX(ID), 0) + 1
+       FROM A167969NURAREC.ROLE_TABLE_PERMISSION),
+    'OLYMPUS_READ_WRITE',
+    'OM_NURAFLOW_JIRA_TRACKING',
+    'INSERT',
+    SYSTIMESTAMP,
+    SYSTIMESTAMP,
+    'OLYMPUS-NURA_FLOW',
+    'OLYMPUS-NURA_FLOW'
+);
+
+------------------------------------------------------------
+-- 2. TABLE-LEVEL UPDATE PERMISSION
+------------------------------------------------------------
+INSERT INTO A167969NURAREC.ROLE_TABLE_PERMISSION
+(
+    ID,
+    ROLE_NAME,
+    TABLE_NAME,
+    PERMISSION,
+    CREATE_DATE,
+    UPDATE_DATE,
+    CREATED_BY,
+    UPDATED_BY
+)
+VALUES
+(
+    (SELECT NVL(MAX(ID), 0) + 1
+       FROM A167969NURAREC.ROLE_TABLE_PERMISSION),
+    'OLYMPUS_READ_WRITE',
+    'OM_NURAFLOW_JIRA_TRACKING',
+    'UPDATE',
+    SYSTIMESTAMP,
+    SYSTIMESTAMP,
+    'OLYMPUS-NURA_FLOW',
+    'OLYMPUS-NURA_FLOW'
+);
+
+------------------------------------------------------------
+-- 3. ALL-COLUMNS INSERT PERMISSION
+------------------------------------------------------------
+INSERT INTO A167969NURAREC.ROLE_COLUMN_PERMISSION
+(
+    ID,
+    ROLE_NAME,
+    TABLE_NAME,
+    COLUMN_NAME,
+    PERMISSION,
+    CREATE_DATE,
+    UPDATE_DATE,
+    CREATED_BY,
+    UPDATED_BY
+)
+VALUES
+(
+    (SELECT NVL(MAX(ID), 0) + 1
+       FROM A167969NURAREC.ROLE_COLUMN_PERMISSION),
+    'OLYMPUS_READ_WRITE',
+    'OM_NURAFLOW_JIRA_TRACKING',
+    '*',
+    'INSERT',
+    SYSTIMESTAMP,
+    SYSTIMESTAMP,
+    'OLYMPUS-NURA_FLOW',
+    'OLYMPUS-NURA_FLOW'
+);
+
+------------------------------------------------------------
+-- 4. ALL-COLUMNS UPDATE PERMISSION
+------------------------------------------------------------
+INSERT INTO A167969NURAREC.ROLE_COLUMN_PERMISSION
+(
+    ID,
+    ROLE_NAME,
+    TABLE_NAME,
+    COLUMN_NAME,
+    PERMISSION,
+    CREATE_DATE,
+    UPDATE_DATE,
+    CREATED_BY,
+    UPDATED_BY
+)
+VALUES
+(
+    (SELECT NVL(MAX(ID), 0) + 1
+       FROM A167969NURAREC.ROLE_COLUMN_PERMISSION),
+    'OLYMPUS_READ_WRITE',
+    'OM_NURAFLOW_JIRA_TRACKING',
+    '*',
+    'UPDATE',
+    SYSTIMESTAMP,
+    SYSTIMESTAMP,
+    'OLYMPUS-NURA_FLOW',
+    'OLYMPUS-NURA_FLOW'
+);
+
+
+
+
+
+
+
 SELECT *
 FROM A167969NURAREC.ROLE_TABLE_PERMISSION
 WHERE UPPER(ROLE_NAME) = 'OLYMPUS_READ_WRITE'
