@@ -1,4 +1,14 @@
 
+assertEquals(
+    "INSERT INTO " + AuditDataConstants.AUDIT_DATA_TABLE + " " +
+        "(GLOBAL_TRANSACTION_ID, CALLER_SERVICE, CALLED_SERVICE, API_ENDPOINT, " +
+        "REQUEST_PAYLOAD, DWH_CREATED_BY, DWH_CREATED_TIMESTAMP, HEADERS, STATUS, RT_ID) " +
+        "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+    AuditDataConstants.INSERT_AUDIT_DATA_SQL
+);
+
+
+
 
 if (profileConfig == null) {
     log.error(
