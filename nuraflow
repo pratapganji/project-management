@@ -1,4 +1,49 @@
 
+try {
+
+    Map<String, Object> waitingRecords =
+        jdbcTemplate.queryForMap(
+            NuraQueryConstants.RESOURCE_AUDIT_QUERY_GTID_SQL,
+            resourceTracking.getGtId());
+
+    log.info("Fetched waiting records for global_transaction_id: {}: {}",
+            resourceTracking.getGtId(), waitingRecords);
+
+    if (waitingRecords == null || waitingRecords.isEmpty()) {
+        log.error("No waiting records found for global_transaction_id: {}",
+                resourceTracking.getGtId());
+
+        resourceService.updateResourceStatus(
+                resourceTracking.getGtId(),
+                "RELEASED");
+
+        return;
+    }
+
+    Long id = ((Number) waitingRecords.get(AuditTableConstants.ID)).longValue();
+
+    ...
+}
+catch (Exception ex) {
+    log.error("Error processing resource for GTID: {}",
+            resourceTracking.getGtId(), ex);
+
+    try {
+        resourceService.updateResourceStatus(
+                resourceTracking.getGtId(),
+                "RELEASED");
+    } catch (Exception releaseException) {
+        log.error("Unable to release resource for GTID: {}",
+                resourceTracking.getGtId(), releaseException);
+    }
+}
+
+
+
+
+
+
+
 catch (Exception ex) {
 
     log.error(
