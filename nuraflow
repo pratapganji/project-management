@@ -1,5 +1,15 @@
 
 
+if (profileConfig == null) {
+    log.error(
+        "Profile configuration is not defined for hierarchy path: {}",
+        resourceTracking.getHierarchyPath()
+    );
+    continue;
+}
+
+
+
 catch (Exception ex) {
     log.error(
         "Error processing resource for GTID: {}",
