@@ -1,4 +1,11 @@
 
+SELECT constraint_name, constraint_type, status
+FROM all_constraints
+WHERE owner = 'A167969NURAREC'
+  AND table_name = 'OM_NURAFLOW_PROFILE_CONFIG';
+
+
+
 SET FEEDBACK ON
 SET LINES 1000
 SET VERIFY ON
