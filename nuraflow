@@ -1,4 +1,19 @@
 
+
+public static final String GET_LATEST_WAITING_RESOURCE_SQL =
+        "SELECT * " +
+        "FROM A167969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING " +
+        "WHERE GTID = ? " +
+        "AND HIERARCHY_PATH = ? " +
+        "AND CONSUMER = ? " +
+        "AND STATUS = 'WAITING_FOR_RESOURCE' " +
+        "ORDER BY DWH_CREATED_TIMESTAMP DESC, ID DESC " +
+        "FETCH FIRST 1 ROW ONLY";
+
+
+
+
+
 try {
 
     Map<String, Object> waitingRecords =
