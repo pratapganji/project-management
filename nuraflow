@@ -1,4 +1,56 @@
 
+public ResourceTracking getLatestWaitingResource(
+        String globalTransactionId,
+        String hierarchyPath,
+        String consumer) {
+
+    try {
+        log.info(
+                "Fetching latest waiting resource for GTID: {}, hierarchyPath: {}, consumer: {}",
+                globalTransactionId,
+                hierarchyPath,
+                consumer
+        );
+
+        return jdbcTemplate.queryForObject(
+                NuraQueryConstants.GET_LATEST_WAITING_RESOURCE_SQL,
+                (rs, rowNum) -> ResourceTracking.builder()
+                        .id(rs.getLong("ID"))
+                        .gtId(rs.getString("GTID"))
+                        .hierarchyPath(rs.getString("HIERARCHY_PATH"))
+                        .resourceStatus(rs.getString("STATUS"))
+                        .consumer(rs.getString("CONSUMER"))
+                        .build(),
+                globalTransactionId,
+                hierarchyPath,
+                consumer
+        );
+
+    } catch (EmptyResultDataAccessException e) {
+        log.error(
+                "No waiting resource found for GTID: {}, hierarchyPath: {}, consumer: {}",
+                globalTransactionId,
+                hierarchyPath,
+                consumer
+        );
+        return null;
+
+    } catch (Exception e) {
+        log.error(
+                "Error fetching latest waiting resource for GTID: {}, hierarchyPath: {}, consumer: {}",
+                globalTransactionId,
+                hierarchyPath,
+                consumer,
+                e
+        );
+        return null;
+    }
+}
+
+
+
+
+
 
 public static final String GET_LATEST_WAITING_RESOURCE_SQL =
         "SELECT * " +
