@@ -1,4 +1,31 @@
 
+
+You can explain it like this:
+
+The issue was caused by using GTID as though it identified only one resource-tracking row. During repeated requests, multiple rows were created with the same GTID. Some code paths then used queryForObject() or updates based only on GTID, which expected or affected a single row.
+
+Because of that:
+
+* The resource lookup failed with “expected 1 row, actual 2” when duplicate GTID rows existed.
+* Processing stopped before the request could be submitted correctly.
+* Resource rows could remain ACTIVE or multiple rows could be updated together because the update was based on GTID instead of the unique resource row ID.
+* The audit record was created without the correct RT_ID, so the scheduler could not reliably associate the audit row with the exact resource-tracking row.
+* Some audit rows stayed in WAITING_FOR_RESOURCE, or were marked failed while the corresponding resource row was still waiting.
+
+What we changed:
+
+1. After inserting an ACTIVE or WAITING resource row, we retrieve the exact newly created resource-tracking ID.
+2. We pass that ID as RT_ID into the related BULKAPI audit record.
+3. We added an update method that changes resource status using the unique resource-tracking ID instead of GTID.
+4. For waiting inserts, we fetch the latest row using GTID, hierarchy path, consumer, status, and timestamp ordering so the correct inserted row is returned.
+5. Exception paths now release the exact resource row rather than updating all rows for the same GTID.
+
+You can give your lead this concise update:
+
+The issue was due to multiple resource-tracking rows being created for the same GTID, while some lookup and update logic assumed GTID was unique. This caused single-row query failures, incorrect bulk status updates, and audit rows not being linked to the correct resource record. We fixed it by capturing the exact resource-tracking ID after insert, storing it in the BULKAPI audit row as RT_ID, and using that unique ID for subsequent status updates and release handling. We validated that new audit records now contain the correct RT_ID and each waiting request is linked to its own resource row.
+
+
+
 public static final String RESOURCE_AUDIT_QUERY_GTID_SQL =
     "SELECT * FROM A167969NURAREC.OM_NURAFLOW_AUDIT_DATA " +
     "WHERE UPPER(REPLACE(STATUS, ' ', '_')) = 'WAITING_FOR_RESOURCE' " +
