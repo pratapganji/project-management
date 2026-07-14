@@ -1,4 +1,18 @@
 
+
+String finalStatus =
+        data.length > 4
+        && StructuredLogConstants.WAITING_FOR_RESOURCE
+                .equalsIgnoreCase(String.valueOf(data[4]))
+        ? StructuredLogConstants.WAITING_FOR_RESOURCE
+        : StructuredLogConstants.FAILED;
+
+logFinalReport.put("Status", finalStatus);
+
+
+
+
+
 WHERE RT_ID = 85
   AND CALLED_SERVICE = 'BULKAPI'
   AND STATUS IN ('Received', 'WAITING_FOR_RESOURCE')
