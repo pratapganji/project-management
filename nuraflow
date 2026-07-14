@@ -1,4 +1,28 @@
 
+DECLARE
+    lv_cnt NUMBER;
+BEGIN
+    SELECT COUNT(1)
+      INTO lv_cnt
+      FROM all_tab_columns
+     WHERE owner = 'A167969NURAREC'
+       AND table_name = 'OM_NURAFLOW_AUDIT_DATA'
+       AND column_name = 'RT_ID';
+
+    IF lv_cnt = 0 THEN
+        EXECUTE IMMEDIATE
+            'ALTER TABLE A167969NURAREC.OM_NURAFLOW_AUDIT_DATA ADD RT_ID NUMBER';
+
+        DBMS_OUTPUT.PUT_LINE('RT_ID column created');
+    ELSE
+        DBMS_OUTPUT.PUT_LINE('RT_ID column already exists');
+    END IF;
+END;
+/
+
+
+
+
 
 String finalStatus =
         data.length > 4
