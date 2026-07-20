@@ -1,4 +1,18 @@
 
+
+SELECT owner,
+       table_name,
+       grantee,
+       privilege
+FROM dba_tab_privs
+WHERE owner = 'A167969NURAREC'
+  AND table_name = 'RESOURCE_TRACKING_SEQ';
+
+
+
+
+
+
 I checked from SQL Developer, and a direct query on A167969NURAREC.OM_NURAFLOW_JIRA_TRACKING returns ORA-00942 (table or view does not exist). Once the table is available, we can add the required FID permission entries in ROLE_TABLE_PERMISSION and ROLE_COLUMN_PERMISSION for OLYMPUS_FID.
 
 
