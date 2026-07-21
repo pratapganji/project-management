@@ -1,4 +1,12 @@
 
+    The existing sequence remains under A167969NURAREC.
+* Required grants are successfully applied.
+* The application can use the schema-qualified NEXTVAL.
+* Resource-tracking inserts no longer fail because of sequence-access issues.
+
+
+
+
 
 SELECT owner,
        table_name,
