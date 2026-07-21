@@ -1,5 +1,83 @@
 
 
+SELECT owner,
+       table_name,
+       grantee,
+       privilege
+FROM dba_tab_privs
+WHERE owner = 'A167969NURAREC'
+  AND table_name = 'OM_NURAFLOW_RESOURCE_TRACKING'
+  AND grantee IN (
+      'A167969NURAFLOW',
+      'CITI_OLYMPUS_NURAREC_RW'
+  );
+
+
+
+
+
+INSERT INTO A167969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING
+(
+    ID,
+    GTID,
+    HIERARCHY_PATH,
+    STATUS,
+    CONSUMER,
+    DWH_CREATED_TIMESTAMP,
+    DWH_EXPIRY_TIMESTAMP
+)
+VALUES
+(
+    A167969NURAREC.RESOURCE_TRACKING_SEQ.NEXTVAL,
+    'GRANT_TEST',
+    'TEST_PATH',
+    'ACTIVE',
+    'Workstation',
+    SYSDATE,
+    SYSDATE + INTERVAL '25' MINUTE
+);
+
+ROLLBACK;
+
+
+
+
+SELECT A167969NURAREC.RESOURCE_TRACKING_SEQ.NEXTVAL
+FROM dual;
+
+
+
+
+SELECT owner,
+       table_name,
+       grantee,
+       privilege
+FROM dba_tab_privs
+WHERE owner = 'A167969NURAREC'
+  AND table_name = 'RESOURCE_TRACKING_SEQ'
+  AND grantee IN (
+      'A167969NURAFLOW',
+      'CITI_OLYMPUS_NURAREC_RW',
+      'CITI_OLYMPUS_NURAREC_RO'
+  );
+
+
+
+
+
+SELECT grantee,
+       granted_role,
+       default_role
+FROM dba_role_privs
+WHERE grantee = 'A167969NURAFLOW'
+  AND granted_role IN (
+      'CITI_OLYMPUS_NURAREC_RW',
+      'CITI_OLYMPUS_NURAREC_RO'
+  );
+
+
+
+
 SELECT MAX(ID) AS MAX_TABLE_ID
 FROM A167969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING;
 
