@@ -1,4 +1,28 @@
 
+
+SELECT MAX(ID) AS MAX_TABLE_ID
+FROM A167969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING;
+
+
+
+
+
+SELECT sequence_owner,
+       sequence_name,
+       increment_by,
+       cache_size,
+       last_number
+FROM dba_sequences
+WHERE sequence_owner = 'A167969NURAREC'
+  AND sequence_name = 'RESOURCE_TRACKING_SEQ';
+
+
+
+
+
+
+
+
 DECLARE
     lv_cnt NUMBER;
 BEGIN
