@@ -1,4 +1,12 @@
 
+
+SELECT STATUS, COUNT(*) AS RECORD_COUNT
+FROM A167969NURAREC.OM_NURAFLOW_RESOURCE_TRACKING
+GROUP BY STATUS;
+
+
+
+
     The existing sequence remains under A167969NURAREC.
 * Required grants are successfully applied.
 * The application can use the schema-qualified NEXTVAL.
