@@ -1,4 +1,23 @@
 
+-- 2. Update the old column name to enterprise_id
+UPDATE A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+SET sql_payload = REPLACE(
+                      sql_payload,
+                      '<OLD_COLUMN_NAME>',
+                      'enterprise_id'
+                  ),
+    dwh_updated_by = USER,
+    dwh_updated_timestamp = SYSTIMESTAMP,
+    dwh_updated_reason = 'Updated old enterprise ID field to enterprise_id'
+WHERE id = <CONFIG_ID>
+  AND DBMS_LOB.INSTR(
+          sql_payload,
+          '<OLD_COLUMN_NAME>'
+      ) > 0;
+
+
+
+
 
 
 SELECT last_number
