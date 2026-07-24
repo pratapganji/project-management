@@ -2,6 +2,36 @@
 SET DEFINE OFF;
 SET SERVEROUTPUT ON;
 
+PROMPT Updating 2052a~Loans SQL payload...
+
+UPDATE A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+SET sql_payload =
+    REPLACE(
+        REPLACE(sql_payload, 'dc_element_id', 'enterprise_id'),
+        'data_element_id',
+        'enterprise_id'
+    ),
+    dwh_updated_by = USER,
+    dwh_updated_timestamp = SYSTIMESTAMP,
+    dwh_updated_reason =
+        'Changed dc_element_id and data_element_id to enterprise_id'
+WHERE consumer_name = 'Workstation'
+  AND hierarchy_path = '2052a~Loans'
+  AND entity IS NULL
+  AND REGEXP_COUNT(sql_payload, 'dc_element_id') = 2
+  AND REGEXP_COUNT(sql_payload, 'data_element_id') = 4
+  AND REGEXP_COUNT(sql_payload, 'enterprise_id') = 0;
+
+COMMIT;
+
+PROMPT Update completed.
+
+
+
+
+SET DEFINE OFF;
+SET SERVEROUTPUT ON;
+
 PROMPT Updating 2052a-TP SQL payload...
 
 DECLARE
