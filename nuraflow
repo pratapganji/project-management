@@ -3,6 +3,67 @@
 SET DEFINE OFF;
 SET SERVEROUTPUT ON;
 
+PROMPT Updating enterprise_id in 2052a-Loans SQL payload...
+
+UPDATE A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+SET sql_payload =
+        REPLACE(
+            REPLACE(
+                sql_payload,
+                'dc_element_id',
+                'enterprise_id'
+            ),
+            'data_element_id',
+            'enterprise_id'
+        ),
+    dwh_updated_by = USER,
+    dwh_updated_timestamp = SYSTIMESTAMP,
+    dwh_updated_reason =
+        'Changed dc_element_id and data_element_id to enterprise_id for 2052a-Loans'
+WHERE consumer_name = 'Workstation'
+  AND hierarchy_path = '2052a-Loans'
+  AND entity IS NULL
+  AND REGEXP_COUNT(sql_payload, 'dc_element_id') = 2
+  AND REGEXP_COUNT(sql_payload, 'data_element_id') = 4
+  AND REGEXP_COUNT(sql_payload, 'enterprise_id') = 0;
+
+DBMS_OUTPUT.PUT_LINE('Rows updated: ' || SQL%ROWCOUNT);
+
+COMMIT;
+
+PROMPT 2052a-Loans update completed.
+
+
+
+
+SELECT COUNT(*) AS row_count
+FROM A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+WHERE consumer_name = 'Workstation'
+  AND hierarchy_path = '2052a-Loans'
+  AND entity IS NULL;
+
+
+
+
+SELECT consumer_name,
+       hierarchy_path,
+       entity,
+       REGEXP_COUNT(sql_payload, 'dc_element_id')   AS dc_element_count,
+       REGEXP_COUNT(sql_payload, 'data_element_id') AS data_element_count,
+       REGEXP_COUNT(sql_payload, 'enterprise_id')   AS enterprise_count
+FROM A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+WHERE consumer_name = 'Workstation'
+  AND hierarchy_path = '2052a-Loans'
+  AND entity IS NULL;
+
+
+
+
+
+
+SET DEFINE OFF;
+SET SERVEROUTPUT ON;
+
 PROMPT Updating 2052a-TP SQL payload...
 
 UPDATE A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
