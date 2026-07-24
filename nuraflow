@@ -1,4 +1,21 @@
 
+
+The SQL payloads configured in OM_NURAFLOW_CONFIG_PAYLOAD for the following Workstation reports currently use the old field names:
+
+* dc_element_id
+* data_element_id
+These references need to be updated to:
+enterprise_id
+Affected hierarchy paths:
+2052a~TP
+2052a~Loans
+The change will update the existing SQL_PAYLOAD CLOB values using a DML script without replacing the complete payload.
+
+
+
+
+
+
 SET DEFINE OFF;
 SET SERVEROUTPUT ON;
 
