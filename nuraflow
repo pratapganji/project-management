@@ -1,5 +1,13 @@
 
 
+SELECT COUNT(*) AS row_count
+FROM A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+WHERE consumer_name = 'Workstation'
+  AND hierarchy_path = '2052a-TP'
+  AND entity IS NULL;
+
+
+
 
 UPDATE A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
 SET sql_payload =
