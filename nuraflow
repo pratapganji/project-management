@@ -1,4 +1,15 @@
 
+SELECT *
+FROM A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+WHERE consumer_name = 'Workstation'
+  AND hierarchy_path = '2052a-Loans'
+  AND entity IS NULL
+  AND DBMS_LOB.INSTR(sql_payload, '"catalog": null') > 0;
+
+
+
+
+
 
 SET DEFINE OFF;
 SET SERVEROUTPUT ON;
