@@ -1,6 +1,24 @@
 
 
 SELECT
+    'source_type' AS column_name,
+    'varchar' AS data_type,
+    MAX(LENGTH(source_type)) AS max_observed_length
+FROM gfolygsm_managed.om_onerec_recon_hop_v2
+
+UNION ALL
+
+SELECT
+    'destination_type',
+    'varchar',
+    MAX(LENGTH(destination_type))
+FROM gfolygsm_managed.om_onerec_recon_hop_v2;
+
+
+
+
+
+SELECT
     'source_system' AS column_name,
     'varchar' AS data_type,
     MAX(LENGTH(source_system)) AS max_observed_length,
