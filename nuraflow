@@ -1,4 +1,34 @@
 
+SELECT
+    MAX(LENGTH(source_system)) AS source_system_max_length,
+    MAX(LENGTH(destination_system)) AS destination_system_max_length,
+    MAX(source_system_csi) AS source_system_csi_max_value,
+    MAX(LENGTH(CAST(source_system_csi AS VARCHAR))) AS source_system_csi_max_length,
+    MAX(destination_system_csi) AS destination_system_csi_max_value,
+    MAX(LENGTH(CAST(destination_system_csi AS VARCHAR))) AS destination_system_csi_max_length
+FROM gfolygsm_managed.om_onerec_recon_sub_hop;
+
+
+SELECT
+    MAX(LENGTH(enterprise_id)) AS enterprise_id_max_length,
+    MAX(LENGTH(dc_element_id)) AS dc_element_id_max_length
+FROM gfolygsm_managed.om_onerec_recon_cde_info_v2;
+
+
+
+
+SELECT
+    MAX(LENGTH(product_nm)) AS product_nm_max_length,
+    MAX(LENGTH(cde_name)) AS cde_name_max_length,
+    MAX(break_records_count) AS break_records_count_max_value,
+    MAX(LENGTH(CAST(break_records_count AS VARCHAR))) AS break_records_count_max_length,
+    MAX(recon_run_date) AS recon_run_date_max_value,
+    MAX(LENGTH(CAST(recon_run_date AS VARCHAR))) AS recon_run_date_max_length
+FROM gfolygsm_managed.om_onerec_att_break_summary_v2;
+
+
+
+
 
 
 SELECT
