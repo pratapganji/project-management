@@ -1,4 +1,42 @@
 
+SELECT
+    cde_info_id,
+    enterprise_id,
+    LENGTH(enterprise_id) AS enterprise_id_length,
+    dc_element_id
+FROM gfolygsm_managed.om_onerec_recon_cde_info_v2
+WHERE active_flag = 'Y'
+  AND enterprise_id IS NOT NULL
+  AND LENGTH(enterprise_id) > 30
+ORDER BY LENGTH(enterprise_id) DESC;
+
+
+
+SELECT
+    MAX(LENGTH(enterprise_id)) AS maximum_enterprise_id_length
+FROM gfolygsm_managed.om_onerec_recon_cde_info_v2
+WHERE active_flag = 'Y'
+  AND enterprise_id IS NOT NULL;
+
+
+SELECT
+    MAX(LENGTH(enterprise_id)) AS maximum_enterprise_id_length
+FROM gfolygsm_managed.om_onerec_recon_cde_info_v2
+WHERE active_flag = 'Y'
+  AND enterprise_id IS NOT NULL;
+
+
+
+SELECT
+    COUNT(*) AS total_records_over_30
+FROM gfolygsm_managed.om_onerec_recon_cde_info_v2
+WHERE active_flag = 'Y'
+  AND enterprise_id IS NOT NULL
+  AND LENGTH(enterprise_id) > 30;
+
+
+
+
 
 SELECT
     cde_info_id,
