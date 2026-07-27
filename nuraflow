@@ -1,5 +1,159 @@
 
 
+DESCRIBE gfolygsm_managed.om_onerec_recon_hop_v2;
+
+
+DESCRIBE gfolygsm_managed.om_onerec_recon_sub_hop;
+
+DESCRIBE gfolygsm_managed.om_onerec_recon_cde_info_v2;
+
+
+DESCRIBE gfolygsm_managed.om_onerec_att_break_summary_v2;
+
+
+
+SELECT
+    'source_type' AS column_name,
+    'varchar' AS data_type,
+    MAX(LENGTH(source_type)) AS max_observed_length,
+    CAST(NULL AS VARCHAR) AS max_observed_value
+FROM gfolygsm_managed.om_onerec_recon_hop_v2
+
+UNION ALL
+
+SELECT
+    'destination_type',
+    'varchar',
+    MAX(LENGTH(destination_type)),
+    CAST(NULL AS VARCHAR)
+FROM gfolygsm_managed.om_onerec_recon_hop_v2;
+
+
+
+
+
+
+
+SELECT
+    'source_system' AS column_name,
+    'varchar' AS data_type,
+    MAX(LENGTH(source_system)) AS max_observed_length,
+    CAST(NULL AS VARCHAR) AS max_observed_value
+FROM gfolygsm_managed.om_onerec_recon_sub_hop
+
+UNION ALL
+
+SELECT
+    'destination_system',
+    'varchar',
+    MAX(LENGTH(destination_system)),
+    CAST(NULL AS VARCHAR)
+FROM gfolygsm_managed.om_onerec_recon_sub_hop
+
+UNION ALL
+
+SELECT
+    'source_system_csi',
+    'integer',
+    MAX(LENGTH(CAST(source_system_csi AS VARCHAR))),
+    CAST(MAX(source_system_csi) AS VARCHAR)
+FROM gfolygsm_managed.om_onerec_recon_sub_hop
+
+UNION ALL
+
+SELECT
+    'destination_system_csi',
+    'integer',
+    MAX(LENGTH(CAST(destination_system_csi AS VARCHAR))),
+    CAST(MAX(destination_system_csi) AS VARCHAR)
+FROM gfolygsm_managed.om_onerec_recon_sub_hop;
+
+
+
+
+
+
+
+
+SELECT
+    'enterprise_id' AS column_name,
+    'varchar' AS data_type,
+    MAX(LENGTH(enterprise_id)) AS max_observed_length,
+    CAST(NULL AS VARCHAR) AS max_observed_value
+FROM gfolygsm_managed.om_onerec_recon_cde_info_v2
+
+UNION ALL
+
+SELECT
+    'dc_element_id',
+    'varchar',
+    MAX(LENGTH(dc_element_id)),
+    CAST(NULL AS VARCHAR)
+FROM gfolygsm_managed.om_onerec_recon_cde_info_v2;
+
+
+
+
+
+
+
+
+SELECT
+    'product_nm' AS column_name,
+    'varchar' AS data_type,
+    MAX(LENGTH(product_nm)) AS max_observed_length,
+    CAST(NULL AS VARCHAR) AS max_observed_value
+FROM gfolygsm_managed.om_onerec_att_break_summary_v2
+
+UNION ALL
+
+SELECT
+    'cde_name',
+    'varchar',
+    MAX(LENGTH(cde_name)),
+    CAST(NULL AS VARCHAR)
+FROM gfolygsm_managed.om_onerec_att_break_summary_v2
+
+UNION ALL
+
+SELECT
+    'break_records_count',
+    'bigint',
+    MAX(LENGTH(CAST(break_records_count AS VARCHAR))),
+    CAST(MAX(break_records_count) AS VARCHAR)
+FROM gfolygsm_managed.om_onerec_att_break_summary_v2
+
+UNION ALL
+
+SELECT
+    'recon_run_date',
+    'integer',
+    MAX(LENGTH(CAST(recon_run_date AS VARCHAR))),
+    CAST(MAX(recon_run_date) AS VARCHAR)
+FROM gfolygsm_managed.om_onerec_att_break_summary_v2;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 SELECT
     'source_type' AS column_name,
     'varchar' AS data_type,
