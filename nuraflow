@@ -1,5 +1,20 @@
 
 
+SELECT
+    cde_info_id,
+    enterprise_id,
+    dc_element_id,
+    LENGTH(enterprise_id) AS enterprise_id_length
+FROM gfolygsm_managed.om_onerec_recon_cde_info_v2
+WHERE active_flag = 'Y'
+  AND enterprise_id IS NOT NULL
+ORDER BY LENGTH(enterprise_id) DESC;
+
+
+
+
+
+
 SET DEFINE OFF;
 SET SERVEROUTPUT ON;
 
