@@ -1,5 +1,104 @@
 
 
+
+Subject: RE: Olympus Source Data Dictionary – Attribute Summary
+
+Hi Aparna/Team,
+
+Please find below the Olympus source data dictionary for all columns returned in the Attribute Summary response.
+
+Catalog: gfolydal
+Schema: gfolygsm_managed
+
+1. om_onerec_att_break_summary_v2
+
+product_nm
+Data type: varchar
+Maximum inserted data length: 33
+
+cde_name
+Data type: varchar
+Maximum inserted data length: 86
+
+break_records_count
+Data type: bigint
+Maximum inserted data length: 8
+Maximum inserted value: 93409010
+
+recon_run_date
+Data type: integer
+Maximum inserted data length: 8
+Maximum inserted value: 20260722
+
+
+2. om_onerec_recon_sub_hop
+
+source_system
+Data type: varchar
+Maximum inserted data length: 100
+
+destination_system
+Data type: varchar
+Maximum inserted data length: 100
+
+source_system_csi
+Data type: integer
+Maximum inserted data length: 10
+Maximum inserted value: 1002975477
+
+destination_system_csi
+Data type: integer
+Maximum inserted data length: 6
+Maximum inserted value: 177264
+
+
+3. om_onerec_recon_hop_v2
+
+source_type
+Data type: varchar
+Maximum inserted data length: 10
+
+destination_type
+Data type: varchar
+Maximum inserted data length: 10
+
+
+4. om_onerec_recon_cde_info_v2
+
+enterprise_id
+Data type: varchar
+Maximum inserted data length: 34
+
+dc_element_id
+Data type: varchar
+Maximum inserted data length: 19
+
+
+5. Query-generated column
+
+domain_name
+Data type: varchar
+Value: Empty string generated using '' AS domain_name
+
+
+Starburst reports the string columns as varchar without exposing a defined maximum column size. Therefore, the lengths provided above represent the maximum length of the data currently inserted in each source column.
+
+I have attached the exported datatype details and maximum inserted data length/value results as supporting evidence.
+
+Please use these details to align the downstream target datatypes and column sizes.
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
+
+
+
 DESCRIBE gfolygsm_managed.om_onerec_recon_hop_v2;
 
 
