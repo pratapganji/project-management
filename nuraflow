@@ -1,4 +1,58 @@
 
+
+
+SELECT
+    MAX(LENGTH(enterprise_id)) AS max_enterprise_id_length,
+    MAX(LENGTH(dc_element_id)) AS max_dc_element_id_length
+FROM gfolygsm_managed.om_onerec_recon_cde_info_v2;
+
+
+
+DESCRIBE gfolygsm_managed.om_onerec_att_break_summary_v2;
+
+
+DESCRIBE gfolygsm_managed.om_onerec_recon_sub_hop;
+
+
+DESCRIBE gfolygsm_managed.om_onerec_recon_cde_info_v2;
+
+
+SELECT
+    table_name,
+    column_name,
+    data_type
+FROM gfolydal.information_schema.columns
+WHERE table_schema = 'gfolygsm_managed'
+  AND (
+        (table_name = 'om_onerec_recon_sub_hop'
+         AND column_name IN (
+             'source_system',
+             'destination_system',
+             'source_system_csi',
+             'destination_system_csi',
+             'source_type',
+             'destination_type'
+         ))
+     OR (table_name = 'om_onerec_att_break_summary_v2'
+         AND column_name IN (
+             'product_nm',
+             'cde_name',
+             'break_records_count',
+             'recon_run_date'
+         ))
+     OR (table_name = 'om_onerec_recon_cde_info_v2'
+         AND column_name IN (
+             'enterprise_id',
+             'dc_element_id'
+         ))
+      )
+ORDER BY table_name, column_name;
+
+
+
+
+
+
 SELECT
     cde_info_id,
     enterprise_id,
