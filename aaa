@@ -1,4 +1,11 @@
 
+
+Hi Jayanta, could you please confirm what standard alerts are configured for other clusters/servers and whether the same can be applied to Olympus Data? Also, can we configure process-down, resource threshold, and application error alerts with email notifications?
+
+
+
+
+
 -- 2. Update the old column name to enterprise_id
 UPDATE A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
 SET sql_payload = REPLACE(
