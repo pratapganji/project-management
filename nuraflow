@@ -1,29 +1,26 @@
 
 
--- Table 1: Attribute Break Summary
 SELECT 'product_nm' AS column_name,
-       MAX(LENGTH(CAST(product_nm AS STRING))) AS max_length
+       MAX(LENGTH(product_nm)) AS max_length
 FROM gfolygsm_managed.om_onerec_att_break_summary_v2
 
 UNION ALL
 
 SELECT 'cde_name',
-       MAX(LENGTH(CAST(cde_name AS STRING)))
+       MAX(LENGTH(cde_name))
 FROM gfolygsm_managed.om_onerec_att_break_summary_v2
 
 UNION ALL
 
 SELECT 'break_records_count',
-       MAX(LENGTH(CAST(break_records_count AS STRING)))
+       MAX(LENGTH(CAST(break_records_count AS VARCHAR)))
 FROM gfolygsm_managed.om_onerec_att_break_summary_v2
 
 UNION ALL
 
 SELECT 'recon_run_date',
-       MAX(LENGTH(CAST(recon_run_date AS STRING)))
+       MAX(LENGTH(CAST(recon_run_date AS VARCHAR)))
 FROM gfolygsm_managed.om_onerec_att_break_summary_v2;
-
-
 
 
 
