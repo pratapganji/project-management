@@ -1,4 +1,38 @@
 
+SELECT
+    table_name,
+    column_name,
+    data_type,
+    character_maximum_length
+FROM information_schema.columns
+WHERE table_schema = 'gfolygsm_managed'
+  AND table_name IN (
+      'om_onerec_att_break_summary_v2',
+      'om_onerec_recon_hop_v2',
+      'om_onerec_recon_cde_info_v2'
+  )
+  AND column_name IN (
+      'product_nm',
+      'cde_name',
+      'break_records_count',
+      'recon_run_date',
+      'source_system',
+      'destination_system',
+      'source_system_csi',
+      'destination_system_csi',
+      'source_type',
+      'destination_type',
+      'enterprise_id',
+      'dc_element_id'
+  )
+ORDER BY table_name, column_name;
+
+
+
+
+
+
+
 -- Recon Hop table
 SELECT 'source_system' AS column_name,
        MAX(LENGTH(source_system)) AS max_length
