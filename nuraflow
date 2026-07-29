@@ -1,4 +1,46 @@
 
+-- Recon Hop table
+SELECT 'source_system' AS column_name,
+       MAX(LENGTH(source_system)) AS max_length
+FROM gfolygsm_managed.om_onerec_recon_hop_v2
+
+UNION ALL
+
+SELECT 'destination_system',
+       MAX(LENGTH(destination_system))
+FROM gfolygsm_managed.om_onerec_recon_hop_v2
+
+UNION ALL
+
+SELECT 'source_system_csi',
+       MAX(LENGTH(CAST(source_system_csi AS VARCHAR)))
+FROM gfolygsm_managed.om_onerec_recon_hop_v2
+
+UNION ALL
+
+SELECT 'destination_system_csi',
+       MAX(LENGTH(CAST(destination_system_csi AS VARCHAR)))
+FROM gfolygsm_managed.om_onerec_recon_hop_v2
+
+UNION ALL
+
+SELECT 'source_type',
+       MAX(LENGTH(source_type))
+FROM gfolygsm_managed.om_onerec_recon_hop_v2
+
+UNION ALL
+
+SELECT 'destination_type',
+       MAX(LENGTH(destination_type))
+FROM gfolygsm_managed.om_onerec_recon_hop_v2;
+
+
+
+
+
+
+
+
 
 SELECT 'product_nm' AS column_name,
        MAX(LENGTH(product_nm)) AS max_length
