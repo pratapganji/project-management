@@ -1,4 +1,19 @@
 
+
+
+SELECT COUNT(*) AS rows_to_update
+FROM A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+WHERE consumer_name = 'Workstation'
+  AND INSTR(
+        sql_payload,
+        'https://olympus-nura-flow-icg-isg-olympus-api-160970.apps.namicgrut51p.ecs.dyn.nsroot.net/olympus/nuraflow/api/callback'
+      ) > 0;
+
+
+
+
+
+
 SELECT
     table_name,
     column_name,
