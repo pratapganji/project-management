@@ -1,4 +1,114 @@
 
+SET SERVEROUTPUT ON;
+SET DEFINE OFF;
+
+DECLARE
+    v_callback_url       VARCHAR2(200);
+    v_callback_url_old   VARCHAR2(200);
+    v_callback_url_old2  VARCHAR2(200);
+    v_callback_url_old3  VARCHAR2(200);
+    v_environment        VARCHAR2(50);
+
+BEGIN
+
+    SELECT name
+    INTO v_environment
+    FROM v$database;
+
+    DBMS_OUTPUT.PUT_LINE('Environment: ' || v_environment);
+
+    IF v_environment = 'ORF1PRD' THEN
+
+        v_callback_url :=
+            'https://olympus.api.onerecnuraflow.prod.cloudgsl.nam.nsroot.net/olympus/nuraflow/api/callback';
+
+        v_callback_url_old :=
+            'https://olympus-nura-flow-icg-isg-olympus-api-160970.apps.namicgrut51p.ecs.dyn.nsroot.net/olympus/nuraflow/api/callback';
+
+        -- Same value because PROD has only the 51p URL
+        v_callback_url_old2 := v_callback_url_old;
+        v_callback_url_old3 := v_callback_url_old;
+
+    ELSIF v_environment = 'ORF1UAT' THEN
+
+        v_callback_url :=
+            'https://nurarec-uat.cloudgsl.nam.nsroot.net/olympus/nuraflow/api/callback';
+
+        v_callback_url_old :=
+            'https://olympus-nura-flow-icg-isg-olympus-api-160970.apps.namicg39023u.ecs.dyn.nsroot.net/olympus/nuraflow/api/callback';
+
+        -- Same value because UAT old records use 39023u
+        v_callback_url_old2 := v_callback_url_old;
+        v_callback_url_old3 := v_callback_url_old;
+
+    ELSIF v_environment = 'ORF1DEV' THEN
+
+        v_callback_url :=
+            'https://nurarecdev.cloudgsl.nam.nsroot.net/olympus/nuraflow/api/callback';
+
+        v_callback_url_old :=
+            'https://olympus-nura-flow-icg-isg-olympus-api-160970.apps.namicggtd013d.ecs.dyn.nsroot.net/olympus/nuraflow/api/callback';
+
+        v_callback_url_old2 :=
+            'https://olympus-nura-flow-icg-isg-olympus-api-160970.apps.namicggtd37d.ecs.dyn.nsroot.net/olympus/nuraflow/api/callback';
+
+        v_callback_url_old3 :=
+            'https://olympus-nura-flow-icg-isg-olympus-api-160970.apps.namicg39023u.ecs.dyn.nsroot.net/olympus/nuraflow/api/callback';
+
+    ELSE
+        RAISE_APPLICATION_ERROR(
+            -20001,
+            'Unsupported database environment: ' || v_environment
+        );
+
+    END IF;
+
+    UPDATE A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+    SET sql_payload =
+            REPLACE(
+                REPLACE(
+                    REPLACE(
+                        sql_payload,
+                        v_callback_url_old,
+                        v_callback_url
+                    ),
+                    v_callback_url_old2,
+                    v_callback_url
+                ),
+                v_callback_url_old3,
+                v_callback_url
+            ),
+        dwh_updated_by = USER,
+        dwh_updated_timestamp = SYSTIMESTAMP,
+        dwh_updated_reason = 'Callback URL updated to WIP'
+    WHERE consumer_name = 'Workstation'
+      AND (
+             INSTR(sql_payload, v_callback_url_old) > 0
+          OR INSTR(sql_payload, v_callback_url_old2) > 0
+          OR INSTR(sql_payload, v_callback_url_old3) > 0
+      );
+
+    DBMS_OUTPUT.PUT_LINE('Rows updated: ' || SQL%ROWCOUNT);
+
+    COMMIT;
+
+EXCEPTION
+    WHEN OTHERS THEN
+        ROLLBACK;
+        DBMS_OUTPUT.PUT_LINE('Error: ' || SQLERRM);
+        RAISE;
+END;
+/
+
+SHOW ERRORS;
+
+
+
+
+
+
+
+
 
 
 SELECT COUNT(*) AS rows_to_update
