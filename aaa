@@ -1,9 +1,18 @@
 
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-beans</artifactId>
+</dependency>
 
-Hi Jayanta, could you please confirm what standard alerts are configured for other clusters/servers and whether the same can be applied to Olympus Data? Also, can we configure process-down, resource threshold, and application error alerts with email notifications?
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-web</artifactId>
+</dependency>
 
-
-
+<dependency>
+    <groupId>org.springframework</groupId>
+    <artifactId>spring-webmvc</artifactId>
+</dependency>
 
 
 -- 2. Update the old column name to enterprise_id
