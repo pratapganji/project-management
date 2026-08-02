@@ -1,5 +1,15 @@
 
 
+<tomcat.version>10.1.57</tomcat.version>
+<logback.version>1.5.37</logback.version>
+<httpcore5.version>5.4.2</httpcore5.version>
+<bouncycastle.version>1.84</bouncycastle.version>
+<commons-compress.version>1.26.0</commons-compress.version>
+
+
+
+
+
 public RestTemplate getRestTemplateSSL()
         throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
 
