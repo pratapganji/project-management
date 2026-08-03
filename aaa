@@ -1,5 +1,35 @@
 
 
+
+find / -iname "*CITI_cacerts*" -o -iname "*olympus_167969*"
+
+
+env | grep -iE "truststore|keystore|jks|p12|certificate"
+
+find / -type f \( -name "*.jks" -o -name "*.p12" -o -name "*.pfx" \) 2>/dev/null
+
+
+jar tf target/*.jar | findstr /i ".jks .p12 CITI_cacerts olympus_167969"
+
+
+git grep -n -i "certificate\|keystore\|truststore\|cacerts" -- \
+Dockerfile pipeline.yaml helm src/main/resources
+
+
+git grep -n -E "javax\.net\.ssl|trustStore|keyStore|ssl\.trust|ssl\.key"
+
+
+git grep -n -i "CITI_cacerts"
+git grep -n -i "olympus_167969"
+git grep -n -E "\.jks|\.p12|\.pfx|keyStore|trustStore"
+
+
+
+
+
+
+
+
 SDM File Export – Delivery Announcement Draft
 
 The SDM File Export application has been enhanced and remediated to improve security, stability, and supportability.
