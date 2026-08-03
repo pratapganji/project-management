@@ -1,5 +1,46 @@
 
 
+SDM File Export – Delivery Announcement Draft
+
+The SDM File Export application has been enhanced and remediated to improve security, stability, and supportability.
+
+Key items delivered
+
+* Upgraded the application from Spring Boot 2.7.18 to Spring Boot 3.5.16.
+* Migrated Spring/JPA components from the legacy javax.persistence namespace to jakarta.persistence.
+* Updated vulnerable Spring, Tomcat, Logback, HTTP Client, Bouncy Castle, Commons Compress, and related dependencies.
+* Updated the REST client implementation to Apache HttpClient 5 compatibility.
+* Retained both list-based and stream-based CSV export processing to support regular and large-volume exports.
+* Validated SDM Sundry, Source System, Source System Coverage, full-load, weekly, specific-date, and ad-hoc export flows.
+* Preserved CSV, control-file, ZIP generation, SDM logging, and email-notification functionality.
+* Maven compilation, unit tests, dependency validation, and pipeline build were completed successfully.
+
+Issues resolved
+
+* Addressed the CVM/Snyk dependency vulnerabilities reported for the application.
+* Removed duplicate and outdated dependency declarations.
+* Corrected Spring Boot 3 compatibility issues in application and test classes.
+* Resolved Apache HttpClient 4 and HttpClient 5 compatibility conflicts.
+* Updated application resource configuration to prevent deployment quota failures.
+* Reviewed and addressed applicable Delphyne PR review observations.
+
+KPI improvement
+
+* Reduced outstanding high- and medium-severity dependency vulnerabilities.
+* Improved application security compliance and dependency currency.
+* Improved build stability and maintainability by centrally managing Spring dependencies through the Spring Boot BOM.
+* Improved large-file export reliability by retaining stream-based processing.
+
+Current status
+The changes are ready for review and further environment validation. The supported pinned Java runtime Docker image is being coordinated with the DevOps team.
+
+
+
+
+
+
+
+
 Verified that javax.sql.DataSource is the JDK-provided JDBC interface and is not part of the Jakarta EE namespace migration. jakarta.persistence.EntityManagerFactory has been migrated correctly, while javax.sql.DataSource must remain unchanged. The project compiles and tests successfully.
 
 Verified that Spring Boot 3.5.16 is consistently used by both spring-boot-dependencies and spring-boot-maven-plugin. The configured Artifactory resolved the version successfully and the Maven build completed successfully. This version was selected for remediation of the identified CVM vulnerabilities.
