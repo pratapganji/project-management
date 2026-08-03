@@ -1,4 +1,10 @@
 
+mvn dependency:tree "-Dincludes=com.hynnet"
+
+mvn dependency:tree "-Dincludes=com.oracle.ojdbc"
+
+mvn dependency:tree "-Dincludes=com.oracle.database.jdbc"
+
 
 $env:JAVA_HOME="C:\Users\pg16424\AppData\Local\CitiSoftware\jdk17\latest"
 $env:Path="$env:JAVA_HOME\bin;$env:Path"
