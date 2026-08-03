@@ -1,5 +1,9 @@
 
 
+Hi Rajat, the SDM File Export announcement draft has been shared. The latest PR build and all pipeline gates are successful. The remaining Delphyne comments are verification/false-positive comments related to the existing OpenCSV dependency, javax.sql.DataSource, and the approved Spring Boot version. The only actual pending item is confirmation of the approved pinned Docker base image from Suraj/DevOps. I will update the Dockerfile and close the remaining comments once that image is confirmed.
+
+
+
 
 find / -iname "*CITI_cacerts*" -o -iname "*olympus_167969*"
 
