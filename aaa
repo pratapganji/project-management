@@ -1,5 +1,10 @@
 
 
+I’ve made the dependency version changes and tried the latest versions. I’m currently blocked by the Lightspeed build issue (INC0025539815 raised with the LSE team). Once the build issue is resolved, I’ll validate the dependency versions, address the remaining Black Duck findings, and share the updated status.
+
+
+
+
 Hi Rajat, the SDM File Export announcement draft has been shared. The latest PR build and all pipeline gates are successful. The remaining Delphyne comments are verification/false-positive comments related to the existing OpenCSV dependency, javax.sql.DataSource, and the approved Spring Boot version. The only actual pending item is confirmation of the approved pinned Docker base image from Suraj/DevOps. I will update the Dockerfile and close the remaining comments once that image is confirmed.
 
 
