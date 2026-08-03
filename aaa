@@ -1,4 +1,15 @@
 
+
+Verified that javax.sql.DataSource is the JDK-provided JDBC interface and is not part of the Jakarta EE namespace migration. jakarta.persistence.EntityManagerFactory has been migrated correctly, while javax.sql.DataSource must remain unchanged. The project compiles and tests successfully.
+
+Verified that Spring Boot 3.5.16 is consistently used by both spring-boot-dependencies and spring-boot-maven-plugin. The configured Artifactory resolved the version successfully and the Maven build completed successfully. This version was selected for remediation of the identified CVM vulnerabilities.
+
+
+Verified the final pom.xml. The com.opencsv:opencsv dependency is retained with version ${opencsv.version}, currently 5.6, along with the required exclusions. Only the duplicate dependency declaration was removed. Maven compilation and tests complete successfully.
+
+
+
+
 mvn dependency:tree "-Dincludes=com.hynnet"
 
 mvn dependency:tree "-Dincludes=com.oracle.ojdbc"
