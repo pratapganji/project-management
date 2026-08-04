@@ -1,5 +1,28 @@
 
 
+import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
+
+public class JasyptCheck {
+    public static void main(String[] args) {
+        String masterPassword = "YOUR_EXISTING_JASYPT_MASTER_KEY";
+        String plainPassword = "YOUR_SSL_KEY_PASSWORD";
+
+        StandardPBEStringEncryptor encryptor =
+                new StandardPBEStringEncryptor();
+
+        encryptor.setPassword(masterPassword);
+        encryptor.setAlgorithm("PBEWithMD5AndDES");
+
+        String encrypted = encryptor.encrypt(plainPassword);
+
+        System.out.println("ENC(" + encrypted + ")");
+    }
+}
+
+
+
+
+
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
