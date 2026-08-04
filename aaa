@@ -1,5 +1,13 @@
 
 
+keytool -importkeystore \
+  -srckeystore certificate.pfx \
+  -srcstoretype PKCS12 \
+  -destkeystore cacerts.jks \
+  -deststoretype JKS
+
+
+
 
 keytool -importkeystore \
   -srckeystore input.pfx \
