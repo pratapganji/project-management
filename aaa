@@ -1,3 +1,25 @@
+
+import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
+
+public class JasyptCheck {
+    public static void main(String[] args) {
+        String masterPassword = "<your encryption key>";
+        String encryptedValue = "Yej9Lhi22DcQd4trZRAYBlvn28cQOjzT";
+
+        StandardPBEStringEncryptor encryptor = new StandardPBEStringEncryptor();
+        encryptor.setPassword(masterPassword);
+        encryptor.setAlgorithm("PBEWithMD5AndDES");
+
+        String decrypted = encryptor.decrypt(encryptedValue);
+        System.out.println("Decrypted value: " + decrypted);
+    }
+}
+
+
+
+
+
+
 "C:\Users\pg16424\AppData\Local\CitiSoftware\jdk17\latest\bin\java.exe" ^
 -cp "ACTUAL_PATH_TO\jasypt-1.9.2.jar" ^
 org.jasypt.intf.cli.JasyptPBEStringDecryptionCLI ^
