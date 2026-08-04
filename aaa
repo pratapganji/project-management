@@ -1,4 +1,11 @@
 
+openssl s_client \
+  -connect nurarec-uat.cloudgsl.nam.nsroot.net:443 \
+  -servername nurarec-uat.cloudgsl.nam.nsroot.net \
+  -showcerts
+
+
+
 
 keytool -importkeystore \
   -srckeystore certificate.pfx \
