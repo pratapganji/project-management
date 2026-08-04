@@ -1,4 +1,17 @@
 
+
+
+keytool -importkeystore \
+  -srckeystore input.pfx \
+  -srcstoretype PKCS12 \
+  -srcstorepass "<PFX_PASSWORD>" \
+  -destkeystore output.jks \
+  -deststoretype JKS \
+  -deststorepass "<JKS_PASSWORD>" \
+  -destkeypass "<PRIVATE_KEY_PASSWORD>"
+
+
+
 Hi Mayra and Seth,
 
 Just following up on my previous email regarding representation at a potential adjustment of status interview. Could you please let us know whether someone from your office will attend the interview with us if USCIS schedules one?
