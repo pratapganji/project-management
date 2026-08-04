@@ -1,4 +1,21 @@
 
+
+FROM eclipse-temurin:17-jre
+
+COPY target/app.jar /app/app.jar
+COPY src/main/resources/uat_cacerts.jks /app/uat_cacerts.jks
+
+ENTRYPOINT ["java", \
+"-Djavax.net.ssl.trustStore=/app/uat_cacerts.jks", \
+"-Djavax.net.ssl.trustStorePassword=changeit", \
+"-jar", "/app/app.jar"]
+
+
+
+
+
+
+
 SET SERVEROUTPUT ON;
 SET DEFINE OFF;
 
