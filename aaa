@@ -1,13 +1,11 @@
 
 
-java ^
--Djasypt.encryptor.password="d7+t60Ihoif3G10hWHXjOVZeoONbtsu7NB7MitaUEtw=" ^
+"C:\Users\pg16424\AppData\Local\CitiSoftware\jdk17\latest\bin\java.exe" ^
+-Djasypt.encryptor.password="<master-password>" ^
 -Djasypt.encryptor.algorithm=PBEWithMD5AndDES ^
--jar "C:\path\to\Crm2olympus-0.0.1-SNAPSHOT.jar" ^
+-jar "C:\Users\pg16424\github repo\160970.crm-olympus.crm-olympus-api\target\crm2olympus-0.0.1-SNAPSHOT.jar" ^
 -jasypt.encryptor.cli.command=decrypt ^
-input="vczFcE7IxfQiugn+b7WUWFxZOIJ6Y1j0y/qzhxMW6Ysi4lu3nmuo7j0hER55DSc8"
-
-
+input="<encrypted-value-without-ENC-parentheses>"
 
 
 openssl s_client \
