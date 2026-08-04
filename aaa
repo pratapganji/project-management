@@ -1,4 +1,15 @@
 
+
+java ^
+-Djasypt.encryptor.password="d7+t60Ihoif3G10hWHXjOVZeoONbtsu7NB7MitaUEtw=" ^
+-Djasypt.encryptor.algorithm=PBEWithMD5AndDES ^
+-jar "C:\path\to\Crm2olympus-0.0.1-SNAPSHOT.jar" ^
+-jasypt.encryptor.cli.command=decrypt ^
+input="vczFcE7IxfQiugn+b7WUWFxZOIJ6Y1j0y/qzhxMW6Ysi4lu3nmuo7j0hER55DSc8"
+
+
+
+
 openssl s_client \
   -connect nurarec-uat.cloudgsl.nam.nsroot.net:443 \
   -servername nurarec-uat.cloudgsl.nam.nsroot.net \
