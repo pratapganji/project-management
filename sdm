@@ -1,5 +1,22 @@
 
 
+Subject: QE Sanity Testing Request – Olympus JDBC Driver Upgrade (SB User Consumption)
+
+Hi QE Team,
+
+The Olympus JDBC driver has been upgraded from 2.1.6 to 3.0.10 in the SB User Consumption application, and the deployment is complete.
+
+Could you please perform sanity testing to validate the application flow with the upgraded driver and provide your sign-off if everything looks good?
+
+Please let me know if you encounter any issues.
+
+Thanks,
+Pratap
+
+
+
+
+
 Upgraded the Olympus JDBC driver from 2.1.6 to 3.0.10 to align with the latest supported version. The application has been built and deployed successfully. Requesting QE to perform sanity testing and provide sign-off.
 
 
