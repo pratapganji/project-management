@@ -1,4 +1,235 @@
 
+
+SDM File Export – Delivery Announcement Draft
+
+Overview
+
+The SDM File Export application has been migrated from the legacy server-based deployment to OpenShift Container Platform (OCP). Along with the platform migration, the existing shared-path file delivery mechanism has been replaced with a downloadable API-based approach.
+
+The new implementation allows the Reference Onboarding process to call the SDM API using a curl/KSH job, download a ZIP containing the CSV and CTL files, extract the files, and continue the existing Hive ingestion process.
+
+Key Items Delivered
+
+1. SDM File Export migration to OCP
+
+The SDM File Export application was migrated from the existing server-based environment to OCP.
+
+The following components were configured as part of the migration:
+
+- Dockerfile and approved Java runtime image
+- Helm chart
+- Deployment YAML
+- Service YAML
+- Route YAML
+- Environment-specific Helm values
+- Pipeline YAML
+- NGC and application secret integration
+- CPU and memory resource configuration
+- Health, readiness, and liveness probes
+- OCP deployment and runtime validation
+
+The application has been successfully deployed and validated in the OCP DEV environment.
+
+2. Downloadable SDM File Export APIs
+
+The existing APIs previously generated files and placed them in a shared server path. The APIs have now been updated to return the generated files directly as a downloadable HTTP response.
+
+The API response contains a ZIP file with:
+
+- CSV data file
+- CTL/control file containing the exported record count
+
+This removes the dependency on application-side shared server paths and intermediate file-transfer processes.
+
+3. Supported SDM export APIs
+
+The downloadable file implementation supports the following SDM exports:
+
+- Sundry
+- Source System
+- Source System Coverage
+- Source System Adhoc Latest Fetch
+- Source System Coverage Adhoc Latest Fetch
+
+Example endpoints:
+
+POST /citihawk/schemabrowser/exportSundry
+
+POST /citihawk/schemabrowser/exportSourceSystem
+
+POST /citihawk/schemabrowser/exportSourceSystemAdhocLatestFetch
+
+POST /citihawk/schemabrowser/exportSourceSystemCoverage
+
+POST /citihawk/schemabrowser/exportSourceSystemCoverageAdhocLatestFetch
+
+4. Parameterized extraction support
+
+The APIs support different extraction windows through the load parameter:
+
+- load=1 – returns the last one day of data
+- load=7 – returns the last seven days of data
+- Empty load parameter – returns the complete dataset
+- Adhoc APIs – return data based on the latest successful execution details
+
+This allows consumers to request incremental or full-load exports through the same API implementation.
+
+5. List-based and Stream-based processing
+
+Separate processing approaches have been implemented based on the export size.
+
+List-based processing
+
+List-based processing is used for smaller or incremental exports, including:
+
+- One-day load
+- Seven-day load
+- Specific-date load
+- Adhoc latest-fetch load
+
+Flow:
+
+API request
+→ Fetch records as a List
+→ Generate CSV
+→ Generate CTL with record count
+→ Package CSV and CTL into ZIP
+→ Return ZIP as HTTP response
+
+Stream-based processing
+
+Stream-based processing is used for full-load exports.
+
+Instead of loading the complete dataset into application memory, database records are processed incrementally and written directly to the CSV output.
+
+Flow:
+
+Full-load API request
+→ Stream records from the database
+→ Write each record incrementally to CSV
+→ Maintain exported record count
+→ Generate CTL file
+→ Package CSV and CTL into ZIP
+→ Return ZIP as HTTP response
+
+This improves large-volume export handling and reduces the risk of high memory consumption during full-load processing.
+
+Previous Flow
+
+AutoSys job
+→ Calls SDM API
+→ API generates CSV and CTL files
+→ Files are written to a shared server path
+→ Files are moved through multiple intermediate copy jobs
+→ Reference Onboarding team picks up the files
+→ Files are loaded into Hive
+
+Limitations of the previous flow:
+
+- Dependency on shared server paths
+- Multiple intermediate file-copy jobs
+- Additional operational support for file movement
+- Dependency on server file-system access
+- More manual and scheduled coordination between applications
+
+New Flow
+
+Reference Onboarding KSH/curl job
+→ Calls the SDM Download API
+→ API fetches the requested data
+→ API generates the CSV file
+→ API generates the CTL file with record count
+→ API packages CSV and CTL into a ZIP
+→ ZIP is returned directly in the HTTP response
+→ Consumer downloads the ZIP to its server
+→ Consumer extracts the ZIP
+→ CSV and CTL files are used for Hive ingestion
+
+KPI Improvements
+
+1. Reduced intermediate job dependency
+
+The new flow removes the requirement for multiple intermediate file-copy jobs used to move files from the application server to the Reference Onboarding environment.
+
+2. Reduced shared-path dependency
+
+The API no longer depends on a shared application-server path for delivering generated files.
+
+3. Reduced manual intervention
+
+Consumers can directly invoke the API and download the generated ZIP, reducing operational coordination and manual file handling.
+
+4. Improved file delivery time
+
+Files are returned immediately as part of the API response instead of waiting for subsequent file-transfer jobs.
+
+5. Improved full-load scalability
+
+Stream-based database processing allows large datasets to be exported without loading the complete result set into application memory.
+
+6. Reduced memory risk
+
+Full-load records are written incrementally to the CSV, reducing the possibility of high heap utilization and out-of-memory failures.
+
+7. Flexible extraction capability
+
+The same API supports one-day, seven-day, adhoc, and full-load requests through parameterized processing.
+
+8. Improved deployment consistency
+
+OCP, Docker, Helm, pipeline, and environment-based configurations provide a standardized and repeatable deployment model.
+
+9. Improved operational traceability
+
+The CSV and CTL files are delivered together in a single ZIP. The CTL file provides the exported record count for downstream validation.
+
+10. Simplified downstream integration
+
+The Reference Onboarding process can use its existing curl/KSH framework to download, extract, and process the files for Hive ingestion.
+
+Issues Resolved
+
+- Removed dependency on the legacy server-based deployment.
+- Removed application dependency on shared-path file delivery.
+- Eliminated unnecessary intermediate file-transfer steps.
+- Enabled direct ZIP download through the SDM APIs.
+- Added CTL generation with exported record count.
+- Added one-day, seven-day, adhoc, and full-load processing.
+- Implemented List-based processing for incremental exports.
+- Implemented Stream-based processing for large full-load exports.
+- Migrated the application configuration and deployment to OCP.
+- Improved runtime stability, scalability, and supportability.
+
+Validation Completed
+
+- Maven build completed successfully.
+- OCP deployment completed successfully.
+- Application started successfully in the DEV environment.
+- Database connectivity was validated.
+- Sundry export API execution was validated.
+- Source System export API execution was validated.
+- CSV generation was validated.
+- CTL generation and record count were validated.
+- ZIP creation was validated.
+- Downloadable response flow was validated.
+- List-based export processing was validated.
+- Stream-based full-load processing was validated.
+
+Business and Operational Benefit
+
+The SDM File Export migration modernizes both the application deployment and the downstream file delivery process.
+
+The application is now deployed through OCP using a standardized container and pipeline model. Generated SDM files are delivered directly to the consumer through downloadable APIs rather than being placed on a shared server path.
+
+This reduces operational dependencies, simplifies the overall flow, improves large-volume export handling, and provides a more scalable and supportable solution for future SDM file deliveries.
+
+
+
+
+
+
+
+
 Hi Team,
 
 The Sundry API export job was manually triggered on 16-Jun-2026 and completed from the AutoSys side. An auto-generated completion notification was also received.
