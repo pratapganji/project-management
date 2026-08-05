@@ -1,4 +1,24 @@
 
+
+Upgraded the Olympus JDBC driver from 2.1.6 to 3.0.10 to align with the latest supported version. The application has been built and deployed successfully. Requesting QE to perform sanity testing and provide sign-off.
+
+
+
+Description
+
+Upgrade the Olympus JDBC driver used by the SB User Consumption application from version 2.1.6 to version 3.0.10 to align with the latest supported driver and ensure application compatibility.
+
+Acceptance Criteria
+
+* Olympus JDBC driver is upgraded from 2.1.6 to 3.0.10.
+* Application builds and deploys successfully.
+* SB User Consumption application connects successfully using the upgraded JDBC driver.
+* No regressions are observed during QE sanity testing.
+* QE sign-off is obtained.
+
+
+
+
 The SDM File Export application has been moved from the existing server environment to OpenShift Container Platform (OCP).
 
 Earlier, the application generated the CSV and CTL files and saved them in a server folder. The Reference Onboarding team then picked up the files and loaded them into Hive.
