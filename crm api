@@ -1,3 +1,29 @@
+
+
+Subject: CRM Olympus Certificate Generation and Application Integration Approach
+
+Hi Team,
+
+We are currently using the following approach for the CRM Olympus application certificate:
+
+1. Raise a CMP request for the required environment (DEV/UAT/PROD).
+2. Receive the generated certificate artifacts (PFX/Certificate/Private Key) through the CMP email.
+3. Import the PFX into a JKS keystore using keytool.
+4. Configure the generated JKS in the application (server.ssl.key-store) and update the corresponding encrypted keystore password and key password in the application properties.
+5. Deploy and validate the application using the new certificate.
+
+Could you please confirm if this is the recommended approach? Also, could you share how your application is using the CMP-generated certificates? Are you following the same process of generating the certificate via CMP, creating a JKS, and configuring it in the application, or is there a different approach being used?
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
+
 Library	Current in Sheet	Latest Stable	Recommendation
 Netty	4.1.119	4.1.128.Final	Upgrade
 Gunicorn	20.1.0	23.0.0	Upgrade
