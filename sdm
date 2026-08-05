@@ -1,4 +1,8 @@
 
+$env:JAVA_HOME="C:\Users\pg16424\AppData\Local\CitiSoftware\jdk17\latest"
+$env:Path="$env:JAVA_HOME\bin;$env:Path"
+
+
 
 Subject: QE Sanity Testing Request – Olympus JDBC Driver Upgrade (SB User Consumption)
 
