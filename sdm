@@ -1,5 +1,5 @@
 
-
+Verified that javax.net.ssl.SSLContext is the correct JDK type. Apache HttpClient 5 SSLContexts.custom().build() returns this standard Java SSLContext type. It is unrelated to the Jakarta namespace migration, so no change is required.
 
 Verified that the imports are correct. EntityManagerFactory must use the Jakarta Persistence namespace for Spring Boot 3, while javax.sql.DataSource remains a standard JDK JDBC interface and is not migrated to Jakarta. No code change is required.
 
