@@ -1,4 +1,12 @@
 
+The SDM File Export application has been moved from the existing server environment to OpenShift Container Platform (OCP).
+
+Earlier, the application generated the CSV and CTL files and saved them in a server folder. The Reference Onboarding team then picked up the files and loaded them into Hive.
+
+Now, the Reference Onboarding team can call the SDM API using a curl/KSH job. The API generates the CSV and CTL files, packages them into a ZIP, and returns the ZIP directly for download. The team can then extract the files and continue the Hive ingestion process.
+
+
+
 
 SDM File Export – Delivery Announcement Draft
 
