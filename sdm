@@ -1,5 +1,7 @@
 
 
+Verified the resolved Apache HttpComponents versions using Maven dependency tree. httpclient5 resolves to 5.5.2, while httpcore5 and httpcore5-h2 resolve to 5.4.3. The dependencies resolve successfully and the Maven compilation completes successfully. No dependency conflict is present.
+
 mvn dependency:tree "-Dincludes=org.apache.httpcomponents.client5:*,org.apache.httpcomponents.core5:*"
 
 
