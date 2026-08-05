@@ -1,7 +1,7 @@
 
 
 
-
+Verified that the imports are correct. EntityManagerFactory must use the Jakarta Persistence namespace for Spring Boot 3, while javax.sql.DataSource remains a standard JDK JDBC interface and is not migrated to Jakarta. No code change is required.
 
 Verified using the Maven dependency tree that spring-boot-starter-actuator resolves to version 3.5.16 through the imported Spring Boot BOM. The dependency resolves successfully and the Maven command completed with BUILD SUCCESS. No explicit version is required.
 
