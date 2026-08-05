@@ -1,5 +1,8 @@
 
 
+mvn dependency:tree "-Dincludes=org.apache.httpcomponents.client5:*,org.apache.httpcomponents.core5:*"
+
+
 
 Verified Spring Boot version 3.5.16. The version is successfully resolved from the configured repository, and the Maven build/dependency resolution completes successfully. No change is required.
 
