@@ -1,5 +1,13 @@
 
 
+Description:
+Upgraded the SDM File Export application to Java 17 and Spring Boot 3.5.16, updated vulnerable dependencies, migrated required Jakarta imports, and implemented Apache HttpClient 5 compatibility. The changes were successfully built, scanned, and deployed in UAT for functional validation.
+
+Acceptance Criteria:
+Application must build and deploy successfully in UAT without dependency or startup errors. SDM export APIs must generate ZIP files containing CSV and control files, maintain correct record counts, update database logs, and send notifications. CVM/Snyk findings within scope must be resolved, followed by QE sign-off.
+
+
+
 Email to QE
 
 Subject: UAT Deployment Completed – SDM File Export CVM Dependency Upgrade Testing
