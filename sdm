@@ -1,5 +1,100 @@
 
 
+Email to QE
+
+Subject: UAT Deployment Completed – SDM File Export CVM Dependency Upgrade Testing
+
+Hi Team,
+
+The CVM dependency remediation changes for the SDM File Export application have been deployed successfully in UAT.
+
+The changes include:
+
+* Spring Boot upgrade to 3.5.16
+* Java upgrade to 17
+* Jakarta namespace migration for JPA components
+* Apache HttpClient 5 compatibility changes
+* Bouncy Castle upgrade to 1.85
+* Other vulnerable direct and transitive dependency upgrades
+* Removal of obsolete or unused dependency configurations
+
+Could you please perform sanity and regression testing for the following SDM File Export APIs:
+
+* Sundry export
+* Source System export
+* Source System Coverage export
+* Ad-hoc latest-fetch APIs
+* One-day, seven-day, and full-load export options
+* ZIP generation containing the CSV and control file
+* Record count validation between the CSV and control file
+* Email notification functionality
+
+Please share the test results and QE sign-off once validation is completed.
+
+Thanks,
+Pratap
+
+⸻
+
+Jira Description
+
+Title: Remediate CVM vulnerabilities and upgrade SDM File Export application dependencies
+
+Description:
+
+The SDM File Export application contained outdated direct and transitive dependencies reported through CVM/Snyk security scans.
+
+The application dependencies and supporting code have been upgraded to remediate the identified vulnerabilities and ensure compatibility with the latest supported framework versions.
+
+The following changes were implemented:
+
+* Upgraded Spring Boot from 2.7.x to 3.5.16
+* Upgraded the application runtime and compilation level to Java 17
+* Migrated JPA imports from javax.persistence to jakarta.persistence
+* Retained Java SE APIs such as javax.sql.DataSource and javax.net.ssl.SSLContext
+* Migrated Apache HttpClient implementation from version 4 APIs to HttpClient 5 APIs
+* Upgraded Bouncy Castle to 1.85
+* Updated vulnerable Spring, Tomcat, Logback, Apache HTTP, Commons and other supporting dependencies
+* Removed unused, duplicate and obsolete dependency declarations
+* Configured dependency versions through the Spring Boot BOM where applicable
+* Verified resolved dependency versions using Maven dependency-tree commands
+* Confirmed successful Maven compilation and pipeline build
+* Deployed the changes successfully in the UAT environment
+
+The functional behavior of the SDM File Export application remains unchanged. The APIs continue to generate and return ZIP files containing the CSV export and the corresponding control file.
+
+⸻
+
+Acceptance Criteria
+
+1. The application must compile successfully using Java 17.
+2. Spring Boot dependencies and the Maven plugin must resolve to version 3.5.16.
+3. Bouncy Castle dependencies must resolve to version 1.85.
+4. All identified upgradeable CVM/Snyk high-severity dependency findings included in the scope must be resolved.
+5. The application must deploy successfully in the UAT OpenShift environment.
+6. The application pod must start successfully without dependency-related or class-loading errors.
+7. The following SDM File Export APIs must work successfully in UAT:
+    * Sundry export
+    * Source System export
+    * Source System Coverage export
+    * Source System ad-hoc latest fetch
+    * Source System Coverage ad-hoc latest fetch
+8. The APIs must support the configured one-day, seven-day and full-load export options.
+9. Each successful export must return a ZIP file containing:
+    * The generated CSV file
+    * The corresponding control file
+10. The record count in the control file must match the number of exported CSV records.
+11. Existing database logging and SDM log-table updates must continue to work.
+12. Email notification behavior must be validated in UAT.
+13. No functional regression must be observed after the dependency upgrades.
+14. QE sanity and regression testing must be completed and sign-off received before production deployment.
+
+
+
+
+
+
+
 Verified Tomcat version 10.1.56. The configured repository successfully resolves the Tomcat artifacts, and the deployed application started successfully with tomcat-embed-core 10.1.56. No change is required.
 
 
