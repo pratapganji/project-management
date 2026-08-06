@@ -1,4 +1,27 @@
 
+
+Subject: PROD API Gateway User Onboarding Request for SB User Consumption
+
+Hi Anbunithi,
+
+As discussed, the FID sb_olympus_fid has been onboarded as an API Gateway user in UAT.
+
+We are planning to deploy the JDBC driver upgrade to PROD on Monday. Could you please onboard the same FID as an API Gateway user in PROD as well, so we can avoid the runtime issue after deployment?
+
+Details:
+
+* FID: sb_olympus_fid
+* Datasource: STARBURST
+* JDBC Driver: olympus-jdbc-driver-3.1.10.jar
+
+Thanks,
+Pratap
+
+
+
+
+
+
 Library	Current in Sheet	Latest Stable	Recommendation
 Netty	4.1.119	4.1.128.Final	Upgrade
 Gunicorn	20.1.0	23.0.0	Upgrade
