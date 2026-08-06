@@ -1,4 +1,24 @@
 
+Subject: Follow-up: QE Sanity Testing – SB User Consumption
+
+Hi Snehal,
+
+Just a follow-up on the sanity testing request. We are planning to deploy this change to PROD on Monday.
+
+Could you please validate:
+
+* End-to-end application execution.
+* JDBC API connectivity and data retrieval.
+* User consumption data is generated and loaded successfully.
+
+Please share your sign-off once testing is complete. If you need any clarification or a walkthrough of the changes, I’m happy to connect.
+
+Thanks,
+Pratap
+
+
+
+
 
 Subject: PROD API Gateway User Onboarding Request for SB User Consumption
 
