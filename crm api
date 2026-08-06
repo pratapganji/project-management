@@ -1,5 +1,47 @@
 
 
+Jira Description
+
+Description:
+
+Update the existing SSL certificate for the CRM to Olympus application with the newly generated CMP-issued certificate across DEV, UAT, and PROD environments.
+
+This change includes:
+
+* Replacing the existing application SSL certificate with the latest CMP-generated certificate.
+* Updating the keystore/truststore configuration as required.
+* Verifying successful HTTPS communication after the certificate update.
+* Ensuring there is no impact to existing application functionality.
+
+Acceptance Criteria
+
+* CMP-generated certificate is updated successfully in DEV, UAT, and PROD.
+* Application starts successfully after the certificate replacement.
+* HTTPS communication works successfully using the updated certificate.
+* No SSL or certificate-related errors are observed in the application logs.
+* Existing application functionality continues to work as expected after the certificate update.
+* QE sanity testing is completed and sign-off is received.
+
+Email to QE
+
+Subject: QE Sanity Testing Request – SSL Certificate Update
+
+Hi Mangesh,
+
+The application SSL certificate has been updated with the new CMP-generated certificate. There are no functional changes as part of this deployment.
+
+Could you please perform sanity testing and validate the application functionality? Kindly provide your sign-off once the validation is complete.
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
+
 Subject: CRM Olympus Certificate Generation and Application Integration Approach
 
 Hi Team,
