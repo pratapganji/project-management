@@ -1,5 +1,9 @@
 
 
+openssl rsa -provider default -provider legacy -in PrivateKey.key -out PrivateKey_decrypted.key
+
+
+
 FROM eclipse-temurin:17-jre
 
 COPY target/app.jar /app/app.jar
