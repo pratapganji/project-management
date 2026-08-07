@@ -1,5 +1,10 @@
 
 
+openssl pkey -in PrivateKey_decrypted.key -pubout | openssl sha256
+
+
+openssl x509 -in Certificate.cer -pubkey -noout | openssl sha256
+
 openssl rsa -provider default -provider legacy -in PrivateKey.key -out PrivateKey_decrypted.key
 
 
