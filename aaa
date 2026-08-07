@@ -1,5 +1,12 @@
 
 
+have explained the SDM and SB User Consumption changes to Snehal. Once she provides the sign-off, could you please help raise the ROD? Please refer to the below repository and build numbers while raising the ROD.
+
+Also, I have an unplanned appointment tomorrow that I cannot avoid, so I will be on leave tomorrow. Thanks for your support.
+
+
+
+
 import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 
 public class JasyptCheck {
