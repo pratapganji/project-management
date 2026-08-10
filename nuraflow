@@ -1,5 +1,9 @@
 
 
+
+openssl s_client -connect nurarec-uat.cloudgsl.nam.nsroot.net:443 -servername nurarec-uat.cloudgsl.nam.nsroot.net
+
+
 openssl pkey -in PrivateKey_decrypted.key -pubout | openssl sha256
 
 
