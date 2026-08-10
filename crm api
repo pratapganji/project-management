@@ -1,5 +1,43 @@
 
 
+import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
+import org.jasypt.encryption.pbe.config.SimpleStringPBEConfig;
+
+public class JasyptCheck {
+
+    public static void main(String[] args) {
+
+        // Same master encryption password used by CRM Olympus
+        String masterPassword = "YOUR_MASTER_PASSWORD";
+
+        // Actual password of the NEW CMP JKS/certificate
+        String plainPassword = "YOUR_NEW_JKS_PASSWORD";
+
+        PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
+
+        SimpleStringPBEConfig config = new SimpleStringPBEConfig();
+        config.setPassword(masterPassword);
+        config.setAlgorithm("PBEWITHHMACSHA256ANDAES_256");
+        config.setKeyObtentionIterations("1000");
+        config.setPoolSize("1");
+        config.setSaltGeneratorClassName("org.jasypt.salt.RandomSaltGenerator");
+        config.setIvGeneratorClassName("org.jasypt.iv.NoIvGenerator");
+        config.setStringOutputType("base64");
+
+        encryptor.setConfig(config);
+
+        String encrypted = encryptor.encrypt(plainPassword);
+
+        System.out.println("ENC(" + encrypted + ")");
+    }
+}
+
+
+
+
+
+
+
 Jira Description
 
 Description:
