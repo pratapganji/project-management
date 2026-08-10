@@ -8,12 +8,11 @@ public class JasyptCheck {
 
     public static void main(String[] args) {
 
+        // Use the SAME CRM Olympus master password you used in the decrypt test
         String masterPassword = "YOUR_EXISTING_CRM_MASTER_PASSWORD";
 
-        // Existing encrypted value for changeit
-        // Paste only the value inside ENC(...)
-        String encryptedValue =
-                "PASTE_FULL_VCZ_VALUE_HERE";
+        // New CMP/JKS password
+        String plainPassword = "Olympusapicrmtoolympus1";
 
         PooledPBEStringEncryptor encryptor =
                 new PooledPBEStringEncryptor();
@@ -33,10 +32,10 @@ public class JasyptCheck {
 
         encryptor.setConfig(config);
 
-        String decrypted =
-                encryptor.decrypt(encryptedValue);
+        String encrypted =
+                encryptor.encrypt(plainPassword);
 
-        System.out.println("Decrypted value: " + decrypted);
+        System.out.println("ENC(" + encrypted + ")");
     }
 }
 
