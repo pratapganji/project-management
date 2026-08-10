@@ -1,40 +1,28 @@
 
 
-import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
-import org.jasypt.encryption.pbe.config.SimpleStringPBEConfig;
+import org.jasypt.encryption.pbe.StandardPBEStringEncryptor;
 
 public class JasyptCheck {
 
     public static void main(String[] args) {
 
-        // Existing CRM Olympus Jasypt master password
-        String masterPassword = "YOUR_EXISTING_MASTER_PASSWORD";
+        String masterPassword = "YOUR_EXISTING_CRM_MASTER_PASSWORD";
 
-        PooledPBEStringEncryptor encryptor = new PooledPBEStringEncryptor();
+        // Existing working encrypted value for changeit
+        // Copy ONLY the content inside ENC(...)
+        String encryptedValue = "PASTE_FULL_VCZ_VALUE_HERE";
 
-        SimpleStringPBEConfig config = new SimpleStringPBEConfig();
+        StandardPBEStringEncryptor encryptor =
+                new StandardPBEStringEncryptor();
 
-        config.setPassword(masterPassword);
-        config.setAlgorithm("PBEWITHHMACSHA256ANDAES_256");
-        config.setKeyObtentionIterations("1000");
-        config.setPoolSize("1");
-        config.setSaltGeneratorClassName("org.jasypt.salt.RandomSaltGenerator");
-        config.setIvGeneratorClassName("org.jasypt.iv.NoIvGenerator");
-        config.setStringOutputType("base64");
-
-        encryptor.setConfig(config);
-
-        // Existing working encrypted value of "changeit"
-        // Paste only the value inside ENC(...)
-        String encryptedValue =
-                "PASTE_OLD_VCZ_VALUE_HERE";
+        encryptor.setPassword(masterPassword);
+        encryptor.setAlgorithm("PBEWithMD5AndDES");
 
         String decrypted = encryptor.decrypt(encryptedValue);
 
         System.out.println("Decrypted value: " + decrypted);
     }
 }
-
 
 
 
