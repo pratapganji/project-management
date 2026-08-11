@@ -1,5 +1,10 @@
 
 
+openssl s_client -connect 169.193.99.102:443 -servername nurarec-uat.cloudgsl.nam.nsroot.net
+
+openssl s_client -connect 169.193.99.101:443 -servername nurarec-uat.cloudgsl.nam.nsroot.net
+
+
 Hi Team,
 
 Adding CTI Global Software Defined Networking Operations for assistance.
