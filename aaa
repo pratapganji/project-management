@@ -1,5 +1,19 @@
 
 
+Hi Team,
+
+Adding CTI Global Software Defined Networking Operations for assistance.
+
+We have attached the required CMP certificate to both VIPs. However, OpenSSL against nurarec-uat.cloudgsl.nam.nsroot.net is still showing the ECS certificate (*.apps.namicg39023u.ecs.dyn.nsroot.net).
+
+Could you please check why the certificate configured on the VIPs is not being presented?
+
+Thanks,
+Pratap
+
+
+
+
 Subject: UAT WIP – SSL Certificate Issue | INC00257XXXX
 
 Hi Team,
