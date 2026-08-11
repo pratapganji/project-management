@@ -1,5 +1,133 @@
 
 
+You do not need to start by designing the CitiFix → Data Catalogue solution or writing a database query yourself.
+
+Your immediate responsibility is to determine exactly what data/fields the new Data Catalogue structure needs.
+
+The flow they are suggesting is:
+
+1. Understand the target Data Catalogue structure
+
+First inspect the existing Data Catalogue APIs / Swagger and understand what payload/structure Data Catalogue expects.
+
+You need to identify things such as:
+
+* what becomes the collection/object
+* what becomes an attribute
+* required properties
+* naming conventions
+* IDs and descriptions
+* relationships/hierarchy information
+
+2. Use one CitiFix message as the example
+
+Rupesh is saying they can give you one message.
+
+For that message, determine all the information needed to reproduce:
+
+Message
+→ Main-body Tags
+→ Repeat Groups
+→ Tags inside Repeat Groups
+→ Nested Repeat Groups, where applicable
+
+So you are not trying to map the entire CitiFix application immediately.
+
+3. CitiFix/Data Dictionary APIs already contain useful source information
+
+This is an important clarification.
+
+Rupesh showed that their existing APIs can return information about a repeat group. For example, Account Group can provide information such as repeat-group number/ID, status, protocol and related elements.
+
+Then, when you take an element/tag such as Account, another API can return detailed information for that element — ID, type, name, description, version and other metadata.
+
+So your earlier question:
+
+“Why can’t we use the same APIs?”
+
+was a valid question.
+
+They appear open to using those existing Data Dictionary/CitiFix APIs as the source if they contain the information needed.
+
+What Mahesh needs from you
+
+This is probably the most important sentence from the conversation:
+
+You need to tell Mahesh exactly which data fields you require.
+
+You should inspect the APIs and prepare something like:
+
+Object
+
+Information we need
+
+Message
+
+Message ID, name, description/status/version
+
+Main-body Tag
+
+Tag/element ID, tag number, name, type, description
+
+Repeat Group
+
+Group ID/number, name, status, protocol
+
+Group Tag
+
+Tag ID/number, name, type, description
+
+Nested Repeat Group
+
+Group ID, name and parent relationship
+
+Relationship
+
+Which tags/groups belong to which message/group
+
+These are candidate fields. Don’t tell Mahesh yet that every one is mandatory. Your job is to compare them against the Data Catalogue Swagger payload and determine the actual required fields.
+
+What happens after you give Mahesh the fields
+
+This part of the conversation is also important.
+
+You understood that Mahesh will prepare the query/stored procedure/source extraction based on the fields you identify.
+
+So the process is essentially:
+
+Existing Data Catalogue Swagger/API
+→ understand target payload
+→ identify required fields
+→ inspect CitiFix/Data Dictionary APIs
+→ select required CitiFix fields
+→ give the field list to Mahesh
+→ Mahesh prepares the query/source data
+→ your application uses that data to create the required Data Catalogue structure.
+
+How this fits Friday’s requirement
+
+Friday’s requirement has not changed.
+
+The final goal is still:
+
+Replicate the CitiFix hierarchy/structure in Data Catalogue.
+
+The difference is that today Rupesh is telling you how to start technically.
+
+Friday = What we need to achieve
+
+CitiFix-like Message → Tags + Repeat Groups → Tags/Nested Groups structure in Data Catalogue.
+
+Today’s conversation = What Pratap should do first
+
+Study Data Catalogue Swagger → determine the required target payload → inspect the existing CitiFix APIs → identify exactly what source fields are needed → give that requirement to Mahesh.
+
+
+
+
+
+
+
 Hi Rajat,
 
 I just connected with Snehal. She said she will pick up the other tasks next week. I explained the SB User Consumption changes to her and requested her to provide the sign-off today.
