@@ -1,4 +1,11 @@
 
+Hi Team, we are facing an SSL certificate issue with the UAT WIP endpoint nurarec-uat.cloudgsl.nam.nsroot.net.
+
+We have generated the CMP certificate with this WIP hostname included and successfully attached the certificate to both underlying VIPs. However, when we run an OpenSSL check against the WIP endpoint, it is still presenting a different certificate (*.apps.namicg39023u.ecs.dyn.nsroot.net) instead of the certificate configured on the VIPs.
+
+Could you please check the WIP configuration/certificate mapping and help us understand why the WIP is presenting a different certificate?
+
+
 
 You do not need to start by designing the CitiFix → Data Catalogue solution or writing a database query yourself.
 
