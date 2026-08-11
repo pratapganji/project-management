@@ -1,3 +1,7 @@
+catelouge (citiHawk) --> Message --> Repeated groups(AccoutGrp/TradeGrp) --> tags
+
+Message Protocol (citifix) --> Message --> Repeated groups(AccoutGrp/TradeGrp) --> tags
+
 
 1. Understand CitiFix
         ↓
