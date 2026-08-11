@@ -1,4 +1,8 @@
 
+openssl s_client -connect vs-eolg-qepe.nam.nsroot.net:443 \
+-servername nurarec-uat.cloudgsl.nam.nsroot.net </dev/null 2>/dev/null | \
+openssl x509 -noout -subject -issuer -dates
+
 
 openssl s_client -connect 169.193.99.102:443 -servername nurarec-uat.cloudgsl.nam.nsroot.net
 
