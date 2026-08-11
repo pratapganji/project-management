@@ -1,4 +1,23 @@
 
+
+Subject: UAT WIP – SSL Certificate Issue | INC00257XXXX
+
+Hi Team,
+
+We are facing an SSL certificate issue with the UAT WIP endpoint nurarec-uat.cloudgsl.nam.nsroot.net.
+
+The correct CMP certificate has been attached to both underlying VIPs. However, the WIP endpoint is still presenting a different certificate (*.apps.namicg39023u.ecs.dyn.nsroot.net).
+
+We have raised INC00257XXXX for this issue, which has been moved to the NTT queue.
+
+Could you please review the incident and help us resolve the WIP certificate issue?
+
+Thanks,
+Pratap
+
+
+
+
 Hi Team, we are facing an SSL certificate issue with the UAT WIP endpoint nurarec-uat.cloudgsl.nam.nsroot.net.
 
 We have generated the CMP certificate with this WIP hostname included and successfully attached the certificate to both underlying VIPs. However, when we run an OpenSSL check against the WIP endpoint, it is still presenting a different certificate (*.apps.namicg39023u.ecs.dyn.nsroot.net) instead of the certificate configured on the VIPs.
