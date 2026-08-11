@@ -1,3 +1,33 @@
+
+1. Source/API: Do we already have CitiFix/Data Dictionary APIs that provide Messages, main-body Tags, Repeat Groups, and their relationships? If yes, can you share the API/Swagger details?
+2. Database fallback: If the existing APIs cannot provide the required hierarchy, which database tables/views contain Messages, Tags, Repeat Groups, nested Repeat Groups, and their relationships?
+3. Data Catalogue integration: How is data currently loaded/published into Data Catalogue? Is there an existing Data Catalogue API or ingestion mechanism that we should use?
+4. Hierarchy support: Can Data Catalogue support the required structure:
+    Message → Tags + Repeat Groups → Tags + Nested Repeat Groups?
+5. Nested groups: If Data Catalogue cannot support deeper nesting, what representation do we want for nested Repeat Groups — separate dictionaries/collections with references, as discussed?
+6. Refresh: When CitiFix gets new or updated tags/messages/groups, how should Data Catalogue be refreshed? The meeting mentioned keeping this synchronized regularly.
+7. POC: Can we first implement one message such as Quote Cancel end-to-end and confirm the expected Data Catalogue view before implementing everything?
+
+Your last question in the screenshot:
+
+“Are we required to make any changes in UI… what frontend technology…?”
+
+I would not ask about frontend technology yet. The requirement is currently to use the existing Data Catalogue. First establish whether its existing hierarchy and ingestion capabilities can represent the CitiFix structure.
+
+A good opening in the meeting would be:
+
+“From my understanding, the requirement is to replicate the CitiFix structure in Data Catalogue, where a message contains main-body tags and repeat groups, and repeat groups contain their own tags and potentially nested groups. Before starting implementation, I want to understand the source APIs/data model, the Data Catalogue ingestion mechanism, and how much hierarchy the existing Data Catalogue supports.”
+
+
+
+
+
+
+
+
+
+
+
 curl -X POST "http://localhost:8080/citifix/excel-to-json" -F "file=@C:\pg\citifix\catalogue\ISG-Olympus-CITIFIX-Attribute.xlsx"
 
 
