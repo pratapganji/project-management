@@ -1,3 +1,247 @@
+Yes. Your current questions are a good start, but for a **Data Catalogue UI + backend API** requirement, I would ask the BA questions in a few additional areas so that the development team doesn't have to make assumptions later.
+
+From your screenshot, I understand the requirement as:
+
+* Existing **Data Dictionary UI + APIs** are available.
+* New **Data Catalogue UI** is required.
+* Catalogue should follow the **same/similar data structure** as Data Dictionary.
+* Catalogue data needs to be matched/validated against the Data Dictionary.
+* You need to determine whether existing APIs can be reused or whether new APIs/database queries are required.
+
+### Your existing questions — I would refine them
+
+1. **Can we reuse the existing Data Dictionary APIs for the Data Catalogue?**
+
+   * If yes, which APIs?
+   * Are the response structures sufficient for the Catalogue UI?
+   * Are there any additional fields required by the Catalogue?
+
+2. **If existing APIs cannot be reused:**
+
+   * What are the source database/table(s) for Data Catalogue?
+   * What are the required queries?
+   * What new APIs are expected?
+   * Who will provide/approve the API contract?
+
+3. **Data structure**
+
+   * When we say Data Catalogue should have the **same structure as Data Dictionary**, does this mean:
+
+     * Same UI structure?
+     * Same JSON/API response structure?
+     * Same database structure?
+     * Same field names and data types?
+   * Which fields are mandatory vs optional?
+
+4. **UI technology**
+
+   * Should we use the **existing Data Dictionary UI technology/framework**?
+   * Or is the expectation to build the Catalogue UI using a different technology/stack?
+   * Should the new UI follow the same look and feel as Data Dictionary?
+
+---
+
+## Additional questions I strongly recommend asking BA
+
+### 1. Data source and ownership
+
+This is probably the most important missing area.
+
+* **Where does the Data Catalogue data come from?**
+* Is it coming from the **same database** as Data Dictionary or a different source?
+* Which tables/views contain the Catalogue data?
+* Who owns the Catalogue data?
+* Is the data manually maintained or populated from another system?
+
+### 2. Relationship between Data Dictionary and Data Catalogue
+
+You specifically mentioned data matching, so clarify this.
+
+* What is the relationship between a **Data Catalogue record** and a **Data Dictionary record**?
+* Is there a unique identifier/key that links them?
+* Should every Catalogue field have a corresponding Data Dictionary entry?
+* What should happen if a Catalogue field **does not exist in the Data Dictionary**?
+* What should happen if a Data Dictionary field exists but is **not present in the Catalogue**?
+* Is the matching based on field name, ID, business name, or some other attribute?
+
+For example:
+
+```text
+Data Catalogue
+     |
+     | field_id
+     ↓
+Data Dictionary
+     |
+     ├── field name
+     ├── data type
+     ├── description
+     └── business definition
+```
+
+Ask BA to provide the expected mapping.
+
+### 3. Catalogue functionality
+
+Clarify exactly what users should be able to do.
+
+* Is the Catalogue **view-only**, or can users create/update/delete records?
+* Can users search Catalogue data?
+* What search fields are required?
+* Are filters required?
+* Sorting?
+* Pagination?
+* Export to Excel/CSV?
+* Advanced search?
+* Download details?
+* Drill-down from Catalogue → Dictionary?
+
+### 4. UI requirements
+
+Ask for the expected screen/wireframe.
+
+* What columns should be displayed?
+* Which fields should appear in the list view?
+* What fields should appear in the detail view?
+* Are there expandable rows?
+* Are there tabs?
+* Should the Catalogue UI provide a link to the corresponding Data Dictionary entry?
+* Are there different views based on user role?
+
+A mockup/wireframe from BA would be very useful.
+
+### 5. API requirements
+
+Ask BA to provide an expected API contract, even if the technical team will implement it.
+
+For example:
+
+```text
+GET /catalogue
+GET /catalogue/{id}
+GET /catalogue?search=xxx
+```
+
+Questions:
+
+* What APIs are required?
+* What request parameters?
+* What response fields?
+* Pagination requirements?
+* Maximum page size?
+* Expected error responses?
+* What happens when no data is found?
+* Is filtering done by UI or backend?
+* Is sorting done by UI or backend?
+
+### 6. Data volume and performance
+
+This can significantly affect the API/UI design.
+
+Ask:
+
+* Approximately how many Catalogue records are expected?
+* How frequently does the data change?
+* Is real-time data required?
+* What is the expected response time?
+* Should the UI load all records or use server-side pagination/search?
+* Are there performance requirements for large datasets?
+
+For example, if there are millions of records, you definitely don't want the UI doing:
+
+```text
+GET /catalogue
+→ return 2 million records
+→ browser filters them
+```
+
+Instead, you would likely need server-side filtering/pagination.
+
+### 7. Data refresh
+
+* How is Catalogue data populated?
+* Real-time?
+* Batch?
+* Daily?
+* On-demand?
+* Is there an ETL process?
+* Who triggers the refresh?
+* What happens if the source data is unavailable?
+
+### 8. Security and access
+
+Since this is for Citi, I would definitely clarify:
+
+* Who can access Data Catalogue?
+* Are there different roles?
+* Does the Catalogue contain sensitive/confidential information?
+* Are certain fields restricted based on user role?
+* Is authentication already handled by the existing Data Dictionary application?
+* Should Catalogue follow the existing authorization model?
+
+### 9. Audit requirements
+
+If users can modify Catalogue data:
+
+* Do we need audit history?
+* Who changed the record?
+* What was changed?
+* When was it changed?
+* Do we need versioning?
+* Can users revert changes?
+
+### 10. Acceptance criteria
+
+Ask BA for concrete acceptance criteria.
+
+For example:
+
+> Given a Catalogue record exists, when the user opens the record, the system should display the corresponding Data Dictionary information.
+
+And:
+
+> If a Catalogue field cannot be matched with a Data Dictionary field, the UI should display ______.
+
+This is especially important because **"data matching" is currently ambiguous**.
+
+---
+
+## I would send this consolidated question list to BA
+
+You could phrase it professionally like this:
+
+> **Questions/clarifications for Data Catalogue requirement:**
+>
+> 1. Can we reuse the existing Data Dictionary APIs for Data Catalogue? If yes, which APIs and are their response structures sufficient?
+> 2. If new APIs are required, please provide the source database/table/view details and required data/query details.
+> 3. When we say Data Catalogue should have the same structure as Data Dictionary, does this refer to UI structure, API/JSON structure, database structure, or field structure?
+> 4. Please provide the required fields for Data Catalogue, including mandatory/optional fields and data types.
+> 5. What is the relationship/mapping between Data Catalogue and Data Dictionary? What is the unique key used for matching?
+> 6. What should happen when a Catalogue field has no corresponding Data Dictionary entry, or vice versa?
+> 7. Is Data Catalogue read-only, or should users be able to create/update/delete records?
+> 8. What search, filter, sort, pagination and export functionality is required?
+> 9. Please provide the expected UI/wireframe for the Data Catalogue.
+> 10. Should Data Catalogue follow the same UI technology, components and look-and-feel as Data Dictionary?
+> 11. What is the expected data volume and performance requirement?
+> 12. How frequently is Catalogue data updated/refreshed?
+> 13. Are there any data synchronization/ETL requirements?
+> 14. What authentication, authorization and role-based access requirements apply?
+> 15. Are there any audit/history/versioning requirements?
+> 16. What are the expected API request/response and error-handling requirements?
+> 17. Please provide acceptance criteria and expected behavior for missing/invalid/mismatched data.
+
+### One question I would make a priority
+
+The most important clarification is:
+
+> **"What exactly does Data Catalogue mean from a business perspective, and how is it different from the existing Data Dictionary?"**
+
+Because technically you can make the UI/API structure identical, but if the **business meaning and relationship between Catalogue and Dictionary** isn't clearly defined, the team could build the wrong thing even with a perfectly implemented API.
+
+If you give me a little more information about **what your existing Data Dictionary UI looks like and what the new Data Catalogue is expected to show**, I can also prepare a **BA clarification document with Functional Requirements + API requirements + UI requirements + acceptance criteria** that you can directly send to the Citi BA.
+
+
+
 
 1. Source/API: Do we already have CitiFix/Data Dictionary APIs that provide Messages, main-body Tags, Repeat Groups, and their relationships? If yes, can you share the API/Swagger details?
 2. Database fallback: If the existing APIs cannot provide the required hierarchy, which database tables/views contain Messages, Tags, Repeat Groups, nested Repeat Groups, and their relationships?
