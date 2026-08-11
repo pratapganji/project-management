@@ -1,3 +1,33 @@
+
+1. Understand CitiFix
+        ↓
+2. Identify where Messages, Tags and Repeat Groups come from
+        ↓
+3. Understand their relationships
+        ↓
+4. Understand existing Data Catalogue structure/API
+        ↓
+5. Determine how much hierarchy Data Catalogue supports
+        ↓
+6. Design:
+   Message
+      → Tags
+      → Repeat Groups
+           → Tags
+           → Nested Groups
+        ↓
+7. Create one sample using Quote Cancel
+        ↓
+8. Discuss limitations/design with Rupesh/Rajat/team
+        ↓
+9. Finalize technical approach
+        ↓
+10. Implement + regular refresh
+
+
+
+
+
 Yes. Your current questions are a good start, but for a **Data Catalogue UI + backend API** requirement, I would ask the BA questions in a few additional areas so that the development team doesn't have to make assumptions later.
 
 From your screenshot, I understand the requirement as:
