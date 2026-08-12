@@ -1,5 +1,9 @@
 
 
+grep -niE "SSL handshake|TopicAuthorization|AUTHORIZATION_FAILED|Failed authentication|Not authorized|Sent message" <current-log-file>
+
+
+
 CITIFIX → DATA CATALOGUE: OVERALL UNDERSTANDING
 
 1. WHAT CITIFIX IS
