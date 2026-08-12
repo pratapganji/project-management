@@ -1,6 +1,26 @@
 
 
 
+Hi Anbunithi, as discussed, we need your confirmation on the certificate approach we are following for CRM Olympus.
+
+For each environment (DEV/UAT/PROD), we raise a CMP request and receive the certificate artifacts through CMP, including the PFX/certificate/private key. We then import the PFX into a JKS keystore using keytool.
+
+In the application, we configure this generated JKS as the server.ssl.key-store. The JKS password/key password is encrypted using our application’s Jasypt configuration, and the encrypted value is maintained in the application properties instead of the plain-text password.
+
+So our current flow is:
+CMP request → PFX/certificate received → PFX imported into JKS → JKS configured in CRM Olympus → encrypted keystore/key password configured → deploy and validate.
+
+Could you please confirm whether this is the correct/recommended approach? Also, please let us know if your application follows the same CMP certificate process or if any additional steps/configuration are required before we proceed with the remaining deployments.
+
+
+
+
+
+
+
+
+
+
 import org.jasypt.encryption.pbe.PooledPBEStringEncryptor;
 import org.jasypt.encryption.pbe.config.SimpleStringPBEConfig;
 
