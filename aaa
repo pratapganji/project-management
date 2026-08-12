@@ -1,4 +1,657 @@
 
+
+CITIFIX → DATA CATALOGUE: OVERALL UNDERSTANDING
+
+1. WHAT CITIFIX IS
+
+CitiFix is Citi’s implementation/customization around the FIX (Financial Information Exchange) protocol.
+
+For our requirement, the important CitiFix objects are:
+
+CitiFix
+   ↓
+Messages
+   ↓
+Main Body Tags + Repeat Groups
+                         ↓
+                   Tags + Nested Repeat Groups
+
+A Tag represents one FIX field/property.
+
+Example:
+Tag 55 = Symbol
+Value = IBM
+
+Other tags can represent quantity, account, party information, security information, etc.
+
+A Repeat Group is a group of related tags that can occur multiple times inside the same FIX message.
+
+Example:
+If one trade/order is distributed to 10 different client accounts, instead of sending 10 completely separate structures, Account-related information can be repeated inside one message using a Repeat Group.
+
+A Message is therefore a combination of:
+- Main-body Tags
+- Repeat Groups
+- In some cases, nested Repeat Groups
+
+
+2. HOW CITIFIX LOOKS TODAY
+
+CitiFix already has its own application/Data Dictionary where users can browse the FIX structure.
+
+For example:
+
+Quote Cancel Message
+   ├── Main Body Tag 1
+   ├── Main Body Tag 2
+   ├── Main Body Tag 3
+   │
+   ├── Parties Repeat Group
+   │      ├── Party Tag 1
+   │      ├── Party Tag 2
+   │      ├── Party Tag 3
+   │      └── Nested Repeat Group, if applicable
+   │
+   └── Another Repeat Group
+
+The team wants the same or very similar business structure to be visible inside Data Catalogue.
+
+
+3. WHAT ALREADY EXISTS IN DATA CATALOGUE
+
+Around 3–4 years ago, another team created a CitiFix representation in Data Catalogue.
+
+That is why some old CitiFix Messages, Header, Body, Trailer and Repeat Groups can already be seen there.
+
+However, that implementation has problems:
+
+- It has not been maintained.
+- Hundreds of newer CitiFix tags are not available.
+- Main body tags are not properly displayed under messages.
+- Clicking a Repeat Group does not correctly show the tags inside that group.
+- Nested Repeat Groups are not represented properly.
+- Old pipelines/project used to load the data are no longer usable.
+- The original support team is no longer available in the same form.
+
+Because of this, the team does not want to depend on the old solution.
+
+The CitiFix → Data Catalogue integration needs to be rebuilt in a maintainable way.
+
+
+4. ORIGINAL REQUIREMENT WE STARTED WITH
+
+Initially, we understood the requirement as:
+
+OTC / CitiFix information
+        ↓
+Prepare Collection Excel
+        ↓
+Prepare Attribute Excel
+        ↓
+Java Spring Boot API
+        ↓
+Read Excel
+        ↓
+Convert Excel to JSON
+        ↓
+Call Data Catalogue API
+
+Based on that requirement, we created a Spring Boot POC.
+
+Work completed during that phase:
+
+- Spring Boot project setup
+- Swagger/OpenAPI setup
+- Multipart Excel upload
+- Apache POI Excel reading
+- Excel header cleanup (* removal)
+- Collection Excel processing
+- POJO mapping
+- ConceptRequest
+- ConceptPayload
+- Attribute
+- Attributes
+- Properties
+- DataTypeDefinition
+- Excel → JSON conversion
+- Swagger testing
+- SoapUI GET response analysis
+- Data Catalogue payload analysis
+- RestApiService
+- RestConsumerService
+- SSL RestTemplate setup
+- Initial Collection request/payload preparation
+
+We successfully proved that we can read the Excel and generate JSON through Swagger.
+
+
+5. IMPORTANT REQUIREMENT CHANGE
+
+Later discussions clarified that the Excel onboarding approach is NOT the primary requirement anymore.
+
+The team specifically clarified that they do not simply want new tags uploaded as database-style Collections/Attributes.
+
+The actual requirement is to represent the CitiFix business structure itself in Data Catalogue.
+
+Therefore, we should not continue designing the complete solution around:
+
+Collection Excel → Attribute Excel → JSON
+
+unless the team explicitly asks us to use that approach again.
+
+However, much of the earlier Java work can still be reused, especially:
+
+- Spring Boot structure
+- Swagger
+- REST client
+- SSL configuration
+- ObjectMapper/JSON logic
+- Controller/Service structure
+- Data Catalogue API understanding
+
+
+6. CURRENT BUSINESS REQUIREMENT
+
+The current requirement is:
+
+Replicate/mimic the CitiFix hierarchy inside the existing Data Catalogue.
+
+Expected structure:
+
+Data Catalogue
+   ↓
+CitiFix / Olympus Dictionary
+   ↓
+Message
+   ├── Main Body Tags
+   └── Repeat Groups
+          ├── Tags
+          └── Nested Repeat Groups
+                 └── Tags
+
+Example:
+
+If a user selects:
+
+Quote Cancel
+
+Data Catalogue should ideally show:
+
+Quote Cancel
+   ├── Main Body Tag 1
+   ├── Main Body Tag 2
+   ├── Main Body Tag 3
+   ├── Parties Repeat Group
+   ├── Another Repeat Group
+   └── Another Repeat Group
+
+Then if the user selects:
+
+Parties Repeat Group
+
+it should show:
+
+Parties
+   ├── Party Tag 1
+   ├── Party Tag 2
+   ├── Party Tag 3
+   └── Nested Repeat Group, if applicable
+
+The first priority is:
+
+Message
+→ Main Body Tags
+→ First-level Repeat Groups
+
+Then:
+
+Repeat Group
+→ Tags belonging to that group
+→ Nested Repeat Groups where possible
+
+
+7. NESTED REPEAT GROUP LIMITATION
+
+CitiFix can have deeper nesting such as:
+
+Message
+   ↓
+Repeat Group
+   ↓
+Nested Repeat Group
+   ↓
+Tags
+
+The team already understands that Data Catalogue may have hierarchy limitations.
+
+Most CitiFix messages apparently have only one major Repeat Group level, so the majority should be manageable.
+
+For the few cases with deeper nesting, another representation may be required.
+
+Possible approach discussed:
+
+Nested Repeat Group
+→ Create/show separately
+→ Refer/link to it from the parent group
+
+But this is NOT finalized yet.
+
+We first need to understand what hierarchy Data Catalogue technically supports.
+
+
+8. WE ARE NOT BUILDING A NEW UI RIGHT NOW
+
+The requirement is to use the existing Data Catalogue.
+
+We are NOT currently asked to build a brand-new Data Catalogue frontend.
+
+First we need to check whether the existing Data Catalogue UI can display the required hierarchy when the correct metadata is loaded.
+
+Only if the existing Data Catalogue cannot support the required representation should UI changes become a separate discussion.
+
+
+9. WHERE THE CITIFIX SOURCE DATA COMES FROM
+
+The latest discussion with Rupesh clarified that CitiFix/Data Dictionary already has APIs that expose useful information.
+
+For example, for a Repeat Group such as Account Group, the API can provide information such as:
+
+- Repeat Group ID/number
+- Status
+- Protocol
+- Related elements
+- Relationships
+
+For an individual element/tag such as Account, another API can provide information such as:
+
+- Element ID
+- Tag details
+- Name
+- Description
+- Type
+- Version
+- Other metadata
+
+Therefore, the existing CitiFix/Data Dictionary APIs may be reusable as a source.
+
+Our question:
+
+“Why can’t we use the same CitiFix/Data Dictionary APIs?”
+
+is valid.
+
+However, before deciding that, we first need to determine exactly what information Data Catalogue requires.
+
+
+10. WHAT RUPESH ASKED US TO DO FIRST
+
+Rupesh clarified that our immediate task is NOT to start writing database queries.
+
+First, we should understand the TARGET Data Catalogue payload and structure.
+
+The order should be:
+
+Data Catalogue Swagger/API
+        ↓
+Understand target payload
+        ↓
+Determine required fields
+        ↓
+Take one CitiFix message
+        ↓
+Identify Main Body Tags
+        ↓
+Identify Repeat Groups
+        ↓
+Identify Tags under Repeat Groups
+        ↓
+Identify Nested Repeat Groups
+        ↓
+Compare required fields against existing CitiFix APIs
+        ↓
+Identify anything missing
+
+
+11. WHAT MAHESH NEEDS FROM US
+
+Mahesh is asking us:
+
+“What data do you require?”
+
+We need to prepare a clear list of source fields needed to reproduce the CitiFix hierarchy in Data Catalogue.
+
+For example, candidate information could be:
+
+MESSAGE:
+- Message ID
+- Message name
+- Description
+- Version
+- Status
+
+TAG / ELEMENT:
+- Element ID
+- Tag number
+- Tag name
+- Logical/display name
+- Description
+- Data type
+- Version/status
+
+REPEAT GROUP:
+- Repeat Group ID
+- Repeat Group number
+- Repeat Group name
+- Protocol
+- Status
+- Parent Message/Group
+
+RELATIONSHIPS:
+- Message → Main Body Tag
+- Message → Repeat Group
+- Repeat Group → Tag
+- Repeat Group → Nested Repeat Group
+
+But this should NOT yet be treated as the final field list.
+
+First, we need to check Data Catalogue Swagger and determine exactly which fields its payload requires.
+
+Then we can give the finalized required-field list to Mahesh.
+
+
+12. WHAT MAHESH WILL DO AFTER THAT
+
+Once we provide Mahesh with the exact fields we need:
+
+Mahesh can prepare:
+- Database query
+or
+- Stored procedure
+or
+- Appropriate source extraction
+
+to return the required CitiFix data.
+
+Therefore, the likely technical flow becomes:
+
+Existing Data Catalogue API/Swagger
+        ↓
+Define target structure
+        ↓
+Identify required CitiFix fields
+        ↓
+Check existing CitiFix/Data Dictionary APIs
+        ↓
+Give missing/source field requirement to Mahesh
+        ↓
+Mahesh prepares query/stored procedure
+        ↓
+Our Java application receives/processes data
+        ↓
+Build Data Catalogue payload
+        ↓
+Publish to Data Catalogue
+
+
+13. WHAT WE SHOULD DO NOW — STEP BY STEP
+
+STEP 1:
+Open the existing Data Catalogue Swagger/API documentation.
+
+Understand:
+- Dictionary structure
+- Concept/Collection structure
+- Attribute structure
+- Relationships supported
+- Required fields
+- POST payload
+- Authentication/headers if required
+
+
+STEP 2:
+Take ONE CitiFix message as a POC.
+
+Preferably:
+- Quote Cancel
+or
+- Another message Rupesh/Mahesh provides.
+
+
+STEP 3:
+For that message, understand the complete CitiFix hierarchy:
+
+Message
+   ↓
+Main Body Tags
+   ↓
+First-level Repeat Groups
+   ↓
+Tags inside Repeat Groups
+   ↓
+Nested Repeat Groups, if any
+
+
+STEP 4:
+Map that CitiFix hierarchy against the Data Catalogue target structure.
+
+Determine:
+
+Which CitiFix field becomes:
+- Dictionary
+- Concept/Collection
+- Attribute
+- Relationship/reference
+
+
+STEP 5:
+Prepare the exact list of source fields needed.
+
+Example:
+
+To build Message:
+What information is required?
+
+To build Main Body Tags:
+What information is required?
+
+To build Repeat Groups:
+What information is required?
+
+To connect Message → Repeat Group:
+What relationship information is required?
+
+To connect Repeat Group → Tag:
+What relationship information is required?
+
+
+STEP 6:
+Check the existing CitiFix/Data Dictionary APIs.
+
+Identify:
+
+AVAILABLE FROM API:
+- Field A
+- Field B
+- Field C
+
+NOT AVAILABLE / NEED DB:
+- Field X
+- Field Y
+
+
+STEP 7:
+Give the finalized required-field list to Mahesh.
+
+Mahesh can then prepare the query/stored procedure needed to provide those values.
+
+
+STEP 8:
+Build a POC for ONE message.
+
+Example:
+
+Quote Cancel
+   ├── Main Body Tags
+   ├── Repeat Group 1
+   │      └── Tags
+   ├── Repeat Group 2
+   │      └── Tags
+   └── Repeat Group 3
+          └── Tags
+
+
+STEP 9:
+Publish that sample into the existing Data Catalogue.
+
+Validate with:
+- Rupesh
+- Rajat
+- Mahesh / functional team
+
+
+STEP 10:
+Confirm:
+
+- Are main body tags visible?
+- Are Repeat Groups visible?
+- Can clicking a Repeat Group show its tags?
+- How should Nested Repeat Groups be represented?
+
+
+STEP 11:
+Once the POC/design is approved, implement the full CitiFix hierarchy.
+
+
+STEP 12:
+Finally, implement regular synchronization/refresh.
+
+When CitiFix gets:
+- New tags
+- New messages
+- New Repeat Groups
+- Mapping changes
+
+Data Catalogue should also be refreshed.
+
+The meeting suggested this should happen regularly, possibly weekly, but the exact refresh frequency still needs confirmation.
+
+
+14. STATUS OF OUR OLD JAVA CODE
+
+The old Java work should NOT be thrown away.
+
+Think of it as a reusable technical foundation.
+
+REUSABLE:
+
+- Spring Boot application
+- Controller → Service → ServiceImpl pattern
+- Swagger/OpenAPI
+- REST client structure
+- RestApiService
+- RestConsumerService
+- SSL RestTemplate
+- ObjectMapper
+- JSON generation logic
+- Data Catalogue payload knowledge
+
+LIKELY TO CHANGE:
+
+- Excel as the primary source
+- Collection Excel workflow
+- Attribute Excel workflow
+- ConceptPayloadList generated directly from Excel
+- Manual Excel upload as the final solution
+
+
+15. WHAT IS COMPLETED
+
+Completed / understood:
+
+- Basic CitiFix business understanding
+- Meaning of Message
+- Meaning of Tag
+- Meaning of Repeat Group
+- Basic nested Repeat Group concept
+- Existing Data Catalogue old implementation reviewed
+- Data Catalogue Swagger previously explored
+- Data Catalogue GET responses explored in SoapUI
+- Collection/Concept payload studied
+- Attribute payload studied
+- Spring Boot POC built
+- Excel → JSON POC completed
+- Swagger working
+- REST/SSL client foundation prepared
+- Requirement change understood
+
+
+16. WHAT IS STILL PENDING
+
+Pending:
+
+- Final target Data Catalogue hierarchy design
+- Exact fields required for Message
+- Exact fields required for Tags
+- Exact fields required for Repeat Groups
+- Exact relationship fields required
+- Mapping CitiFix APIs → required fields
+- Identifying missing fields
+- Providing those requirements to Mahesh
+- Mahesh query/stored procedure
+- Single-message POC
+- Nested Repeat Group design
+- Actual Data Catalogue publishing integration
+- End-to-end testing
+- Regular synchronization/refresh process
+
+
+17. SIMPLE PROJECT FLOW
+
+Current goal:
+
+CitiFix / Data Dictionary
+        ↓
+Messages + Tags + Repeat Groups
+        ↓
+Retrieve required source information
+        ↓
+Java integration/application
+        ↓
+Transform to Data Catalogue structure
+        ↓
+Existing Data Catalogue APIs
+        ↓
+Data Catalogue UI
+        ↓
+Users see CitiFix hierarchy
+
+
+18. SIMPLE WAY TO EXPLAIN THE REQUIREMENT IN A MEETING
+
+“Initially we started with an Excel-to-JSON onboarding approach for collections and attributes. After the later requirement discussions, that is no longer the primary scope.
+
+The actual requirement is to replicate the CitiFix business hierarchy in the existing Data Catalogue.
+
+CitiFix contains Messages. A Message contains main-body Tags and Repeat Groups. A Repeat Group contains its own Tags and, in some cases, nested Repeat Groups.
+
+There was an older CitiFix representation in Data Catalogue from around three or four years ago, but it is outdated, the old pipelines are no longer usable, and newer CitiFix data has not been maintained there. Therefore, we need to rebuild this integration in a maintainable way.
+
+As the first step, I am going to analyze the existing Data Catalogue Swagger/API and determine exactly what fields and structure are required to represent one CitiFix message.
+
+Then, using one CitiFix message as an example, I will identify the required information for the message, main-body tags, repeat groups, tags inside repeat groups, and nested groups.
+
+I will compare those requirements with the existing CitiFix/Data Dictionary APIs that Rupesh showed. Based on that analysis, I will prepare the exact source-field requirement for Mahesh. If any required information is not directly available through the existing APIs, Mahesh can prepare the appropriate query or stored procedure.
+
+After that, we will first implement and validate one CitiFix message end-to-end in Data Catalogue. Once the structure and nested-group handling are agreed, we can extend the implementation to the complete CitiFix hierarchy and then establish a regular refresh mechanism so Data Catalogue stays synchronized with CitiFix.”
+
+
+
+
+
+
+
+
+
 openssl s_client -connect vs-eolg-qepe.nam.nsroot.net:443 \
 -servername nurarec-uat.cloudgsl.nam.nsroot.net </dev/null 2>/dev/null | \
 openssl x509 -noout -subject -issuer -dates
