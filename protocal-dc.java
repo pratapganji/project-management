@@ -1,5 +1,205 @@
 
 
+[
+    {
+        "id": 1027,
+        "type": "element",
+        "name": "BrokerNumber",
+        "element": 100298
+    },
+    {
+        "id": 183,
+        "type": "group",
+        "name": "AccountGrp",
+        "element": " ",
+        "children": [
+            {
+                "id": 2491,
+                "type": "element",
+                "name": "AccountCrossType",
+                "element": 10193
+            },
+            {
+                "id": 2270,
+                "type": "element",
+                "name": "GrandParentAccount",
+                "element": 10125
+            },
+            {
+                "id": 2050,
+                "type": "element",
+                "name": "AccountRole",
+                "element": 10645
+            },
+            {
+                "id": 777,
+                "type": "element",
+                "name": "SettlAccountType",
+                "element": 11521
+            },
+            {
+                "id": 4376,
+                "type": "element",
+                "name": "AcctIDSource",
+                "element": 660
+            },
+            {
+                "id": 3357,
+                "type": "element",
+                "name": "RefContraBroker",
+                "element": 10465
+            },
+            {
+                "id": 1511,
+                "type": "element",
+                "name": "Account",
+                "element": 1
+            },
+            {
+                "id": 1381,
+                "type": "element",
+                "name": "MgmtGrpMnc",
+                "element": 100172
+            },
+            {
+                "id": 1970,
+                "type": "element",
+                "name": "LegalEntity",
+                "element": 10031
+            },
+            {
+                "id": 2489,
+                "type": "element",
+                "name": "AccountTransactTime",
+                "element": 10191
+            },
+            {
+                "id": 4089,
+                "type": "element",
+                "name": "AccountType",
+                "element": 581
+            },
+            {
+                "id": 2391,
+                "type": "element",
+                "name": "SUTFFlag",
+                "element": 10166
+            },
+            {
+                "id": 2783,
+                "type": "element",
+                "name": "NotificationEmailList",
+                "element": 10271
+            },
+            {
+                "id": 2490,
+                "type": "element",
+                "name": "AccountExecutionCapacity",
+                "element": 10192
+            },
+            {
+                "id": 2488,
+                "type": "element",
+                "name": "AccountLastMkt",
+                "element": 10190
+            },
+            {
+                "id": 2485,
+                "type": "element",
+                "name": "AccountCumQty",
+                "element": 10187
+            },
+            {
+                "id": 2487,
+                "type": "element",
+                "name": "AccountCumExecutionMUD",
+                "element": 10189
+            },
+            {
+                "id": 2486,
+                "type": "element",
+                "name": "AccountAvgPx",
+                "element": 10188
+            },
+            {
+                "id": 2278,
+                "type": "element",
+                "name": "AccountSubType",
+                "element": 10133
+            },
+            {
+                "id": 24,
+                "type": "group",
+                "name": "AccountRatingTiersGrp",
+                "element": " ",
+                "children": [
+                    {
+                        "id": 3192,
+                        "type": "element",
+                        "name": "AccountRatingTierType",
+                        "element": 10430
+                    },
+                    {
+                        "id": 3191,
+                        "type": "element",
+                        "name": "AccountRatingTierValue",
+                        "element": 10429
+                    }
+                ]
+            },
+            {
+                "id": 62,
+                "type": "group",
+                "name": "AltAccountGrp",
+                "element": " ",
+                "children": [
+                    {
+                        "id": 2427,
+                        "type": "element",
+                        "name": "AltAccountType",
+                        "element": 10700
+                    },
+                    {
+                        "id": 480,
+                        "type": "element",
+                        "name": "AltAccountRole",
+                        "element": 11135
+                    },
+                    {
+                        "id": 4428,
+                        "type": "element",
+                        "name": "AltAcctIDSource",
+                        "element": 10699
+                    },
+                    {
+                        "id": 2125,
+                        "type": "element",
+                        "name": "AltAccount",
+                        "element": 10691
+                    },
+                    {
+                        "id": 4319,
+                        "type": "element",
+                        "name": "AltAccountSubType",
+                        "element": 10701
+                    }
+                ]
+            }
+        ]
+    }
+]
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 {
