@@ -1,5 +1,9 @@
 
 
+Yes. We raised the CMP request for a Citi Internal TLS Server certificate for the CRM Olympus WIP/application endpoint. After approval, CMP provided the certificate, private key and PFX. We are using the PFX to create the JKS keystore, which is configured in CRM Olympus as server.ssl.key-store to enable HTTPS/TLS for the application endpoint. We wanted to confirm whether this is the correct approach or whether the CMP certificate should be integrated differently.
+
+
+
 
 Hi Anbunithi, as discussed, we need your confirmation on the certificate approach we are following for CRM Olympus.
 
