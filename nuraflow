@@ -1,5 +1,11 @@
 
 
+SELECT COUNT(*) AS URL_COUNT
+FROM A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+WHERE SQL_PAYLOAD LIKE '%"callBackUrl"%namicg39023u%';
+
+
+
 
 openssl s_client -connect nurarec-uat.cloudgsl.nam.nsroot.net:443 -servername nurarec-uat.cloudgsl.nam.nsroot.net
 
