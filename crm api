@@ -1,5 +1,9 @@
 
 
+CMP provided the certificate and private key together in PFX/PKCS12 format. Since CRM Olympus was already configured to use a Java JKS keystore (server.ssl.key-store-type=JKS), we imported the PFX into JKS and configured that JKS as the application SSL keystore. We followed the existing Java application keystore configuration. We wanted to confirm whether JKS is the expected standard, or whether using the PFX/PKCS12 directly is recommended
+
+
+
 Title:
 Update Kafka/Confluent Truststore with New Citi Internal CA Certificates
 
