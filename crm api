@@ -1,5 +1,27 @@
 
 
+Subject: CRM Olympus – Certificate Changes UAT Validation
+
+Hi Snehal,
+
+The following certificate changes have been deployed to UAT for CRM Olympus:
+
+1. Application TLS certificate updated using the new CMP-provided certificate (PFX converted to JKS and configured as the application SSL keystore).
+2. Kafka trust store updated with the latest Citi Internal CA certificates for Confluent/Kafka connectivity.
+
+Could you please perform sanity testing and validate that the application is running successfully, HTTPS connectivity is working, and Kafka message processing is functioning as expected?
+
+Please share your sign-off once validation is completed and let us know if you encounter any issues.
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
 CMP provided the certificate and private key together in PFX/PKCS12 format. Since CRM Olympus was already configured to use a Java JKS keystore (server.ssl.key-store-type=JKS), we imported the PFX into JKS and configured that JKS as the application SSL keystore. We followed the existing Java application keystore configuration. We wanted to confirm whether JKS is the expected standard, or whether using the PFX/PKCS12 directly is recommended
 
 
