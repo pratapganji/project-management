@@ -1,3 +1,8 @@
+keytool -importkeystore \
+  -srckeystore certificate.pks \
+  -srcstoretype PKCS12 \
+  -destkeystore cacerts.jks \
+  -deststoretype JKS
 
 
 SELECT ID,
