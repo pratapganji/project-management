@@ -1,4 +1,19 @@
 
+Subject: QE Sanity Testing Request – CVM Dependency Fixes (SB User Consumption)
+
+Hi Snehal,
+
+The SB User Consumption CVM dependency fixes have been deployed to UAT. Could you please perform sanity testing and validate that the application is running successfully and user consumption data is being processed and loaded as expected?
+
+Please share your sign-off once completed and let me know if you encounter any issues.
+
+Thanks,
+Pratap
+
+
+
+
+
 Subject: Follow-up: QE Sanity Testing – SB User Consumption
 
 Hi Snehal,
