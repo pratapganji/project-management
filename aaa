@@ -1,4 +1,17 @@
 
+
+The SB User Consumption CVM dependency fixes have been deployed and validated in UAT.
+
+As confirmed by the AppSec team, the Black Duck/CVM issue status will be reflected only after the changes are deployed to Production. Therefore, we will be able to verify that the CVM issues are closed only after the Production deployment.
+
+Could you please provide your QE sign-off so we can proceed with the Production deployment?
+
+Please let me know if you have any concerns.
+
+Thanks,
+Pratap
+
+
 Hi Vishakha, I followed the troubleshooting instructions and accessed the GitHub Copilot Diagnostics tool in DevHub. DevHub shows version 4.1 as Installed, but I am unable to find the DEVASSISTCOPILOT_4.1 package in my Downloads folder or locate the IntelliJ_copilot_assit.ps1 script on my machine.
 
 Could you please advise how I can download/re-download the diagnostic package from DevHub or provide the correct location where the files are installed?
