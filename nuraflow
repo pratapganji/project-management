@@ -7,6 +7,13 @@ Map<String, String> map =
         objectMapper.readValue(json, new TypeReference<Map<String, String>>() {});
 
 
+ObjectMapper objectMapper = new ObjectMapper();
+
+String json = "...";
+
+JsonNode node = objectMapper.readTree(json);
+
+
 
 keytool -importkeystore \
   -srckeystore certificate.pks \
