@@ -1,5 +1,8 @@
 
 
+cd "C:\Users\pg16424\Downloads\DEVASSISTCOPILOT_4.1\DEVASSISTCOPILOT_4.1\IntelliJ"
+
+
 The SB User Consumption CVM dependency fixes have been deployed and validated in UAT.
 
 As confirmed by the AppSec team, the Black Duck/CVM issue status will be reflected only after the changes are deployed to Production. Therefore, we will be able to verify that the CVM issues are closed only after the Production deployment.
