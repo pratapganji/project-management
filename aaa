@@ -1,4 +1,9 @@
 
+Hi Vishakha, I followed the troubleshooting instructions and accessed the GitHub Copilot Diagnostics tool in DevHub. DevHub shows version 4.1 as Installed, but I am unable to find the DEVASSISTCOPILOT_4.1 package in my Downloads folder or locate the IntelliJ_copilot_assit.ps1 script on my machine.
+
+Could you please advise how I can download/re-download the diagnostic package from DevHub or provide the correct location where the files are installed?
+
+
 Get-ChildItem "C:\Users\pg16424" -Recurse -Filter "*copilot*assit*.ps1" -ErrorAction SilentlyContinue
 
 Get-ChildItem "C:\Users\pg16424\AppData\Local" -Directory -Recurse -ErrorAction SilentlyContinue |
