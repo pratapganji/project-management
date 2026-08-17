@@ -1,5 +1,7 @@
 
 
+Get-ChildItem "C:\Users\pg16424\AppData\Local\CitiSoftware" -Recurse -Filter "IntelliJ_copilot_assit.ps1" -ErrorAction SilentlyContinue
+
 Get-ChildItem C:\ -Recurse -Filter "IntelliJ_copilot_assit.ps1" -ErrorAction SilentlyContinue
 
 
