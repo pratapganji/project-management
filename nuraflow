@@ -1,4 +1,17 @@
 
+
+String dbValue = "(x-cit...loginid=lodt_olympus_fid, X-Global-Transaction-ID=588bc97b-7a23-4af4-a53e-689b7d1e97fd, Content-Type=application/json, accept=application/json)";
+
+Map<String, String> headers = Arrays.stream(
+        dbValue.substring(1, dbValue.length() - 1).split(",\\s*")
+    )
+    .map(entry -> entry.split("=", 2))
+    .collect(Collectors.toMap(
+        pair -> pair[0].trim(),
+        pair -> pair[1].trim()
+    ));
+
+
 ObjectMapper objectMapper = new ObjectMapper();
 
 String json = "{\"one\": 1, \"two\": 2}";
