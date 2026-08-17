@@ -1,4 +1,10 @@
 
+Get-ChildItem "C:\Users\pg16424" -Recurse -Filter "*copilot*assit*.ps1" -ErrorAction SilentlyContinue
+
+Get-ChildItem "C:\Users\pg16424\AppData\Local" -Directory -Recurse -ErrorAction SilentlyContinue |
+Where-Object { $_.Name -like "*DEVASSISTCOPILOT*" }
+
+
 Get-ChildItem "C:\Users\pg16424\AppData\Local\CitiSoftware" -Directory -Recurse -ErrorAction SilentlyContinue |
 Where-Object { $_.Name -like "*COPILOT*" -or $_.Name -like "*DEVASSIST*" }
 
