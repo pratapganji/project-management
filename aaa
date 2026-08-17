@@ -1,5 +1,8 @@
 
 
+Get-ChildItem C:\ -Recurse -Filter "IntelliJ_copilot_assit.ps1" -ErrorAction SilentlyContinue
+
+
 grep -niE "SSL handshake|TopicAuthorization|AUTHORIZATION_FAILED|Failed authentication|Not authorized|Sent message" <current-log-file>
 
 
