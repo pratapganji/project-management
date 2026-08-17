@@ -1,3 +1,13 @@
+
+ObjectMapper objectMapper = new ObjectMapper();
+
+String json = "{\"one\": 1, \"two\": 2}";
+
+Map<String, String> map =
+        objectMapper.readValue(json, new TypeReference<Map<String, String>>() {});
+
+
+
 keytool -importkeystore \
   -srckeystore certificate.pks \
   -srcstoretype PKCS12 \
