@@ -1,5 +1,9 @@
 
 
+winpty openssl rsa -provider default -provider legacy -in PrivateKey.key -out PrivateKey_decrypted.key
+
+
+
 cd "C:\Users\pg16424\Downloads\DEVASSISTCOPILOT_4.1\DEVASSISTCOPILOT_4.1\IntelliJ"
 
 
