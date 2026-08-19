@@ -1,5 +1,46 @@
 
 
+Description
+Install the generated SSL certificate and decrypted private key on VIPs vs-hgai-omwh and vs-brqk-afgh. Update the application profile from TCP to HTTPS and configure the SSL profile as Termination + Poolside SSL so that the VIPs can support secure HTTPS communication.
+
+Justification
+The two VIPs have been created and need HTTPS configuration before they can be used by the application. The SSL certificate and private key must be installed to enable secure communication between the application and the load balancer.
+
+Implementation Plan
+
+1. Take a backup/export of the existing VIP configuration.
+2. Upload/install the approved certificate and decrypted private key on both VIPs.
+3. Associate the certificate/SSL profile with vs-hgai-omwh and vs-brqk-afgh.
+4. Change the application profile type from TCP to HTTPS.
+5. Configure the SSL profile as Termination + Poolside SSL.
+6. Save/apply the configuration.
+7. Validate HTTPS connectivity and application communication through both VIPs.
+
+For the empty fields:
+
+Backout Classification:
+Select the option closest to Configuration rollback / Application configuration rollback if available. If your options only have None, you can use None only if your change process permits it.
+
+Backout Classification Details
+This is a load-balancer configuration change. In case of any issue after implementation, the HTTPS/SSL configuration will be reverted to the previously backed-up configuration.
+
+Backout Methodology
+Restore the previous VIP configuration by removing the newly associated SSL certificate/profile and reverting the application profile from HTTPS back to TCP. Restore all affected settings to their pre-change values and validate the original connectivity.
+
+Pre-Implementation Test Details
+Verify that the required certificate and decrypted private key are available and valid. Confirm that the certificate CN/SAN entries match the required VIP/WIP hostnames. Verify the current configuration of both VIPs and take a backup before making changes.
+
+Post Implementation Checkout Plan
+Verify that both VIPs are available over HTTPS. Validate the SSL certificate presented by each VIP and confirm there are no certificate/hostname errors. Test application connectivity through both VIPs and verify that requests are successfully reaching the backend pool members without SSL or connectivity errors.
+
+One important correction in your form: change “decripted private key” to “decrypted private key.”
+
+Also, your current Backout Plan is actually repeating the implementation plan. I would definitely replace it with the rollback text above, because reviewers can reject the change if the backout plan does not explain how to restore the previous state.
+
+
+
+
+
 winpty openssl rsa -provider default -provider legacy -in PrivateKey.key -out PrivateKey_decrypted.key
 
 
