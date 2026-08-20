@@ -1,4 +1,11 @@
 
+Hi Satish,
+For CRM-to-Olympus (gfolybkb), we updated kafkacacerts.jks with the new Citi PKI certificates and successfully tested it in UAT.
+
+Our PROD deployment is currently planned for Aug 24, but the Confluent certificate update is planned for Aug 23. PROD is still using the existing kafkacacerts.jks.
+
+Do we need to deploy the updated kafkacacerts.jks to PROD before Aug 23, or can we deploy it with our regular PROD deployment on Aug 24? Please confirm so we can avoid any Kafka connectivity issue.
+
 Hi Sandeep, for the Confluent SSL/TLS certificate renewal scheduled for Aug 23, we have updated the new Citi PKI certificates in the CRM-to-Olympus (gfolybkb) Kafka truststore and successfully validated it in UAT. Currently the change is only at UAT level. Do we need to deploy the updated truststore to PROD before the Aug 23 Confluent certificate change? Please confirm the expected PROD deployment timing/process so we can ensure there is no Kafka connectivity impact after the certificate cutover.
 
 
