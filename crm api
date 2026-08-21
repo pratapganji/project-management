@@ -1,4 +1,24 @@
 
+Subject: Request to Correct Test Project Number in ROD Template
+
+Hi Seema,
+
+We noticed that the ROD template currently contains Test Project Number 20220105875 under the Pre-Implementation Test Details, while our actual PTS Project ID is 20260102512.
+
+This old Test Project Number appears to be coming directly from the template, and raising a new ROD/CR will continue to show the same value.
+
+Could you please review the template, compare it with the other current templates, and remove/correct the old Test Project Number reference so that future RODs do not pick up the incorrect value?
+
+This is currently impacting approval of our Sunday PROD deployment, so your help would be appreciated.
+
+Thanks,
+Pratap
+
+
+
+
+
+
 Hi Satish,
 For CRM-to-Olympus (gfolybkb), we updated kafkacacerts.jks with the new Citi PKI certificates and successfully tested it in UAT.
 
