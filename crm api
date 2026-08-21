@@ -1,4 +1,8 @@
 
+Hi Raj, I will be available after 1 PM EDT to validate the CRM-to-Olympus side. We can verify the updated truststore on the server, application/Kafka connectivity, and successful message publishing from our application logs. Consumer-side processing will need to be confirmed by the respective consumer team.
+
+
+
 Subject: Approval Request – Sunday 8 AM EST PROD Release – CHG0001594397
 
 Hi PS Team,
