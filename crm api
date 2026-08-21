@@ -1,4 +1,24 @@
 
+
+Subject: Consumer Support Required – Aug 23 Post-Implementation Validation
+
+Hi Team,
+
+As part of the Confluent SSL/TLS certificate renewal on Aug 23, post-implementation validation is planned after 1 PM EDT.
+
+From CRM-to-Olympus, we will validate that messages are successfully published to Kafka. Could you please ensure someone from the consumer team is available at that time to validate that the messages are consumed and processed successfully on your side?
+
+Please confirm the POC who will be available for the validation.
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
 Hi Raj, I will be available after 1 PM EDT to validate the CRM-to-Olympus side. We can verify the updated truststore on the server, application/Kafka connectivity, and successful message publishing from our application logs. Consumer-side processing will need to be confirmed by the respective consumer team.
 
 
