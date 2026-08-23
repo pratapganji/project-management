@@ -1,5 +1,29 @@
 
 
+Hi Seema,
+
+Could you please help with the below for the PROD and COB hosts?
+
+Please provide screenshots from:
+
+/data/1/gfolybkb/bin/CRM_Olympus_Config/config
+
+showing that kafkacacerts.jks is present with the latest timestamp.
+
+Also, please download and share the latest application log files from:
+
+/data/1/gfolybkb/bin/CRM_Olympus_New/logs
+
+We will review the downloaded logs from our side for any Kafka/SSL or application errors.
+
+I have included the PROD/COB server hostnames and UAT sample screenshot for reference.
+
+Thanks,
+Pratap
+
+
+
+
 Subject: Approval Required – Sunday PROD ROD – CHG0001594397
 
 Hi Team,
