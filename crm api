@@ -1,5 +1,1516 @@
 
 
+CRM-to-Olympus SSL/TLS Certificate – Standard Creation, Deployment, Validation and Lessons Learned
+
+1. Purpose
+
+This document explains the standard process followed for creating and deploying the SSL/TLS certificate used by the CRM-to-Olympus application.
+
+It also documents:
+
+- Why the certificate is required.
+- Why the private key is required.
+- How the certificate should be requested through CMP.
+- What CN and SAN entries mean and why they matter.
+- How the CMP-generated PFX is converted directly into JKS.
+- How the JKS is deployed and used by the application.
+- How to validate the PFX, JKS and live endpoint.
+- Issues encountered during the initial implementation.
+- Incorrect approaches that should not be repeated.
+- Recommended do's and don'ts for future renewal.
+
+======================================================================
+2. Correct Standard Process – Summary
+======================================================================
+
+The correct process is:
+
+Identify application HTTPS names
+        ↓
+Determine CN + SAN entries
+        ↓
+Raise CMP certificate request
+        ↓
+CMP generates:
+ Certificate
+ Private Key
+ PFX containing Certificate + Private Key
+        ↓
+Download PFX securely
+        ↓
+Validate PFX
+        ↓
+Convert PFX directly to JKS using keytool
+        ↓
+Validate JKS
+        ↓
+Add JKS to application deployment package
+        ↓
+Deploy JKS to server configuration path
+        ↓
+Application starts using JKS for HTTPS
+        ↓
+Validate endpoint certificate
+        ↓
+Validate POST calls
+        ↓
+Confirm application is working successfully
+
+Important:
+
+Do not download a generic/base JKS from another Confluence page and add the application certificate/private key to it.
+
+For CRM-to-Olympus, the correct application JKS should be created directly from the CMP-generated PFX.
+
+======================================================================
+3. Why Does CRM-to-Olympus Need This Certificate?
+======================================================================
+
+CRM-to-Olympus exposes HTTPS endpoints.
+
+For example, the application is accessed using:
+
+olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net
+
+The backend VIPs include:
+
+PROD VIP:
+vs-hdax-dxbg.nam.nsroot.net
+
+COB VIP:
+vs-bula-ifev.nam.nsroot.net
+
+When a consumer calls:
+
+https://<CRM-Olympus-host>/...
+
+an SSL/TLS handshake happens before the actual API request is processed.
+
+Simple flow:
+
+Consumer
+   |
+   | HTTPS request
+   ↓
+CRM-to-Olympus
+   |
+   | Presents server certificate
+   ↓
+Consumer validates certificate
+   |
+   | TLS connection established
+   ↓
+Actual API request is processed
+
+The certificate provides two important things:
+
+1. Server identity
+
+It proves that the caller is communicating with the intended CRM-to-Olympus service.
+
+2. Encryption
+
+It allows HTTPS/TLS to protect data being transferred between the consumer and the application.
+
+======================================================================
+4. What Happens If We Don't Have a Certificate?
+======================================================================
+
+Without a properly configured certificate, HTTPS cannot operate correctly.
+
+Consumers may see errors such as:
+
+SSLHandshakeException
+
+PKIX path building failed
+
+certificate_unknown
+
+unable to find valid certification path
+
+hostname verification failed
+
+certificate expired
+
+The API itself could be healthy, but the caller may never reach the API because TLS happens before the normal application request.
+
+Flow:
+
+TLS handshake
+     ↓
+HTTP/API request
+     ↓
+Application logic
+     ↓
+Kafka publish
+
+If TLS fails at the first step, the remaining steps never happen.
+
+======================================================================
+5. Certificate vs Private Key
+======================================================================
+
+This distinction is very important.
+
+Certificate:
+
+The certificate contains public information such as:
+
+- Application/server identity.
+- Public key.
+- Issuer.
+- Validity dates.
+- SAN entries.
+- Signature from the issuing CA.
+
+The certificate can be presented to consumers.
+
+Private Key:
+
+The private key is secret.
+
+It proves that the server presenting the certificate is actually the owner of that certificate.
+
+Conceptually:
+
+Certificate = Public identity
+
+Private Key = Secret proof of ownership
+
+The server needs both:
+
+Certificate
+     +
+Matching Private Key
+     ↓
+Usable HTTPS server identity
+
+======================================================================
+6. What Happens If We Have a Certificate but No Private Key?
+======================================================================
+
+Having only the certificate is not enough for the application to act as the HTTPS server.
+
+Without the matching private key, the application cannot properly prove possession of the certificate during TLS.
+
+Certificate only = Not sufficient
+
+Certificate + Matching Private Key = Correct
+
+This is why the CMP-generated PFX is important.
+
+The PFX contains:
+
+Certificate
++
+Private Key
+
+Example:
+
+CertAndKey.pfx
+     |
+     +-- Certificate
+     |
+     +-- Private Key
+
+======================================================================
+7. Why We Use PFX
+======================================================================
+
+PFX/PKCS12 is a standard container format capable of storing:
+
+- Certificate.
+- Private key.
+- Certificate chain, when supplied.
+- Alias information.
+
+For our CMP-generated package, we received files such as:
+
+Certificate.cer.txt
+PrivateKey.key.txt
+CertAndKey.pfx
+
+For application JKS creation, the most useful file is:
+
+CertAndKey.pfx
+
+because it already combines the certificate and its associated private key.
+
+======================================================================
+8. CMP Certificate Request – Correct Process
+======================================================================
+
+The certificate should be generated through the approved Citi CMP process.
+
+Before raising CMP, determine the application names that clients and routing layers will use.
+
+For CRM-to-Olympus, the primary certificate identity was:
+
+CN =
+olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net
+
+The certificate also included SAN entries for the relevant routing names.
+
+From the generated certificate we validated SAN entries including:
+
+olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net
+
+vs-hdax-dxbg.nam.nsroot.net
+
+vs-bula-ifev.nam.nsroot.net
+
+[ADD CMP REQUEST SCREENSHOT HERE]
+
+======================================================================
+9. What Is CN?
+======================================================================
+
+CN means Common Name.
+
+It represents the primary hostname associated with the certificate.
+
+For our application:
+
+CN=olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net
+
+======================================================================
+10. What Are SAN Entries?
+======================================================================
+
+SAN means:
+
+Subject Alternative Name
+
+A certificate can be used for multiple DNS names.
+
+For example, our service can be reached through:
+
+Main/WIP hostname:
+olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net
+
+PROD VIP:
+vs-hdax-dxbg.nam.nsroot.net
+
+COB VIP:
+vs-bula-ifev.nam.nsroot.net
+
+If those names need to present the same application certificate, they should be included as SANs as appropriate.
+
+Example:
+
+Subject Alternative Name:
+
+DNS:
+olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net
+
+DNS:
+vs-hdax-dxbg.nam.nsroot.net
+
+DNS:
+vs-bula-ifev.nam.nsroot.net
+
+======================================================================
+11. Why Are SANs Important?
+======================================================================
+
+Suppose the certificate contains only:
+
+olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net
+
+but we directly access:
+
+https://vs-hdax-dxbg.nam.nsroot.net
+
+If vs-hdax-dxbg.nam.nsroot.net is not covered by the certificate SANs, hostname verification can fail.
+
+Therefore before requesting the certificate, identify all DNS names that must legitimately use that certificate.
+
+Do not add random server names.
+
+Only include the names required by the application architecture.
+
+======================================================================
+12. CMP Information to Confirm Before Submission
+======================================================================
+
+During a future renewal, confirm at least:
+
+- Application / FID
+- Environment
+- Certificate purpose
+- Common Name (CN)
+- Subject Alternative Names (SAN)
+- Certificate type
+- Key algorithm / key size
+- Validity period
+- Application owner/contact
+- Server/application usage
+
+For SSL server usage, confirm that the certificate is appropriate for:
+
+Extended Key Usage:
+serverAuth
+
+Our generated certificate showed:
+
+ExtendedKeyUsages:
+serverAuth
+
+======================================================================
+13. Certificate Generated for CRM-to-Olympus
+======================================================================
+
+The certificate we inspected had approximately the following properties:
+
+Owner:
+CN=olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net
+OU=160970
+O=Citigroup Inc.
+C=US
+
+Issuer:
+CN=Citi Device CA2 G2
+O=Citigroup Inc.
+C=US
+
+Validity:
+
+Valid From:
+Aug 05, 2026
+
+Valid Until:
+Aug 04, 2028
+
+Public key:
+
+2048-bit RSA
+
+Signature:
+
+SHA256withRSA
+
+Extended usage:
+
+serverAuth
+
+======================================================================
+14. Certificate Expiration and Renewal
+======================================================================
+
+The current certificate expiration is:
+
+August 4, 2028
+
+Never wait until the expiration date.
+
+Renewal activities should begin well before the certificate expires according to Citi certificate-management standards.
+
+The expiration date should always be documented and tracked.
+
+======================================================================
+15. Download CMP Output
+======================================================================
+
+After the CMP request is completed, securely download the generated files.
+
+Example:
+
+Certificate.cer.txt
+PrivateKey.key.txt
+CertAndKey.pfx
+
+[ADD CMP COMPLETION / DOWNLOAD SCREENSHOT HERE]
+
+Security Warning:
+
+Never paste or store the following in Confluence screenshots:
+
+- Private key content
+- PFX password
+- JKS password
+- Client secrets
+- Application passwords
+
+These must remain protected.
+
+======================================================================
+16. Validate the PFX Before Creating JKS
+======================================================================
+
+Before conversion, first inspect the PFX.
+
+Command:
+
+keytool -list -v -storetype PKCS12 -keystore CertAndKey.pfx
+
+It prompts for the PFX password.
+
+Expected information includes:
+
+Keystore type: PKCS12
+
+Entry type:
+PrivateKeyEntry
+
+Owner:
+CN=olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net
+
+Issuer:
+CN=Citi Device CA2 G2
+
+Valid from:
+Aug 05 2026
+
+until:
+Aug 04 2028
+
+Most importantly:
+
+Entry type: PrivateKeyEntry
+
+This confirms the PFX contains a private key.
+
+[ADD PFX KEYTOOL OUTPUT SCREENSHOT HERE]
+
+======================================================================
+17. What We Observed in Our PFX
+======================================================================
+
+Our CMP PFX displayed:
+
+Keystore type: PKCS12
+
+Your keystore contains 1 entry
+
+Entry type: PrivateKeyEntry
+
+Certificate chain length: 1
+
+This was important during troubleshooting.
+
+The PFX itself contained only the application/server certificate as its certificate chain.
+
+Therefore when the JKS later also showed:
+
+Certificate chain length: 1
+
+the PFX-to-JKS conversion had not lost the chain.
+
+The source PFX itself contained one certificate in that chain.
+
+======================================================================
+18. Correct Command – Convert PFX Directly to JKS
+======================================================================
+
+This is now the recommended approach.
+
+Git Bash / Linux:
+
+keytool -importkeystore \
+-srckeystore CertAndKey.pfx \
+-srcstoretype PKCS12 \
+-destkeystore cacerts.jks \
+-deststoretype JKS
+
+Windows CMD one-line version:
+
+keytool -importkeystore -srckeystore CertAndKey.pfx -srcstoretype PKCS12 -destkeystore cacerts.jks -deststoretype JKS
+
+The command will prompt for:
+
+Destination keystore password
+
+Source keystore password
+
+After successful conversion:
+
+cacerts.jks
+
+is created.
+
+[ADD PFX TO JKS COMMAND SCREENSHOT HERE]
+
+======================================================================
+19. Why This Command Is Better
+======================================================================
+
+The PFX already contains:
+
+Certificate + Private Key
+
+keytool -importkeystore transfers the PrivateKeyEntry into the JKS.
+
+Therefore we do not need to:
+
+1. Download another generic JKS.
+2. Generate a separate application private key.
+3. Manually combine unrelated keystores.
+
+Correct flow:
+
+CMP-approved PFX
+       ↓
+keytool -importkeystore
+       ↓
+Application JKS
+
+This is simpler and cleaner.
+
+======================================================================
+20. Verify the Generated JKS
+======================================================================
+
+Run:
+
+keytool -list -v -keystore cacerts.jks
+
+Validate:
+
+Keystore type: JKS
+
+Entry type: PrivateKeyEntry
+
+Correct CN
+
+Correct Issuer
+
+Correct expiration
+
+Correct SAN entries
+
+For our generated JKS, we observed:
+
+Owner:
+CN=olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net
+
+Issuer:
+CN=Citi Device CA2 G2
+
+Valid until:
+Aug 04 2028
+
+Entry type:
+PrivateKeyEntry
+
+[ADD JKS VALIDATION SCREENSHOT HERE]
+
+======================================================================
+21. Validate SAN Entries in JKS
+======================================================================
+
+Within the keytool -list -v output, look for:
+
+SubjectAlternativeName
+
+For our certificate it included:
+
+DNSName:
+olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net
+
+DNSName:
+vs-hdax-dxbg.nam.nsroot.net
+
+DNSName:
+vs-bula-ifev.nam.nsroot.net
+
+[ADD SAN SCREENSHOT HERE]
+
+======================================================================
+22. Validate Certificate Fingerprint
+======================================================================
+
+A good validation is to compare the certificate received from CMP with the certificate inside the generated JKS.
+
+Inspect the certificate:
+
+keytool -printcert -v -file Certificate.cer.txt
+
+Or:
+
+openssl x509 -in Certificate.cer.txt -noout -fingerprint -sha256
+
+Inspect JKS:
+
+keytool -list -v -keystore cacerts.jks
+
+Compare the SHA-256 fingerprint.
+
+They should match.
+
+======================================================================
+23. Validate Certificate and Private Key Match
+======================================================================
+
+This is useful if using the separate certificate and private-key files rather than relying only on the PFX.
+
+Certificate:
+
+openssl x509 -in Certificate.cer.txt -pubkey -noout | openssl pkey -pubin -outform pem | openssl sha256
+
+Private key:
+
+openssl pkey -in PrivateKey.key.txt -pubout -outform pem | openssl sha256
+
+The resulting hashes should match.
+
+If they do not match:
+
+Certificate and Private Key do not belong together.
+
+Do not use them.
+
+======================================================================
+24. Application Deployment
+======================================================================
+
+The generated JKS is included in the application deployment artifacts under the appropriate environment.
+
+Example:
+
+common/
+   DEV/
+      cacerts.jks
+
+   UAT/
+      cacerts.jks
+
+   PROD/
+      cacerts.jks
+
+During deployment, the install script copies the appropriate certificate based on environment.
+
+Example PROD logic:
+
+if [ $ENV_NAME = "PROD" ]; then
+
+    cp -f "$SOURCE_BASE/PROD/cacerts.jks" \
+          "$DESTINATION/finalcacerts.jks"
+
+fi
+
+So repository file:
+
+PROD/cacerts.jks
+
+becomes:
+
+finalcacerts.jks
+
+under the server configuration directory.
+
+[ADD DEPLOYMENT SCRIPT SCREENSHOT HERE]
+
+======================================================================
+25. Server Configuration Location
+======================================================================
+
+CRM-to-Olympus configuration path:
+
+/data/1/gfolybkb/bin/CRM_Olympus_Config/config
+
+The deployment copies the application JKS into this configuration area.
+
+This is separate from the Kafka truststore.
+
+Application HTTPS certificate:
+
+finalcacerts.jks
+
+Kafka truststore:
+
+kafkacacerts.jks
+
+These two files solve different problems.
+
+======================================================================
+26. Application Certificate vs Kafka Truststore
+======================================================================
+
+finalcacerts.jks
+
+Used for the CRM-to-Olympus HTTPS/application certificate.
+
+It contains the application identity and private key.
+
+Conceptually:
+
+Consumer
+    ↓ HTTPS
+CRM-to-Olympus
+    ↓
+finalcacerts.jks
+
+kafkacacerts.jks
+
+Used when CRM-to-Olympus communicates securely with Kafka.
+
+Conceptually:
+
+CRM-to-Olympus
+    ↓ SSL/TLS
+Kafka
+    ↑
+kafkacacerts.jks determines
+which Kafka certificate authorities are trusted
+
+Do not mix these two concepts.
+
+======================================================================
+27. Post-Deployment Validation – Verify JKS File
+======================================================================
+
+On the server:
+
+cd /data/1/gfolybkb/bin/CRM_Olympus_Config/config
+
+ls -ltr
+
+Confirm:
+
+finalcacerts.jks
+
+has the expected deployment timestamp.
+
+[ADD SERVER CONFIG DIRECTORY SCREENSHOT HERE]
+
+======================================================================
+28. Validate JKS on Server
+======================================================================
+
+If server access is available:
+
+keytool -list -v -keystore finalcacerts.jks
+
+Validate:
+
+CN
+
+Issuer
+
+Expiration
+
+SANs
+
+PrivateKeyEntry
+
+======================================================================
+29. Validate Live Endpoint Certificate
+======================================================================
+
+From Git Bash:
+
+openssl s_client -connect olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net:443 -servername olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net
+
+This shows which certificate is actually being presented by the endpoint.
+
+We used this to confirm the live endpoint presented:
+
+CN=
+olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net
+
+Issuer=
+Citi Device CA2 G2
+
+NotAfter=
+Aug 04 2028
+
+[ADD OPENSSL LIVE ENDPOINT SCREENSHOT HERE]
+
+Note:
+
+If openssl shows:
+
+unable to verify the first certificate
+
+this does not automatically mean our application certificate is wrong.
+
+It may mean the local machine does not have the required Citi CA chain in its local trust configuration.
+
+The important checks are:
+
+- Correct CN
+- Correct SANs
+- Correct issuer
+- Correct expiration
+- Certificate matches the CMP-issued certificate
+
+======================================================================
+30. Compare Live Certificate With CMP Certificate
+======================================================================
+
+CMP certificate:
+
+openssl x509 -in Certificate.cer.txt -noout -fingerprint -sha256
+
+Live endpoint:
+
+openssl s_client -connect olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net:443 -servername olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net </dev/null 2>/dev/null | openssl x509 -noout -fingerprint -sha256
+
+If fingerprints match:
+
+CMP certificate
+=
+Certificate actually presented by the application
+
+This provides strong deployment evidence.
+
+======================================================================
+31. Functional Validation
+======================================================================
+
+Certificate validation should not stop at checking the file.
+
+Run actual API POST requests.
+
+Examples:
+
+Action Item
+
+Call Report
+
+Client Meeting
+
+Productivity Metrics
+
+During our validation, the Action Item POST returned:
+
+{
+  "message": "Action Item Successfully published on Kafka.",
+  "errorMessage": null,
+  "errorCode": null
+}
+
+This confirmed that the request successfully reached CRM-to-Olympus and the application successfully published the message to Kafka.
+
+[ADD SUCCESSFUL POST RESPONSE SCREENSHOT HERE]
+
+======================================================================
+32. Certificate Issue vs HTTP Issue
+======================================================================
+
+During troubleshooting, do not assume every API error is certificate-related.
+
+SSL issue examples:
+
+SSLHandshakeException
+
+PKIX error
+
+certificate_unknown
+
+hostname verification error
+
+These indicate certificate/TLS investigation.
+
+HTTP 400:
+
+400 Bad Request
+
+TLS already succeeded.
+
+Investigate:
+
+payload
+
+headers
+
+request format
+
+HTTP 404:
+
+404 Not Found
+
+TLS already succeeded.
+
+Investigate:
+
+URL
+
+path
+
+routing
+
+Apigee/VIP/WIP mapping
+
+HTTP 405:
+
+405 Method Not Allowed
+
+We saw this when opening a POST-only endpoint directly in Chrome.
+
+Chrome sends GET when opening a URL.
+
+The endpoint required POST.
+
+Therefore 405 did not indicate a certificate problem.
+
+======================================================================
+33. Our Certificate Journey – What Happened
+======================================================================
+
+Now comes the lessons-learned section.
+
+======================================================================
+34. Attempt 1 – Downloaded Existing JKS
+======================================================================
+
+Initially, we followed an existing reference and downloaded a JKS from a Citi PKI/Confluence location.
+
+We then attempted to make that JKS usable for CRM-to-Olympus by adding/generating application certificate/private-key related material using keytool commands.
+
+Conceptually:
+
+Downloaded generic JKS
+       ↓
+Added application certificate/key material
+       ↓
+Deployed to application
+
+At the time, this appeared technically workable.
+
+======================================================================
+35. Issue With Attempt 1
+======================================================================
+
+We subsequently received communication that this was not the Citi-standard certificate creation approach for our application.
+
+Major lesson:
+
+A technically working keystore does not automatically mean it follows the approved enterprise certificate-management process.
+
+Certificate identity and private-key generation should originate from the approved PKI/CMP process.
+
+[ADD EMAIL SCREENSHOT SAYING THIS WAS NOT CITI STANDARD HERE]
+
+======================================================================
+36. Why Generating Our Own Key Material Was a Problem
+======================================================================
+
+The private key is part of the certificate identity.
+
+Generating a private key independently and manually constructing a JKS introduces questions such as:
+
+Who generated the key?
+
+Was the key generated through the approved process?
+
+Does the key match the approved certificate?
+
+How is the key protected?
+
+Can the certificate lifecycle be tracked?
+
+Therefore the application certificate and private key should come from the approved CMP process.
+
+======================================================================
+37. Attempt 2 – Raised CMP
+======================================================================
+
+After receiving the feedback, we raised the proper CMP request.
+
+The CMP process generated:
+
+Certificate
+
+Private Key
+
+PFX
+
+The PFX contained the certificate and private key together.
+
+This corrected the certificate-generation source.
+
+======================================================================
+38. Attempt 2 – Imported CMP Material Into Existing Confluence JKS
+======================================================================
+
+At that stage, we still reused the JKS obtained from the earlier Confluence reference.
+
+Conceptually:
+
+CMP PFX
+   ↓
+Existing Confluence JKS
+   ↓
+Application JKS
+
+This solved one problem:
+
+Certificate/key now originated from CMP.
+
+However, later we discovered another issue with the base JKS itself.
+
+======================================================================
+39. Issue With the Confluence JKS
+======================================================================
+
+We were informed that the JKS available through that Confluence/reference process was associated with Microsoft-provided PKI/trust material and should not be used for this application's long-term certificate solution.
+
+That Microsoft-provided JKS approach was going to be decommissioned.
+
+Therefore continuing to build our application keystore on top of that JKS was not appropriate.
+
+Major lesson:
+
+Do not use an unrelated generic keystore as the foundation for the application identity unless the platform/security standard specifically requires it.
+
+[ADD EMAIL / COMMUNICATION ABOUT MICROSOFT JKS DECOMMISSIONING HERE]
+
+======================================================================
+40. Final Correct Approach
+======================================================================
+
+The CMP PFX already contained what the CRM-to-Olympus application needed:
+
+Application certificate
++
+Matching private key
+
+Therefore there was no need for the old Confluence JKS.
+
+We created a new standalone application JKS directly from the CMP PFX:
+
+CMP
+ ↓
+CertAndKey.pfx
+ ↓
+keytool -importkeystore
+ ↓
+cacerts.jks
+ ↓
+Application deployment
+
+This is the approach we now follow.
+
+======================================================================
+41. Final Certificate Architecture
+======================================================================
+
+Citi CMP
+   |
+   +----------------------+
+   |                      |
+Certificate          Private Key
+   |                      |
+   +----------------------+
+             |
+            PFX
+             |
+     keytool -importkeystore
+             |
+             ↓
+          JKS file
+             |
+             ↓
+       Git deployment
+             |
+             ↓
+     PROD / COB application
+             |
+             ↓
+       HTTPS endpoint
+
+======================================================================
+42. Do's
+======================================================================
+
+For future certificate creation/renewal:
+
+- Use the approved CMP process.
+- Determine CN and SANs before raising CMP.
+- Include only necessary DNS names.
+- Download the CMP-generated PFX securely.
+- Verify the PFX contains PrivateKeyEntry.
+- Check certificate validity dates.
+- Check issuer.
+- Check SAN entries.
+- Convert PFX directly to JKS.
+- Verify JKS after conversion.
+- Compare fingerprints where necessary.
+- Validate the deployed endpoint.
+- Run functional POST requests.
+- Start renewal well before expiration.
+- Keep passwords and private keys protected.
+- Verify server-side deployed file timestamp.
+- Verify application logs after deployment.
+- Keep application certificate JKS and Kafka truststore responsibilities separate.
+
+======================================================================
+43. Don'ts
+======================================================================
+
+Do not:
+
+- Generate an application identity using an unrelated self-signed certificate unless explicitly required.
+- Generate random private keys outside the approved process.
+- Download a generic JKS and assume it should be used for the application.
+- Reuse a Microsoft/legacy PKI JKS just because another application uses it.
+- Mix the application JKS and Kafka truststore concepts.
+- Assume HTTP 400/404/405 means SSL failed.
+- Store passwords in Confluence.
+- Paste private keys into emails, Teams or screenshots.
+- Commit unprotected private keys/PFX passwords to source control.
+- Ignore SAN entries.
+- Ignore certificate expiration dates.
+- Assume that a working endpoint automatically proves the certificate process is compliant.
+
+======================================================================
+44. Troubleshooting Decision Tree
+======================================================================
+
+HTTPS call failing?
+        |
+        ↓
+Is it SSLHandshake / PKIX / certificate error?
+        |
+     YES                      NO
+      |                        |
+      ↓                        ↓
+Check certificate          Check HTTP status
+CN/SAN/expiry                  |
+trust chain                    |
+private key                    |
+                               +-- 400 → payload/header
+                               |
+                               +-- 404 → path/routing
+                               |
+                               +-- 405 → HTTP method
+                               |
+                               +-- 500 → application/server
+
+======================================================================
+45. Quick Command Reference
+======================================================================
+
+Inspect PFX:
+
+keytool -list -v -storetype PKCS12 -keystore CertAndKey.pfx
+
+Convert PFX to JKS:
+
+keytool -importkeystore -srckeystore CertAndKey.pfx -srcstoretype PKCS12 -destkeystore cacerts.jks -deststoretype JKS
+
+Inspect JKS:
+
+keytool -list -v -keystore cacerts.jks
+
+Inspect certificate:
+
+keytool -printcert -v -file Certificate.cer.txt
+
+Certificate SHA-256 fingerprint:
+
+openssl x509 -in Certificate.cer.txt -noout -fingerprint -sha256
+
+Check live endpoint:
+
+openssl s_client -connect olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net:443 -servername olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net
+
+Check server files:
+
+cd /data/1/gfolybkb/bin/CRM_Olympus_Config/config
+
+ls -ltr
+
+Check latest application logs:
+
+cd /data/1/gfolybkb/bin/CRM_Olympus_New/logs
+
+ls -ltr
+
+======================================================================
+46. Screenshots to Add to Confluence
+======================================================================
+
+Screenshot 1:
+CMP request page.
+
+Place under Section 8.
+
+Highlight:
+
+CN
+
+SAN
+
+Environment
+
+Certificate type
+
+Screenshot 2:
+CMP completion/email.
+
+Place under Section 15.
+
+Show that CMP generated the certificate/PFX.
+
+Hide passwords and private-key content.
+
+Screenshot 3:
+PFX keytool output.
+
+Place under Section 16.
+
+Highlight:
+
+Keystore type: PKCS12
+
+Entry type: PrivateKeyEntry
+
+Certificate chain length
+
+Owner
+
+Issuer
+
+Validity
+
+Screenshot 4:
+PFX to JKS conversion command.
+
+Place under Section 18.
+
+Screenshot 5:
+JKS validation output.
+
+Place under Section 20.
+
+Highlight:
+
+PrivateKeyEntry
+
+CN
+
+Issuer
+
+Expiration
+
+Screenshot 6:
+SAN entries.
+
+Place under Section 21.
+
+Screenshot 7:
+Deployment script.
+
+Place under Section 24.
+
+Show PROD/COB JKS copy logic.
+
+Screenshot 8:
+Server config directory.
+
+Place under Section 27.
+
+Show:
+
+finalcacerts.jks
+
+Screenshot 9:
+OpenSSL live endpoint output.
+
+Place under Section 29.
+
+Screenshot 10:
+Successful POST response.
+
+Place under Section 31.
+
+Show:
+
+Action Item Successfully published on Kafka
+
+Screenshot 11:
+Email stating the initial JKS/self-signed approach was not Citi standard.
+
+Place under Section 35.
+
+Screenshot 12:
+Communication regarding not using the old Microsoft/Confluence JKS.
+
+Place under Section 39.
+
+======================================================================
+47. Recommended KT Session Flow
+======================================================================
+
+For the knowledge-sharing session, start with the correct process first.
+
+Suggested opening:
+
+"First I will explain the correct certificate creation process that we are following now. After that I will go through what we initially tried, what issues we identified, and how we arrived at the final standard approach."
+
+Present in this order:
+
+1. Why the application certificate is needed.
+
+2. Certificate vs private key.
+
+3. What happens if the private key is missing.
+
+4. What CN means.
+
+5. What SAN means and why SAN entries are needed.
+
+6. CMP certificate request.
+
+7. CMP output files.
+
+8. PFX validation.
+
+9. PFX to JKS conversion.
+
+10. JKS validation.
+
+11. Certificate expiration.
+
+12. Application deployment.
+
+13. Server-side validation.
+
+14. Live endpoint validation.
+
+15. POST/API validation.
+
+16. Difference between application JKS and Kafka truststore.
+
+17. What we initially did.
+
+18. Why that approach was not Citi standard.
+
+19. Why we moved to CMP.
+
+20. Why we stopped using the Microsoft/Confluence JKS.
+
+21. Final correct approach.
+
+22. Do's and Don'ts.
+
+23. Troubleshooting guidelines.
+
+24. Future renewal checklist.
+
+======================================================================
+48. Suggested KT Explanation
+======================================================================
+
+A simple explanation during KT:
+
+"Our CRM-to-Olympus application exposes HTTPS endpoints, so it needs a valid server certificate and the matching private key.
+
+The certificate identifies our application to the caller. The private key proves that the application actually owns that certificate.
+
+Initially, we downloaded an existing JKS and added our own certificate/private-key material. Later we were informed that this was not the standard Citi certificate-generation approach.
+
+We then raised the approved CMP request. CMP generated the application certificate, private key and PFX.
+
+Initially we imported that CMP material into the old Confluence JKS. Later we learned that the Microsoft-provided JKS used in that process was being decommissioned and should not be used as the long-term application keystore.
+
+Since the CMP PFX already contains the certificate and matching private key, the correct approach is simply to convert that PFX directly into a new JKS using keytool.
+
+After creating the JKS, we validate the CN, SAN entries, issuer, expiration date and PrivateKeyEntry. Then we deploy the JKS, verify the deployed file, inspect the live HTTPS certificate and finally run actual POST requests to make sure the application is working correctly."
+
+======================================================================
+49. Key Learning
+======================================================================
+
+The main learning from this activity is:
+
+Certificate creation should start from the approved CMP process.
+
+Once CMP provides the PFX containing the application certificate and matching private key, that PFX should be converted directly into the JKS required by the Java application.
+
+We should not build the application identity on top of unrelated, self-signed or legacy JKS files.
+
+We also need to identify the correct CN and SAN entries before certificate creation and validate:
+
+- Certificate identity.
+- PrivateKeyEntry.
+- Issuer.
+- Expiration.
+- SAN entries.
+- Deployment.
+- Live HTTPS endpoint.
+- Functional POST calls.
+
+======================================================================
+50. Future Renewal Checklist
+======================================================================
+
+Before renewal:
+
+[ ] Confirm current certificate expiration date.
+
+[ ] Confirm current CN.
+
+[ ] Confirm all required SAN entries.
+
+[ ] Confirm PROD and COB VIP names.
+
+[ ] Confirm WIP/application hostname.
+
+[ ] Raise CMP request.
+
+After CMP completion:
+
+[ ] Download PFX securely.
+
+[ ] Validate PFX.
+
+[ ] Confirm PrivateKeyEntry.
+
+[ ] Confirm CN.
+
+[ ] Confirm SANs.
+
+[ ] Confirm issuer.
+
+[ ] Confirm expiration.
+
+[ ] Convert PFX directly to JKS.
+
+[ ] Validate generated JKS.
+
+Before deployment:
+
+[ ] Add JKS to correct environment package.
+
+[ ] Verify deployment script path.
+
+[ ] Verify PROD/COB configuration.
+
+After deployment:
+
+[ ] Confirm JKS file exists on server.
+
+[ ] Confirm deployment timestamp.
+
+[ ] Validate live endpoint certificate.
+
+[ ] Compare certificate fingerprint if needed.
+
+[ ] Run POST endpoint tests.
+
+[ ] Review application logs.
+
+[ ] Confirm consumers are working normally.
+
+[ ] Document successful checkout.
+
+======================================================================
+END OF DOCUMENT
+======================================================================
+
+
+
+
+
+
+
+
+
+
+
 Hi Seema,
 
 Could you please help with the below for the PROD and COB hosts?
