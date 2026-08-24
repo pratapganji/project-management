@@ -1,5 +1,23 @@
 
 
+
+Hi Seema,
+
+Following up on the below request.
+
+Earlier, you had shared the CMP requests for PROD/COB access and we raised them accordingly. However, our access requests were rejected, so we are currently unable to verify the PROD/COB servers ourselves.
+
+The application changes have already been deployed, but we have not yet been able to verify the deployed truststore files or application logs in PROD/COB.
+
+Could you please help us by sharing the requested screenshots for kafkacacerts.jks and the latest application log files from the PROD and COB hosts?
+
+This will help us complete the post-deployment validation.
+
+Thanks for your help,
+Pratap
+
+
+
 Description
 Install the generated SSL certificate and decrypted private key on VIPs vs-hgai-omwh and vs-brqk-afgh. Update the application profile from TCP to HTTPS and configure the SSL profile as Termination + Poolside SSL so that the VIPs can support secure HTTPS communication.
 
