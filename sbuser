@@ -1,5 +1,30 @@
 
 
+
+Hi DevOps Team,
+
+We are working on CVM dependency remediation for 176352 Olympus SB User Consumption.
+
+In our application repository, pip.conf is configured with the Artifactory URL pointing to pypi-dev/simple. However, during the LSE build, the build logs show that Python packages are being resolved/downloaded from pypi-prod-rcmd.
+
+Some of the CVM-required dependency versions are currently failing with “No matching distribution found” (for example, Flask==3.1.3).
+
+Could you please confirm:
+
+1. Are pypi-dev/simple configured in our application and pypi-prod-rcmd seen in the LSE build logs part of the expected Artifactory routing?
+2. Is our current pip.conf Artifactory URL correct for this application?
+3. Is the LSE pipeline using our application pip.conf, or is the repository configuration being supplied/overridden through source /env?
+4. Do we need to make any changes to the Artifactory URL/configuration in our application to resolve the CVM-required dependency versions?
+
+Please advise the correct/approved Artifactory configuration we should use.
+
+Thanks,
+Pratap
+
+
+
+
+
 Description
 
 Remediate identified CVM/Black Duck findings in the SB User Consumption application by updating impacted dependencies to secure versions. Deploy the changes to UAT and validate that existing application functionality remains unaffected.
