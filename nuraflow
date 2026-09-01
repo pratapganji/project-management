@@ -1,3 +1,889 @@
+
+
+NURAREC – WIP/VIP CERTIFICATE CREATION AND CAS CONFIGURATION GUIDE
+
+======================================================================
+1. PURPOSE
+======================================================================
+
+This document explains the end-to-end process followed for configuring the HTTPS certificate for the NuraRec service.
+
+It covers:
+
+1. Creating/requesting the certificate through CMP.
+2. Files received/generated from CMP.
+3. Decrypting the private key.
+4. Preparing the certificate and private key for CAS.
+5. Adding the certificate in the CAS portal.
+6. Configuring the certificate/profile against the VIP.
+7. Required VIP/profile configuration changes.
+8. Understanding the WIP → VIP → ECS/Application flow.
+9. Validation after configuration.
+10. Issues encountered and lessons learned.
+
+IMPORTANT:
+Do not include private-key contents, private-key passwords, keystore passwords, or other credentials in this Confluence page.
+
+
+======================================================================
+2. HIGH-LEVEL ARCHITECTURE
+======================================================================
+
+The application is accessed using the WIP hostname.
+
+High-level flow:
+
+Client / APIGEE
+      |
+      | HTTPS
+      v
+WIP / DNS-GSLB
+      |
+      | Selects/returns the appropriate VIP
+      v
+VIP 1 / VIP 2
+      |
+      | Network traffic forwarded to backend
+      v
+ECS / OpenShift
+      |
+      v
+Service
+      |
+      v
+Application Pods
+
+
+WIP:
+WIP is the externally known endpoint/DNS-GSLB layer. APIGEE/client uses the WIP hostname.
+
+VIP:
+The VIP provides a stable virtual IP. The actual backend/cluster destination behind the VIP can be changed without requiring upstream systems to change their endpoint.
+
+For example:
+
+Before migration:
+
+WIP
+ |
+ v
+VIP
+ |
+ v
+Old Backend / Cluster
+
+After migration:
+
+WIP
+ |
+ v
+Same VIP
+ |
+ v
+New Backend / Cluster
+
+This allows backend migration without changing the endpoint known to upstream consumers.
+
+Inside ECS/OpenShift/Kubernetes, the service/router provides another level of routing/load distribution to the application pods.
+
+
+[SCREENSHOT 1 – ARCHITECTURE]
+Insert a simple architecture diagram showing:
+
+APIGEE/Client → WIP → VIP1/VIP2 → ECS/OpenShift → Service → Pods
+
+Caption:
+"High-level NuraRec WIP/VIP/ECS request flow"
+
+
+======================================================================
+3. CERTIFICATE REQUEST THROUGH CMP
+======================================================================
+
+The certificate was requested through the Citi Certificate Management Process (CMP).
+
+Before raising the CMP request, confirm:
+
+- Correct environment: DEV/UAT/PROD
+- Correct WIP/FQDN
+- Certificate Common Name (CN)
+- Required Subject Alternative Names (SANs)
+- Certificate owner/application owner
+- Application/service details
+- Certificate validity/renewal requirements
+
+The hostname that clients use must be covered by the certificate CN or SAN.
+
+Example:
+
+If clients access:
+
+nurarec-uat.<Citi-domain>
+
+the certificate must contain the applicable NuraRec UAT hostname in its CN/SAN configuration.
+
+
+[SCREENSHOT 2 – CMP REQUEST]
+Insert screenshot of the CMP request showing:
+
+- Request/Application information
+- Certificate CN
+- SAN/FQDN
+- Environment
+- Certificate status
+
+MASK:
+- Requester personal information where unnecessary
+- Any sensitive identifiers
+
+
+======================================================================
+4. CERTIFICATE FILES
+======================================================================
+
+After the CMP request was completed, the certificate material was downloaded/received.
+
+During our implementation we worked with files similar to:
+
+Certificate.cer.txt
+PrivateKey.key.txt
+CertAndKey.pfx
+
+The exact filenames may vary depending on the CMP download/process.
+
+Certificate file:
+Contains the public certificate.
+
+Private key:
+Contains the private key corresponding to the certificate.
+
+PFX:
+A PKCS#12 package that can contain the certificate and private key.
+
+SECURITY NOTE:
+
+Never:
+
+- Paste the private key into Confluence.
+- Upload the private key to Confluence.
+- Document the private-key password.
+- Put passwords directly into shell commands where they remain in shell history.
+- Share the private key through email/chat unless an approved Citi process explicitly requires it.
+
+
+[SCREENSHOT 3 – CERTIFICATE FILES]
+Insert a screenshot showing ONLY the filenames in the working folder.
+
+Example:
+
+Certificate.cer.txt
+PrivateKey.key.txt
+CertAndKey.pfx
+
+Do NOT open or expose PrivateKey.key.txt in the screenshot.
+
+
+======================================================================
+5. WHY THE PRIVATE KEY REQUIRED DECRYPTION
+======================================================================
+
+The private key downloaded/generated during the certificate process was encrypted.
+
+The key contained legacy encryption information similar to:
+
+Proc-Type: 4,ENCRYPTED
+DEK-Info: DES-EDE3-CBC,...
+
+CAS configuration required the certificate/key in the format expected by the portal.
+
+Therefore, we decrypted the private key locally using OpenSSL.
+
+The original encrypted key must be retained securely according to the approved certificate-management process.
+
+
+======================================================================
+6. DECRYPTING THE PRIVATE KEY
+======================================================================
+
+We used Git Bash with OpenSSL.
+
+First verify OpenSSL:
+
+openssl version
+
+
+Our private-key filename was:
+
+PrivateKey.key.txt
+
+The following command was used:
+
+winpty openssl rsa -provider default -provider legacy -in PrivateKey.key.txt -out PrivateKey_decrypted.key
+
+
+Why were both providers used?
+
+The downloaded private key used legacy encryption.
+
+With newer OpenSSL versions, the legacy cryptographic provider may not be enabled automatically.
+
+Therefore:
+
+-provider default
+-provider legacy
+
+were used so OpenSSL could process the encrypted key.
+
+The command prompts for the existing private-key passphrase interactively.
+
+Do NOT include the password directly in the command.
+
+
+After completion, verify that the output file exists:
+
+ls -l PrivateKey_decrypted.key
+
+
+Expected result:
+
+PrivateKey_decrypted.key
+
+should be created successfully.
+
+
+[SCREENSHOT 4 – OPENSSL DECRYPTION]
+Insert screenshot showing:
+
+- Git Bash
+- OpenSSL command
+- Successful completion
+- PrivateKey_decrypted.key generated
+
+IMPORTANT:
+Ensure the screenshot DOES NOT expose:
+
+- Password
+- Private-key contents
+- Sensitive certificate material
+
+
+======================================================================
+7. ISSUE ENCOUNTERED DURING PRIVATE-KEY DECRYPTION
+======================================================================
+
+Initially the following filename was used:
+
+PrivateKey.key
+
+However, the actual downloaded file was:
+
+PrivateKey.key.txt
+
+This resulted in an OpenSSL error similar to:
+
+Could not open file or uri for loading private key
+No such file or directory
+
+Resolution:
+
+Use the exact downloaded filename:
+
+winpty openssl rsa -provider default -provider legacy -in PrivateKey.key.txt -out PrivateKey_decrypted.key
+
+
+Lesson Learned:
+
+Always verify the downloaded filenames before running the OpenSSL command.
+
+Command:
+
+ls -l
+
+
+======================================================================
+8. VERIFY CERTIFICATE AND PRIVATE KEY BEFORE CAS CONFIGURATION
+======================================================================
+
+Before uploading/configuring the certificate, verify:
+
+1. Certificate is valid.
+2. Certificate contains the expected hostname.
+3. Certificate and private key belong together.
+4. Certificate has not expired.
+5. Required certificate chain is available.
+
+Do not proceed with CAS/VIP configuration if the certificate and private key do not match.
+
+
+[SCREENSHOT 5 – CERTIFICATE DETAILS]
+Insert a screenshot of the certificate details showing:
+
+- Subject/CN
+- SAN
+- Issuer
+- Valid From
+- Valid To
+
+Do NOT expose private-key contents.
+
+
+======================================================================
+9. ADDING THE CERTIFICATE IN CAS
+======================================================================
+
+After preparing the certificate/private key, the certificate was added through the CAS portal.
+
+Navigate to the applicable CAS Certificate Management section.
+
+Create/import the certificate using the approved certificate and private-key files.
+
+Provide the required:
+
+- Certificate
+- Private key
+- Certificate chain, if requested
+- Certificate/profile name
+- Environment/application information
+
+Use a meaningful profile/certificate name so that it can be identified during VIP configuration.
+
+
+[SCREENSHOT 6 – CAS CERTIFICATE MANAGEMENT PAGE]
+Insert screenshot showing the CAS certificate-management page before/while adding the certificate.
+
+Highlight:
+
+- Certificate/Profile name
+- Certificate field
+- Private-key field
+- Certificate-chain field, if applicable
+
+Do not expose actual private-key contents/passwords.
+
+
+======================================================================
+10. VERIFY CERTIFICATE IN CAS
+======================================================================
+
+After importing the certificate, verify that CAS displays the expected certificate information.
+
+Verify:
+
+- Correct CN
+- Correct SAN
+- Correct expiration date
+- Correct certificate status
+- Correct environment/application
+
+
+[SCREENSHOT 7 – CERTIFICATE CREATED IN CAS]
+Insert screenshot of the completed CAS certificate/profile.
+
+Highlight:
+
+- Certificate/profile name
+- CN
+- Expiration date
+- Status
+
+This screenshot is important because it proves that the certificate was successfully registered in CAS.
+
+
+======================================================================
+11. VIP CONFIGURATION
+======================================================================
+
+Locate the existing NuraRec VIP in CAS.
+
+Confirm:
+
+- VIP name
+- VIP IP
+- Listening port
+- Protocol/profile
+- Backend/pool configuration
+- Associated network/application profile
+- Certificate/SSL profile where applicable
+- Health-monitor configuration
+
+
+[SCREENSHOT 8 – VIP OVERVIEW]
+Insert screenshot of the NuraRec VIP overview page.
+
+Highlight:
+
+- VIP name
+- VIP address
+- Port
+- Protocol
+- Environment
+
+
+======================================================================
+12. VIP PROFILE CONFIGURATION
+======================================================================
+
+Review the profiles associated with the VIP.
+
+Depending on the CAS/NSX configuration, this may include:
+
+- Application profile
+- TCP profile
+- SSL/TLS profile
+- Client SSL profile
+- Server SSL profile
+- Persistence/profile settings
+- Health monitor
+
+IMPORTANT:
+
+Do not change profiles simply because they are visible in CAS.
+
+Only modify the profile required by the approved network design/change.
+
+For our NuraRec setup, the important question is:
+
+"Where does TLS terminate?"
+
+If the VIP is configured as L4 TCP passthrough, the VIP forwards the TCP connection without decrypting HTTPS.
+
+In that architecture:
+
+Client
+  |
+ HTTPS
+  v
+WIP
+  |
+  v
+L4 TCP VIP
+  |
+  | Encrypted TLS connection continues
+  v
+ECS/OpenShift Ingress/Router
+  |
+  | TLS termination
+  v
+Application Service
+
+Therefore, a certificate stored in CAS is not automatically used just because it exists in Certificate Management.
+
+The certificate must be associated with the component/profile that actually terminates TLS.
+
+
+[SCREENSHOT 9 – VIP PROFILE]
+Insert screenshot showing the profile currently associated with the VIP.
+
+Highlight:
+
+- Profile name
+- Profile type
+- TCP/HTTPS mode
+- SSL/TLS settings
+
+This screenshot is critical for determining whether the VIP is L4 passthrough or SSL-terminating.
+
+
+======================================================================
+13. BACKEND / POOL CONFIGURATION
+======================================================================
+
+The VIP provides a stable virtual endpoint.
+
+The backend destination can change during infrastructure migration without changing the endpoint known to upstream consumers.
+
+Example:
+
+Old:
+
+WIP → VIP → Old Cluster IP
+
+New:
+
+WIP → SAME VIP → New Cluster IP
+
+Therefore, during migration, verify the backend/pool configuration behind the VIP.
+
+
+[SCREENSHOT 10 – VIP POOL/BACKEND]
+Insert screenshot showing:
+
+- Pool name
+- Backend/member configuration
+- Port
+- Health/status
+
+Mask IP information if required by Citi documentation policy.
+
+
+======================================================================
+14. WIP CONFIGURATION
+======================================================================
+
+Upstream consumers such as APIGEE use the WIP hostname.
+
+WIP determines/selects the appropriate VIP based on its configured DNS/GSLB behavior.
+
+Conceptually:
+
+                   +--> VIP1
+Client → WIP ------|
+                   +--> VIP2
+
+WIP does not need to know the individual application pod.
+
+The VIP/backend/ECS configuration handles the next level of routing.
+
+This provides flexibility because the backend infrastructure can change while the externally known WIP remains stable.
+
+
+[SCREENSHOT 11 – WIP CONFIGURATION]
+Insert screenshot showing:
+
+- WIP hostname
+- Associated VIP(s)
+- VIP status/availability
+
+Do not include unnecessary infrastructure information.
+
+
+======================================================================
+15. IMPORTANT TLS TERMINATION FINDING
+======================================================================
+
+During troubleshooting, connecting to the VIP showed an ECS/OpenShift wildcard certificate rather than the expected NuraRec WIP certificate.
+
+A certificate similar to the following was observed:
+
+*.apps.<ECS-domain>
+
+This is an important architectural finding.
+
+It indicates that traffic reaches the ECS/OpenShift ingress/router and that the certificate being presented may be coming from the ingress/router rather than directly from the application.
+
+Also, testing an IP address directly does not provide the same TLS SNI/HTTP Host information as testing the real hostname.
+
+Therefore, an IP-only test can return:
+
+- Default wildcard certificate
+- HTTP 503/default-route response
+
+This alone does NOT prove that the NuraRec hostname configuration is incorrect.
+
+
+======================================================================
+16. CORRECT SSL VALIDATION
+======================================================================
+
+The certificate must be validated using the actual hostname/SNI.
+
+Example:
+
+openssl s_client -connect <VIP-IP>:443 -servername <NURAREC-WIP-HOSTNAME>
+
+
+This tells the TLS endpoint:
+
+"I am connecting for this NuraRec hostname."
+
+Review the returned certificate:
+
+- Subject
+- SAN
+- Issuer
+- Validity
+- Certificate chain
+
+
+Curl can also be used with hostname resolution:
+
+curl -vk --resolve <NURAREC-WIP-HOSTNAME>:443:<VIP-IP> https://<NURAREC-WIP-HOSTNAME>/
+
+
+This forces the hostname to the specified VIP while preserving:
+
+- TLS SNI
+- HTTPS hostname
+- HTTP Host header
+
+
+[SCREENSHOT 12 – OPENSSL VALIDATION]
+Insert screenshot showing:
+
+openssl s_client
+
+with the NuraRec hostname supplied using -servername.
+
+Highlight:
+
+- Certificate subject
+- Issuer
+- Verification result
+
+Do not include unnecessary internal information.
+
+
+======================================================================
+17. 504 GATEWAY TIMEOUT TROUBLESHOOTING
+======================================================================
+
+A 504 Gateway Timeout does not automatically mean there is a certificate problem.
+
+The complete path should be checked:
+
+APIGEE
+   |
+   v
+WIP
+   |
+   v
+VIP
+   |
+   v
+ECS/OpenShift
+   |
+   v
+Service
+   |
+   v
+Application Pod
+
+
+Possible causes include:
+
+- WIP pointing/selecting an incorrect VIP
+- VIP backend/pool still using an old destination
+- Backend unreachable
+- Incorrect backend port
+- Failed health monitor
+- ECS route/service problem
+- Application not responding
+- Application response exceeding gateway timeout
+
+When a backend/cluster is migrated, verify the backend configuration associated with the existing VIP rather than immediately changing the external WIP endpoint.
+
+
+======================================================================
+18. SCREENSHOTS REQUIRED FOR THIS CONFLUENCE PAGE
+======================================================================
+
+Use the following screenshots in order:
+
+1. Architecture diagram
+   APIGEE → WIP → VIP → ECS/OpenShift → Service → Pods
+
+2. CMP request
+   Show CN/SAN/environment/request status.
+
+3. Certificate files
+   Show filenames only.
+
+4. OpenSSL private-key decryption
+   Show successful command/output without passwords/key contents.
+
+5. Certificate details
+   Show CN, SAN, issuer and validity.
+
+6. CAS Certificate Management
+   Show certificate creation/import screen.
+
+7. CAS certificate/profile after creation
+   Show successful certificate/profile and expiration.
+
+8. VIP overview
+   Show VIP name/IP/port/protocol.
+
+9. VIP profile configuration
+   Show the profile(s) associated with the VIP and L4/L7/SSL-related configuration.
+
+10. VIP pool/backend configuration
+    Show backend/pool members and health.
+
+11. WIP configuration
+    Show WIP and associated VIPs.
+
+12. OpenSSL hostname/SNI validation
+    Show the certificate actually presented for the NuraRec hostname.
+
+13. Optional final application validation
+    Show successful HTTPS response/health check after configuration.
+
+
+======================================================================
+19. DO'S AND DON'TS
+======================================================================
+
+DO:
+
+- Verify the exact WIP hostname before requesting the certificate.
+- Make sure the hostname exists in the certificate CN/SAN.
+- Verify the certificate expiration date.
+- Verify the certificate/private-key pair.
+- Keep certificate and key files secure.
+- Use interactive password prompts.
+- Confirm where TLS terminates before changing SSL profiles.
+- Test using the actual hostname/SNI.
+- Verify VIP backend mapping after infrastructure migrations.
+- Take screenshots before and after production changes when required.
+
+DON'T:
+
+- Do not paste private keys into Confluence.
+- Do not upload private keys to Confluence.
+- Do not document certificate/private-key passwords.
+- Do not put passwords directly in shell commands.
+- Do not assume importing a certificate into CAS automatically attaches it to a VIP.
+- Do not assume an L4 TCP VIP terminates SSL.
+- Do not use only the VIP IP to determine which hostname certificate is configured.
+- Do not change WIP simply because the backend server/cluster IP changes.
+- Do not make unrelated profile changes while troubleshooting a certificate issue.
+
+
+======================================================================
+20. ISSUES WE FACED AND RESOLUTIONS
+======================================================================
+
+ISSUE 1:
+Private key could not be opened.
+
+Error:
+Could not open file or uri for loading private key.
+
+Cause:
+The command used PrivateKey.key while the actual filename was PrivateKey.key.txt.
+
+Resolution:
+Used the exact filename.
+
+
+ISSUE 2:
+OpenSSL had difficulty processing the encrypted private key.
+
+Cause:
+The private key used legacy encryption.
+
+Resolution:
+Used:
+
+-provider default -provider legacy
+
+
+ISSUE 3:
+Expected NuraRec certificate was not observed when connecting directly to the VIP IP.
+
+Observation:
+ECS/OpenShift wildcard certificate was returned.
+
+Cause/Explanation:
+An IP-only connection can hit the default ingress TLS configuration because the expected hostname/SNI is not supplied.
+
+Resolution:
+Validate using:
+
+openssl s_client -connect <VIP-IP>:443 -servername <NURAREC-HOSTNAME>
+
+
+ISSUE 4:
+HTTP 503 was observed while testing the VIP IP directly.
+
+Explanation:
+Direct IP testing does not necessarily send the hostname expected by ECS/OpenShift routing.
+
+Resolution:
+Test using the real hostname or curl --resolve.
+
+
+ISSUE 5:
+504 Gateway Timeout through the normal WIP path.
+
+Investigation:
+Check the complete route:
+
+WIP → VIP → backend/cluster → ECS service → application.
+
+Confirm the current backend/cluster mapping behind the VIP after migration.
+
+
+======================================================================
+21. FINAL VALIDATION CHECKLIST
+======================================================================
+
+CMP:
+[ ] CMP certificate request completed.
+[ ] Correct CN configured.
+[ ] Required SANs configured.
+[ ] Certificate is within validity period.
+
+KEY:
+[ ] Private key successfully prepared.
+[ ] Certificate and private key verified.
+[ ] No private-key/password information stored in Confluence.
+
+CAS:
+[ ] Certificate successfully created/imported.
+[ ] Correct certificate details visible.
+[ ] Correct profile identified.
+
+VIP:
+[ ] Correct VIP selected.
+[ ] Correct port configured.
+[ ] Correct network/application profile configured.
+[ ] Correct backend/pool configured.
+[ ] Backend health is good.
+[ ] TLS termination point confirmed.
+
+WIP:
+[ ] Correct WIP hostname.
+[ ] Correct VIP association.
+[ ] VIP(s) healthy.
+
+TLS:
+[ ] Tested using hostname/SNI.
+[ ] Correct certificate returned.
+[ ] Certificate chain validates.
+[ ] No hostname mismatch.
+
+APPLICATION:
+[ ] Application endpoint reachable through WIP.
+[ ] No 503.
+[ ] No 504.
+[ ] API request successfully reaches NuraRec.
+[ ] Application logs confirm successful request.
+
+
+======================================================================
+22. KEY TAKEAWAY
+======================================================================
+
+The certificate configuration must follow the actual TLS termination architecture.
+
+Creating a certificate in CMP and importing it into CAS does not by itself guarantee that the certificate will be presented to clients.
+
+The complete path must be understood:
+
+APIGEE/Client
+      ↓
+WIP
+      ↓
+VIP
+      ↓
+ECS/OpenShift
+      ↓
+Application
+
+WIP provides the stable externally known hostname and selects/routes toward the appropriate VIP.
+
+The VIP provides a stable virtual endpoint and allows backend infrastructure to change without requiring upstream consumers to change their endpoint.
+
+The certificate must ultimately be configured/associated at the layer that terminates TLS.
+
+For troubleshooting, always validate the certificate using the actual NuraRec hostname/SNI rather than relying only on a direct VIP-IP test.
+
+
+
+
+
+
 Currently this SB Extract application is a skeleton Spring Boot application created with OCP Helm deployment and NGC/CyberArk DB password integration. It starts the application, exposes health check, reads environment-specific properties, connects to Oracle using NGC secret nickname, and is ready for deployment through Helm.
 
 
