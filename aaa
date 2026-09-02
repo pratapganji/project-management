@@ -1,4 +1,35 @@
 
+    FID / Functional ID
+* SiteMinder ID (this is probably the word you heard as “seteminder”)
+* Username / service account
+* DB user
+* Kafka user
+* Recon/direct-connect user
+* DV user
+* Client identity used for API calls
+* Any other external-system user/account the application depends on
+
+He explicitly said something like: whether it is SiteMinder FID, recon FID, DV FID, Kafka FID, or any other external-system FID/user, collect all of them in one place.
+
+So for your applications, don’t only look for one FID variable. Search configs/properties for things like:
+
+username
+user
+fid
+client_id
+clientIdentity
+db.user
+kafka.username
+siteminder
+cyberark
+ccp
+vault
+
+And for each one, capture Application Name, Pipeline Name, User/FID, which system it connects to, and where the credential/password is stored.
+
+So yes: SiteMinder, FID, username, service account — anything used by the application for authentication/integration should be included.
+
+
 
 SELECT DISTINCT
        SCHEMA_NAME,
