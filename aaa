@@ -1,5 +1,16 @@
 
 
+SELECT DISTINCT
+       SCHEMA_NAME,
+       c.DWH_CREATED_BY,
+       c.DWH_CREATED_TIMESTAMP
+FROM C167969RPC.OM_CATALOGUE_USER_CONSUMPTION c
+WHERE SCHEMA_NAME <> LOWER(SCHEMA_NAME)
+  AND c.DWH_CREATED_TIMESTAMP > SYSDATE - 30;
+
+
+
+
 Hi Seema,
 
 Gentle follow-up on the below request. We are still awaiting the PROD/COB screenshots and latest application logs to complete our post-deployment validation.
