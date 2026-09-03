@@ -1,5 +1,192 @@
 
 
+Hi Team,
+
+I’ll quickly walk through the SSL/TLS certificate creation and implementation we followed for the CRM-to-Olympus application.
+
+The main purpose of this document is to capture the complete certificate process in one place, starting from identifying the hostnames, raising the CMP request, generating the JKS, deploying it in the application, and validating it.
+
+This will also be useful when we need to renew or replace the certificate in the future.
+
+
+1. OVERALL CERTIFICATE FLOW
+
+First, this diagram gives the overall flow.
+
+We identify all the hostnames that need to be covered by the certificate.
+
+Then we raise the certificate request through Citi CMP.
+
+Once the request is completed, CMP provides the certificate files, including the certificate, private key, and PFX.
+
+For our Java application, we use the PFX to create the JKS.
+
+Then we validate the generated JKS and use it in the application.
+
+
+2. HOSTNAMES AND SAN
+
+The next important part is identifying the correct hostnames before creating the certificate.
+
+For our application, we have the PROD VIP, COB VIP, and the WIP hostname.
+
+The WIP hostname is:
+olympus.api.crmtoolympusnew.cloudgsl.nam.nsroot.net
+
+We also have separate PROD and COB VIP hostnames, which are listed here.
+
+The important point is that all the hostnames that will use this certificate need to be covered in the SAN, which is Subject Alternative Name.
+
+For our certificate, we added the WIP, PROD VIP, and COB VIP names in the SAN.
+
+The WIP hostname is used as the Common Name, or CN.
+
+This is important because if the hostname we connect through is not covered by the certificate, SSL validation can fail.
+
+
+3. RAISING THE CERTIFICATE THROUGH CMP
+
+Once the hostnames are confirmed, we raise the certificate request through the approved Citi CMP process.
+
+This section has the CMP location and screenshots of the information we used while creating our request.
+
+We need to select the correct application, product ID, environment, hostname, port 443, and other required details.
+
+We used the service-generated CSR and the recommended SHA-256 RSA option.
+
+One important point here is to verify the CN and SAN information carefully before submitting the request.
+
+Also, the password used during the CMP process needs to be saved securely because we need that password later when working with the generated PFX file.
+
+
+4. FILES RECEIVED FROM CMP
+
+Once CMP completes the request, we receive the generated certificate package.
+
+For our request, we received:
+
+Certificate.cer,
+PrivateKey.key,
+and CertAndKey.pfx.
+
+The CER file contains the certificate.
+
+The KEY file contains the private key.
+
+The PFX contains both the certificate and its matching private key.
+
+For our Java application, the important file is CertAndKey.pfx because we can directly create our JKS from this PFX.
+
+
+5. CONVERTING PFX TO JKS
+
+Once we have validated the PFX, the next step is creating the JKS.
+
+We use the keytool importkeystore command shown here.
+
+The source is CertAndKey.pfx and the source type is PKCS12.
+
+The destination is cacerts.jks and the destination type is JKS.
+
+When we run this command, it asks for the source password.
+
+That is the PFX password we used during the CMP process.
+
+It also asks us to set the destination JKS password.
+
+Once the command completes successfully, cacerts.jks is created.
+
+
+6. VALIDATING THE JKS
+
+Before putting this file into the application, we validate it.
+
+We use:
+
+keytool -list -v -keystore cacerts.jks
+
+This allows us to check the certificate details inside the JKS.
+
+Here we should confirm things like the certificate entry, CN, SANs, validity dates and certificate chain.
+
+This validation is important because we want to identify any certificate issue before deploying it.
+
+
+7. USING THE JKS IN THE APPLICATION
+
+Once the JKS is validated, we place cacerts.jks in the appropriate environment folder in our CRM-to-Olympus repository.
+
+As shown here, we maintain separate folders for DEV, UAT and PROD.
+
+Each environment has its corresponding cacerts.jks.
+
+For PROD and COB, we use the PROD certificate because the SAN of this certificate already covers the required PROD and COB hostnames.
+
+
+8. DEPLOYMENT
+
+During deployment, our deployment script identifies which environment we are deploying to.
+
+For example, when ENV_NAME is PROD, the script takes:
+
+PROD/cacerts.jks
+
+and copies it to the runtime configuration location as:
+
+finalcacerts.jks.
+
+The application then uses finalcacerts.jks from that configuration directory.
+
+The same logic is followed for the other environments with their corresponding certificate files.
+
+
+9. APPLICATION PROPERTIES
+
+Finally, these are the SSL-related application properties.
+
+server.ssl.enabled is set to true.
+
+The key-store location points to finalcacerts.jks in our runtime configuration directory.
+
+We provide the encrypted keystore password and key password.
+
+And the key-store type is JKS.
+
+So when the application starts, it loads this JKS and uses the certificate for the HTTPS communication.
+
+
+10. KEY LEARNING / CLOSING
+
+The main learning from this implementation is that we should follow one standard flow.
+
+First confirm all required hostnames.
+
+Make sure the CN and SAN are correct.
+
+Generate the certificate through the approved CMP process.
+
+Use the CMP-generated PFX because it contains the certificate and matching private key.
+
+Convert that PFX directly to JKS.
+
+Validate the JKS before deployment.
+
+And finally make sure the correct JKS is copied and referenced by the application.
+
+Following this process should make future certificate renewals much easier and help us avoid the issues we faced during the initial implementation.
+
+That is the overall certificate process we followed for CRM-to-Olympus.
+
+Please let me know if you have any questions.
+
+
+
+
+
+
+
+
+
 CRM-TO-OLYMPUS SSL/TLS CERTIFICATE CREATION, DEPLOYMENT AND VALIDATION
 
 ===============================================================================
