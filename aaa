@@ -1,4 +1,11 @@
 
+
+“Since we are moving from Spring Boot 2.7.18 to 4.1.1, have we validated the existing Springfox/Swagger dependencies and Jasypt 3.0.3 for Boot 4 compatibility? We are using Jasypt to decrypt the ENC(…) SSL keystore and key passwords, so I want to make sure certificate loading and application startup are not impacted.”
+
+
+
+
+
     FID / Functional ID
 * SiteMinder ID (this is probably the word you heard as “seteminder”)
 * Username / service account
