@@ -1,5 +1,173 @@
 
 
+Hi everyone.
+
+I created this Confluence page to document the complete process we followed for the WIP/VIP certificate setup.
+
+I will quickly go through the steps.
+
+
+1. WIP AND VIP FLOW
+
+First, this diagram shows our application flow.
+
+Client or APIGEE
+→ WIP
+→ VIP
+→ ECS/OpenShift
+→ Application.
+
+APIGEE knows our WIP name.
+
+WIP selects one of the VIPs.
+
+The benefit of VIP is that if our backend or cluster changes in the future, we can update it behind the VIP.
+
+We don't need to ask APIGEE or other consumers to change their URL every time.
+
+For example:
+
+Today:
+WIP → VIP → Old backend
+
+After migration:
+WIP → Same VIP → New backend
+
+So this gives us flexibility when the backend changes.
+
+
+2. CREATE CERTIFICATE THROUGH CMP
+
+The next step is creating the certificate.
+
+We raise a request in CMP.
+
+I added the CMP link here and also added a sample questionnaire showing what details we provided.
+
+This will be useful when we need to create or renew a certificate in the future.
+
+
+3. FILES RECEIVED FROM CMP
+
+Once the CMP request is approved, we receive an email.
+
+The email contains three files:
+
+Certificate file,
+Private key,
+and PFX file.
+
+The certificate is the public certificate.
+
+The private key belongs to that certificate.
+
+And the PFX contains the certificate and private key together.
+
+For our CAS setup, we used the certificate and private key.
+
+
+4. DECRYPT PRIVATE KEY
+
+The private key we received was protected with a password.
+
+Before adding it in CAS, we needed to decrypt it.
+
+We downloaded the files and removed the .txt extension.
+
+Then we used Git Bash and this OpenSSL command.
+
+[Point to command]
+
+When we run the command, it asks for the password that we used while creating the CMP request.
+
+After entering the password, it creates:
+
+PrivateKey_decrypted.key
+
+You can see the generated file in this screenshot.
+
+We use this decrypted key in the next step.
+
+
+5. ADD CERTIFICATE IN CAS
+
+Next, we go to the CAS portal.
+
+From here we go to:
+
+Cloud Management
+→ Network - Load Balancers.
+
+Then we find our load balancer and open the required virtual server.
+
+Under Certificate Management, we add:
+
+the certificate content
+
+and
+
+the decrypted private key.
+
+Then we submit the request.
+
+After this is completed, our certificate becomes available in the application profile.
+
+
+6. CHANGE VIP PROFILE
+
+This screenshot shows our existing configuration.
+
+Previously:
+
+Application Profile Type was TCP.
+
+Then we use Edit Application Profile.
+
+We change the profile from:
+
+TCP to HTTPS.
+
+We select the required SSL option shown here.
+
+Then the certificate that we added in the previous step appears under Service Certificates.
+
+We select our certificate and submit the request.
+
+So adding the certificate and selecting it in the profile are two separate steps.
+
+
+7. FINAL VALIDATION
+
+After the CAS request is completed, we test the application using the WIP URL.
+
+We can test using SoapUI, Postman or curl.
+
+We confirm that HTTPS is working and that we can successfully reach the application.
+
+
+So overall, the process is:
+
+CMP request
+→ Receive certificate files
+→ Decrypt private key
+→ Add certificate and key in CAS
+→ Change profile from TCP to HTTPS
+→ Select the certificate
+→ Submit
+→ Test through WIP.
+
+I documented the screenshots and steps here so we can follow the same process in the future for certificate renewal or similar certificate changes.
+
+That's all from my side.
+
+
+
+
+
+
+
+
+
 NURAREC – WIP/VIP CERTIFICATE CREATION AND CAS CONFIGURATION GUIDE
 
 ======================================================================
