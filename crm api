@@ -1,5 +1,58 @@
 
 
+Description
+
+Upgrade the CRM Olympus application from Spring Boot 2.7.18 to 4.1.1 and Java 11 to Java 17, including required Spring Framework/Jakarta and dependency compatibility changes. Ensure the existing CRM-to-Olympus API, Protobuf, Kafka, HTTPS/SSL, Jasypt encryption, Swagger/OpenAPI, and application startup flows continue to work without regression.
+
+Acceptance Criteria
+
+* Application builds and starts successfully with Java 17 / Spring Boot 4.1.1.
+* Existing CRM Olympus business APIs work without functional changes.
+* Protobuf template download and binary payload processing work successfully.
+* Kafka publishing works for Client Meeting, Call Report, Action Item, and Productivity Metrics.
+* HTTPS/SSL and encrypted ENC() property handling work successfully.
+* Swagger/OpenAPI and health/Actuator endpoints are accessible.
+* End-to-end regression testing is completed in UAT.
+* QE sign-off is received with no critical issues.
+
+
+
+
+
+
+Subject: UAT Testing & Sign-Off Request – CRM Olympus Spring Boot 4 Migration
+
+Hi Team,
+
+We have deployed the CRM Olympus Spring Boot migration changes to UAT. The application has been upgraded from Spring Boot 2.7.18 to 4.1.1 and Java 11 to Java 17, along with the required Spring Framework/Jakarta and dependency compatibility changes.
+
+As this is a framework/runtime upgrade, please perform complete end-to-end regression testing and provide sign-off.
+
+Please validate:
+
+* Application starts successfully with Java 17.
+* Health/Actuator endpoint works.
+* Client Meeting, Call Report, Action Item and Productivity Metrics APIs work as before.
+* Protobuf template/download endpoints work.
+* Protobuf payload processing and Kafka publishing work successfully.
+* HTTPS/downstream CRM Olympus calls work without SSL issues.
+* Encrypted ENC() properties/Jasypt values are read correctly.
+* Swagger/OpenAPI documentation and Swagger UI are accessible.
+* Existing success/error response behavior is unchanged.
+* No regression in the existing CRM → Olympus end-to-end flow.
+
+Please share the test results and UAT sign-off once validation is completed.
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
+
 Hi Team,
 
 I’ll quickly walk through the SSL/TLS certificate creation and implementation we followed for the CRM-to-Olympus application.
