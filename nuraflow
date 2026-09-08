@@ -1,5 +1,28 @@
 
 
+
+Subject: UAT Testing Request – Audit Failure Status Handling
+
+Hi Team,
+
+The audit status handling changes have been deployed to UAT. Could you please perform end-to-end testing and provide sign-off?
+
+Please validate the following scenarios:
+
+* JDBC/Starburst failure should update the audit record to Failed with error details instead of remaining in Received.
+* Bulk API null/failure response should update the related audit record to Failed and release the resource.
+* Successful requests should continue to update the correct audit record to Success.
+* Concurrent requests with different GTIDs should update their respective audit records correctly.
+* Please confirm there are no audit records stuck in Received after failure scenarios.
+
+Kindly share the test results and sign-off once validation is completed.
+
+Thanks,
+Pratap
+
+
+
+
 Hi everyone.
 
 I created this Confluence page to document the complete process we followed for the WIP/VIP certificate setup.
