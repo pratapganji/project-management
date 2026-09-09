@@ -1,5 +1,31 @@
 
 
+Hi Param,
+
+Yes, these APIs are part of the CRM-to-Olympus flow used to onboard/publish CRM data into Olympus.
+
+The application supports the following flows:
+
+* Client Meeting
+* Client Action Item
+* Call Report
+* Productivity Metrics
+
+The publish APIs receive protobuf/binary CRM payloads and publish the data through the Olympus/Kafka flow. The proto-template APIs provide the protobuf templates required for payload construction.
+
+I have also identified the UAT Apigee endpoints in scope and will update the complete API/endpoint list in JIRA.
+
+Known consumer teams include GSG CRM, TTS CRM, CCB CRM, Markets CRM, FX CRM and BCMA CRM. We will also reconfirm the current active usage/ownership of these flows with the respective consumers.
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
 Hi Param/Rajat,
 
 Yes, these CRM-to-Olympus APIs are used for onboarding/publishing CRM data into Olympus.
