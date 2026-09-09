@@ -1,5 +1,91 @@
 
 
+
+SDM File Export – Database / Source Data Flow
+
+The SDM File Export application reads catalogue data from Oracle database tables and generates CSV/CTL output for downstream processing.
+
+Database Schemas Used:
+
+1. A167969OMR
+   Used for the catalogue/source data that is exported.
+
+   Tables:
+   - A167969OMR.OM_CATALOGUE_SUNDRY
+   - A167969OMR.OM_CATALOGUE_SOURCE_SYSTEM
+   - A167969OMR.OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE
+
+2. C167969RPC
+   Used by the application's second Oracle datasource and for SDM processing/audit information.
+
+   Table:
+   - C167969RPC.OM_CATALOGUE_SDM_LOG
+
+
+Table Details:
+
+1. Schema: A167969OMR
+   Table: OM_CATALOGUE_SUNDRY
+   Purpose: Source data for Sundry export.
+
+2. Schema: A167969OMR
+   Table: OM_CATALOGUE_SOURCE_SYSTEM
+   Purpose: Source data for Source System export.
+
+3. Schema: A167969OMR
+   Table: OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE
+   Purpose: Source data for Source System Coverage export.
+
+4. Schema: C167969RPC
+   Table: OM_CATALOGUE_SDM_LOG
+   Purpose: Stores SDM export processing/audit details such as table name,
+   transfer method, status, total record count, requestor SOEID and run timestamp.
+
+
+Data Flow:
+
+Oracle DB
+   |
+   |-- A167969OMR.OM_CATALOGUE_SUNDRY
+   |-- A167969OMR.OM_CATALOGUE_SOURCE_SYSTEM
+   |-- A167969OMR.OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE
+   |
+   v
+SDM File Export Application
+   |
+   |-- Reads the required source records
+   |-- Generates CSV file
+   |-- Generates CTL file with record-count information
+   |-- Updates C167969RPC.OM_CATALOGUE_SDM_LOG for processing/status tracking
+   |
+   v
+Creates downloadable ZIP containing CSV + CTL
+   |
+   v
+Reference Onboarding team downloads the ZIP using curl/API
+   |
+   v
+Extracts the files
+   |
+   v
+Hive ingestion
+
+Important:
+The SDM application does not load the exported business data into another
+database table. The business data comes from the A167969OMR catalogue tables.
+C167969RPC.OM_CATALOGUE_SDM_LOG is used only for SDM processing/audit tracking.
+
+
+
+
+
+
+
+
+
+
+
+
 Hi Snehal,
 
 The CVM dependency upgrade changes for the SDM File Export application have been deployed successfully in UAT.
