@@ -26,6 +26,33 @@ Pratap
 
 
 
+SB User Consumption Data Flow
+
+The SB User Consumption Python job collects usage data from the following sources:
+
+* JDBC/Impala – connected using the JDBC driver JAR:
+    * gfolydal_managed.jdbc_centralized_audit_log
+    * gfolydal_managed.jdbc_centralized_audit_common
+* REST API/Oracle:
+    * DALE_API_CALL_LOG
+    * DALC_CLIENT_API
+    * DALC_CLIENT_API_QUERY
+    * DALE_DATABASE_PLATFORM
+* Bulk API/Oracle:
+    * DALC_BULK_API_JOB_REQUEST
+
+During processing, catalogue/reference data is also read from tables such as R167969RPC.OM_CATALOGUE_TABLE, R167969RPC.OM_CATALOGUE_OBJECT_ALIAS, R167969RPC.OM_CATALOGUE_LOGICAL_MASTER, R167969RPC.OM_CATALOGUE_COVERAGE_MAP, and OM_CATALOGUE_FIELD.
+
+After processing and CSV generation, the final consumption data is loaded into the Oracle target table OM_CATALOGUE_USER_CONSUMPTION.
+
+If they only want the JDBC source → Oracle target in a very short format:
+
+Source (JDBC/Impala): gfolydal_managed.jdbc_centralized_audit_log and gfolydal_managed.jdbc_centralized_audit_common. The Python job connects to Impala using the JDBC driver JAR.
+Target (Oracle): OM_CATALOGUE_USER_CONSUMPTION.
+
+
+
+
 
 
 Hi DevOps Team,
