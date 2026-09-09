@@ -1,4 +1,23 @@
 
+Hi Anbunithi/Team,
+
+We currently have 3 open CVM/Black Duck findings for SB User Consumption related to Kotlin, Logback, and Netty. One finding is already overdue, and the other two are approaching their due dates.
+
+We are dependent on the updated Olympus JDBC driver/JAR to remediate these findings. Could you please provide the updated JAR as soon as possible so we can update the application, validate it in UAT, send it for QE testing/sign-off, and proceed toward PROD deployment?
+
+Updating or overriding these dependency versions only through pom.xml may not confirm that the vulnerabilities are actually resolved, since these components are coming through the JDBC driver. The final confirmation will be based on the Black Duck scan/report after the updated JAR is deployed.
+
+Please help prioritize this and share the updated JDBC JAR/ETA at the earliest.
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
 
 Hi DevOps Team,
 
