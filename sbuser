@@ -22,7 +22,32 @@ Thanks,
 Pratap
 
 
+SB User Consumption Data Flow
 
+The SB User Consumption Python job connects to Starburst using the Olympus JDBC driver/JAR and reads usage/audit data from the gfolydal_managed schema:
+
+* gfolydal_managed.jdbc_centralized_audit_log
+* gfolydal_managed.jdbc_centralized_audit_common
+
+The audit-log table is referenced multiple times to capture the different stages of a request, including authentication, entitled-query, and query-completion information.
+
+After the data is fetched, the Python job processes/enriches it and generates the staging CSV.
+
+The processed data is then loaded into the Oracle target table under the A167969RPC schema:
+
+* A167969RPC.OM_CATALOGUE_USER_CONSUMPTION
+
+The application also reads catalogue/reference information from the R167969RPC schema, including tables such as OM_CATALOGUE_TABLE, OM_CATALOGUE_OBJECT_ALIAS, OM_CATALOGUE_LOGICAL_MASTER, and OM_CATALOGUE_COVERAGE_MAP, for enrichment.
+
+Main flow:
+Starburst gfolydal_managed → Olympus JDBC driver/JAR → Python processing/CSV → Oracle A167969RPC.OM_CATALOGUE_USER_CONSUMPTION
+
+So the two schema names to keep straight are:
+
+* Starburst source schema: gfolydal_managed
+* Oracle target schema/user from the runtime log: A167969RPC
+
+And R167969RPC is the schema explicitly shown in the main-class SQL for the catalogue/reference lookup tables.
 
 
 
