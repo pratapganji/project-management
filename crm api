@@ -1,5 +1,39 @@
 
 
+Hi Param/Rajat,
+
+Yes, these CRM-to-Olympus APIs are used for onboarding/publishing CRM data into Olympus.
+
+The current application flow supports Client Meeting, Client Action Item, Call Report and Productivity Metrics. The publish APIs receive the CRM payload and process/publish the data further into the Olympus flow. The proto-template APIs are supporting endpoints used to retrieve the corresponding protobuf templates.
+
+UAT Apigee endpoints in scope:
+
+Proto Template APIs:
+
+1. /crm/olympus/client/action/itemprototemplate
+2. /crm/olympus/call/reportprototemplate
+3. /crm/olympus/client/meeting/prototemplates
+4. /crm/olympus/client/productivity/metrics/prototemplates
+
+CRM Data Publish APIs:
+5. /crm/olympus/publish/details/client/productivitymetrics
+6. /crm/olympus/publish/data/callreport
+7. /crm/olympus/publish/data/clientactionitem
+8. /crm/olympus/publish/data/clientmeeting
+
+These are exposed through the UAT Apigee base URL:
+https://uat.isg.icgservices.citigroup.net/isg/internal/
+
+The known consumer teams include GSG CRM, TTS CRM, CCB CRM, Markets CRM, FX CRM and BCMA CRM. I will update these API/flow details in JIRA as well.
+
+Thanks,
+Pratap
+
+
+
+
+
+
 Description
 
 Upgrade the CRM Olympus application from Spring Boot 2.7.18 to 4.1.1 and Java 11 to Java 17, including required Spring Framework/Jakarta and dependency compatibility changes. Ensure the existing CRM-to-Olympus API, Protobuf, Kafka, HTTPS/SSL, Jasypt encryption, Swagger/OpenAPI, and application startup flows continue to work without regression.
