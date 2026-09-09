@@ -1,4 +1,13 @@
 
+    Provide SB User Consumption data-flow details
+    Your manager specifically wants:
+    * The source table(s) from which the Python/JDBC job reads data.
+    * The target Oracle table where the processed data is loaded.
+
+
+
+
+
 Hi Anbunithi/Team,
 
 We currently have 3 open CVM/Black Duck findings for SB User Consumption related to Kotlin, Logback, and Netty. One finding is already overdue, and the other two are approaching their due dates.
