@@ -1,4 +1,91 @@
 
+From this meeting, the main ask is to prepare a complete migration-impact inventory for the Rutherford Data Center → Clifton Data Center migration. They do not want only application names; they want everything that could break or need recreation when the applications move.
+
+For the applications assigned to you/Venkata, you should check and document:
+
+* Application / pipeline name
+* Environment — DEV, UAT, PROD, etc.
+* Current Rutherford cluster/server/host names
+* Service accounts / application users created on the server or cluster
+* Cron/batch jobs — where they run, job name, schedule, host
+* VIPs / WIPs / load-balancer configuration
+* Database dependencies — Oracle/other DB, schema, table names, connection strings
+* External system/API dependencies
+* URLs/endpoints
+* Ports
+* Firewall rules
+* NAS/shared-storage paths
+* S3/storage dependencies
+* Vault secrets/passwords — especially whether they are tied to a Rutherford cluster/server
+* Certificates
+* Deployment agents / tools — and whether those agents are installed on Rutherford servers
+* Components manually deployed on servers
+* Cloudera/Hadoop resources — cluster, Impala/Hive/etc. where applicable
+* App ID / App name / Resource system name / resource type
+* Any direct SSH/server access currently required
+* Anything created specifically at the server, host, cluster, or node level
+* Whether Git repositories/build artifacts have any Rutherford-specific dependency
+* Any old systems/VMs that are already planned for decommissioning, so they don’t unnecessarily migrate something that will shortly be retired.
+
+The important point your manager repeated is: do not assume everything is only in PROD or only in Rutherford. Check each environment. Something could have Rutherford dependencies in DEV/UAT too.
+
+Application
+
+Environment
+
+App ID/CSI ID
+
+Current Cluster
+
+Server/Host
+
+Service Account
+
+Cron/Job
+
+DB/Schema/Table
+
+URL/API
+
+VIP/WIP
+
+Port
+
+Firewall
+
+NAS/S3/Path
+
+Vault/Secret
+
+Certificate
+
+Deployment Agent
+
+External Dependency
+
+Direct Server Access
+
+Migration Action
+
+Owner
+
+Remarks
+
+What you need to deliver
+
+Your manager wants the initial consolidated inventory by tomorrow, with everyone following the same Excel format. The transcript ends with a follow-up meeting tomorrow around 5:30 PM to review the findings.
+
+The goal of this first exercise is not yet to perform the migration. It is to identify everything that will need attention so that when Rutherford is replaced by Clifton, things like a service account, cron job, Vault configuration, VIP, firewall rule, deployment agent, or server path are not forgotten and do not cause the pipeline to fail.
+
+If you give me the exact application names assigned to you (the transcript has several names badly transcribed), I can make the application-by-application checklist of exactly what you need to check for each one.
+
+
+
+
+
+
+
+
 
 set OPENBLAS_NUM_THREADS=1
 set OMP_NUM_THREADS=1
