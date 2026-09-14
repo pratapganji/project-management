@@ -1,4 +1,28 @@
 
+
+Subject: QE Testing Request – Recall Bulk API
+
+Hi Team,
+
+The Recall Bulk API changes have been deployed to UAT and the Jira is ready for QE validation.
+
+Could you please test the below scenarios:
+
+* Validate Recall Bulk API with a valid GTID.
+* Verify the existing Bulk API request details are retrieved correctly.
+* Validate Prod S3 and Non-Prod S3 scenarios.
+* For Non-Prod S3, verify the provided S3 path is updated and callback URL is cleared.
+* Verify the Bulk API request is triggered successfully.
+* Validate error handling for invalid or missing GTID.
+
+Please update the Jira with the test results and provide sign-off once testing is completed.
+
+Thanks,
+Pratap
+
+
+
+
 Implement Recall Bulk API functionality to re-trigger a previously submitted Bulk API request using the Global Transaction ID (GTID).
 
 The application will retrieve the previously stored Bulk API request details using the GTID, including the request payload, endpoint and headers.
