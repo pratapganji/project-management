@@ -1,4 +1,51 @@
 
+Implement Recall Bulk API functionality to re-trigger a previously submitted Bulk API request using the Global Transaction ID (GTID).
+
+The application will retrieve the previously stored Bulk API request details using the GTID, including the request payload, endpoint and headers.
+
+Based on the is_prod_s3 flag:
+
+- For Prod S3, the existing stored Bulk API request payload will be reused.
+- For Non-Prod S3, the request payload will be updated with the provided S3 path and the callback URL will be cleared.
+
+The updated/original request will then be submitted asynchronously to the Bulk API.
+
+Request validation and appropriate logging will be included for tracking using GTID.
+
+
+1. Recall Bulk API should accept a Global Transaction ID (GTID).
+
+2. GTID should be validated before starting recall processing.
+
+3. The existing Bulk API request details should be retrieved using the provided GTID.
+
+4. Retrieved request details should include:
+   - Bulk API endpoint
+   - Request payload
+   - Request headers
+
+5. When is_prod_s3 is true:
+   - Existing stored Bulk API payload should be used.
+
+6. When is_prod_s3 is false:
+   - Provided S3 path should be updated in the Bulk API request payload.
+   - Callback URL should be set to empty.
+
+7. The Bulk API request should be triggered asynchronously.
+
+8. Existing request headers should be reused while recalling the Bulk API.
+
+9. Appropriate logs should be generated using GTID for tracking and troubleshooting.
+
+10. Any exception during recall processing should be logged without impacting other requests.
+
+
+
+
+
+
+
+
 
 
 Subject: UAT Testing Request – Audit Failure Status Handling
