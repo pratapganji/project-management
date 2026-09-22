@@ -1,4 +1,24 @@
 
+Hi QE Team,
+
+The OpenShift CLI image update for the SB User Consumption restart CronJob has been deployed to UAT.
+
+Could you please perform sanity testing and validate that:
+
+* The SB User Consumption application is running successfully.
+* The restart CronJob is executing successfully.
+* The application pod is recreated successfully after the restart job runs.
+* There are no image pull, CLI, or application errors after the change.
+* Existing functionality is working as expected.
+
+Please share your sign-off once testing is completed and let me know if you find any issues.
+
+Thanks,
+Pratap
+
+
+
+
 
 
 Jira Title:
