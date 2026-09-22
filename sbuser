@@ -1,4 +1,47 @@
 
+
+
+Jira Title:
+Migrate SB User Consumption Restart CronJob to New OpenShift CLI Image
+
+Description:
+The restart-olympus-sb-user-consumption-pod CronJob is currently using the old OpenShift CLI image from the repository that is being decommissioned.
+
+Current image:
+docker-enterprise-prod-local.artifactrepository.citigroup.net/cate-citisystems-openshift/openshift4:4.6.40-cli
+
+As part of the OpenShift CLI migration, the CronJob needs to be updated to use the new approved OpenShift CLI image.
+
+New image:
+docker-enterprise-prod-local.artifactrepository.citigroup.net/generic-gcs-infra-local/public/openshift:4.18.31
+The CronJob is used to restart the olympus-sb-user-consumption pod by deleting the existing pod and allowing OpenShift to recreate it.
+
+The Helm cronjob.yaml should be updated with the new image and deployed to UAT for validation before promoting the change to higher environments.
+
+Acceptance Criteria:
+
+* restart-olympus-sb-user-consumption-pod CronJob uses the new OpenShift CLI 4.18.31 image.
+* No reference to the old cate-citisystems-openshift/openshift4:4.6.40-cli image remains for this CronJob.
+* Application deployment completes successfully in UAT.
+* CronJob pod starts successfully using the new image.
+* CronJob is able to execute the existing pod restart command successfully:
+
+kubectl delete pod -l app=olympus-sb-user-consumption
+
+    olympus-sb-user-consumption pod is recreated successfully after the CronJob execution.
+* No image pull or OpenShift CLI related errors are seen in the CronJob logs.
+* Existing CronJob schedule and restart functionality remain unchanged.
+* Change is validated in UAT and is ready for QE/production promotion.
+
+Update the OpenShift CLI container image used by the SB User Consumption restart CronJob from the deprecated OpenShift CLI repository to the new approved repository using OpenShift CLI version 4.18.31.
+
+
+
+
+
+
+
+
 <?xml version="1.0" encoding="UTF-8"?>
 
 <project xmlns="http://maven.apache.org/POM/4.0.0"
