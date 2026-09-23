@@ -1,5 +1,27 @@
 
 
+Subject: Request to Restart SDM File Export Application in PROD
+
+Hi Sampath,
+
+Could you please help restart the SDM File Export application in PROD by deleting the currently running pod? The deployment should automatically create a new pod after deletion.
+
+Application: olympus-sdm-file-export-api
+Environment: PROD
+Namespace: icg-isg-olympus-data-176352
+
+We are currently troubleshooting the SDM File Export issue and would like to validate the application after a clean pod restart.
+
+Please let us know once the pod has been restarted.
+
+Thanks,
+Pratap
+
+
+
+
+
+
 Hi Param,
 
 Yes, these APIs are part of the CRM-to-Olympus flow used to onboard/publish CRM data into Olympus.
