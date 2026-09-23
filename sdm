@@ -1,4 +1,20 @@
 
+
+Use this slightly cleaner version:
+
+Hi Mukund,
+
+The COB pod was restarted on the 19th. During the restart, there was an NGC connection failure, due to which the application was unable to fetch the DB password from NGC.
+
+We have reached out to the CRM Olympus Deployment team (Sampath Anand) to check and restart/redeploy the SDM File Export COB pod.
+
+We will provide an update once the COB pod has been restarted or redeployed and the API is validated.
+
+Thanks,
+Pratap
+
+
+
 Hi Mukund,
 
 Somebody restarted the COB pod on the 19th. After the restart, there was a connection failure with NGC, due to which the application was unable to fetch the DB password from NGC.
