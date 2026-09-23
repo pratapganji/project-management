@@ -1,3 +1,28 @@
+We have attached put_catalogue_swagger.json and an Excel sheet.
+
+The Excel sheet contains the CitiFix DB schema, including the table names and column names. The JSON file contains the Catalogue API request structure and fields.
+
+We need to identify and map the fields present in the Catalogue API request JSON to the corresponding columns in the CitiFix DB schema.
+
+The objective is to identify only the matching fields between the JSON request and the Excel DB schema so that I can prepare SQL queries to retrieve the required data from the CitiFix DB.
+
+Please prepare a mapping sheet with only the matching fields using the following format:
+
+Excel / CitiFix DB	JSON
+<table_name>.<column_name>	<structure>.field
+
+Example:
+
+Excel / CitiFix DB	JSON
+CUSTOMER.CUSTOMER_ID	customer.customerId
+CUSTOMER.CUSTOMER_NAME	customer.customerName
+ADDRESS.CITY	customer.address.city
+
+Please include only fields where a clear match exists between the JSON structure/field and the CitiFix DB table/column. Do not include unmatched fields.
+
+
+
+
 catelouge (citiHawk) --> Message --> Repeated groups(AccoutGrp/TradeGrp) --> tags
 
 Message Protocol (citifix) --> Message --> Repeated groups(AccoutGrp/TradeGrp) --> tags
