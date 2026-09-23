@@ -1,6 +1,20 @@
 
 
 
+Hi Sampath,
+
+We observed that the COB server was restarted on the 19th of this month. At that time, there was an issue with the NGC connection, due to which the application was unable to fetch the DB password.
+
+The DB password is fetched only once during deployment/startup. Because the password could not be retrieved successfully at that time, we are now getting a DB connection error when calling the API.
+
+Could you please restart or redeploy the COB server so that the application can fetch the DB password again?
+
+Thanks.
+
+
+
+
+
 SDM File Export – Database / Source Data Flow
 
 The SDM File Export application reads catalogue data from Oracle database tables and generates CSV/CTL output for downstream processing.
