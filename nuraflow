@@ -1,38 +1,15 @@
 
 
-Hi Parmeshwar,
-
-Following up on the below. The CRM-to-Olympus API/flow details have been added to JIRA as requested.
-
-Could you please confirm whether your team will proceed with the UAT end-to-end regression testing and sign-off for the Spring Boot 4 migration?
-
-Please let us know once testing is started, or if any additional information is required from our side.
-
-Thanks,
-Pratap
-
-
-
-
-Subject: QE Testing Request – Recall Bulk API
-
 Hi Team,
+Thanks for the update. When you mention that the LB health check looks good, are you confirming that the LB is not causing the 504 timeout issue?
 
-The Recall Bulk API changes have been deployed to UAT and the Jira is ready for QE validation.
+If this needs to be investigated by another team, could you please share the correct DL or forward the INC to the appropriate team?
 
-Could you please test the below scenarios:
-
-* Validate Recall Bulk API with a valid GTID.
-* Verify the existing Bulk API request details are retrieved correctly.
-* Validate Prod S3 and Non-Prod S3 scenarios.
-* For Non-Prod S3, verify the provided S3 path is updated and callback URL is cleared.
-* Verify the Bulk API request is triggered successfully.
-* Validate error handling for invalid or missing GTID.
-
-Please update the Jira with the test results and provide sign-off once testing is completed.
+This is a PROD issue and we have already contacted multiple teams, so your help in routing this to the right team would be appreciated.
 
 Thanks,
 Pratap
+
 
 
 
