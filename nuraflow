@@ -1,4 +1,82 @@
 
+short description :
+Increase NuraRec PROD and COB VIP response timeout from 120 seconds to 300 seconds
+
+Description
+Increase the response timeout for the NuraRec PROD and COB NSX VIPs from the current 120 seconds to 300 seconds (5 minutes).
+
+PROD:
+VIP Name: vs-hgai-omwh
+VIP IP: 150.110.247.142
+
+COB:
+VIP Name: vs-brqk-afgh
+VIP IP: 162.124.4.104
+
+The application is currently receiving HTTP 504 Gateway Timeout for long-running requests because the load balancer response timeout is reached at approximately 120 seconds.
+
+This change will increase the VIP response timeout to 300 seconds so that long-running application requests can complete successfully.
+
+Justification
+The NuraRec Search API has long-running requests that can take more than 120 seconds to complete.
+
+Current PROD runtime logs show HTTP 504 Gateway Timeout occurring at approximately 120 seconds. The Load Balancer support team confirmed that the current LB response timeout is 120 seconds.
+
+Increasing the response timeout to 300 seconds will allow the application additional time to complete processing and avoid premature 504 Gateway Timeout responses.
+
+implementation plan :
+
+1. Validate the existing configuration for the PROD and COB VIPs.
+2. Update the VIP response timeout from 120 seconds to 300 seconds.
+
+PROD:
+VIP: vs-hgai-omwh
+IP: 150.110.247.142
+
+COB:
+VIP: vs-brqk-afgh
+IP: 162.124.4.104
+
+3. Save/apply the updated configuration.
+4. Verify both VIPs remain enabled and healthy.
+5. Validate application connectivity after the change.
+6. Execute a long-running NuraRec Search API request and confirm that the request is allowed to run beyond 120 seconds without receiving the previous 504 timeout.
+
+Backout Plan
+
+Backout execution time: Approximately 15 minutes.
+
+Backout responsible group:
+Load Balancer / Network Support Team.
+
+Backout plan:
+If any connectivity issue, application impact, or unexpected behavior is observed after implementation, revert the VIP response timeout from 300 seconds back to the previous value of 120 seconds for the affected VIP.
+
+After rollback, verify VIP health, pool member health, and application connectivity.
+
+Pre-Implementation Test Details
+1. Confirm both PROD and COB VIPs are currently enabled and healthy.
+2. Confirm the associated pool members are UP/healthy.
+3. Capture the existing timeout configuration before making the change.
+4. Confirm application connectivity through the WIP/VIP.
+5. Keep the current configuration details available for rollback.
+
+Post-Implementation Checkout Plan
+1. Confirm PROD and COB VIPs are enabled and healthy.
+2. Confirm all associated pool members remain healthy.
+3. Verify application connectivity through the WIP/VIP.
+4. Execute the NuraRec Search API request.
+5. Confirm the request can continue beyond 120 seconds without receiving the previous 504 Gateway Timeout.
+6. Confirm successful application response and review application/Apigee logs for any errors.
+7. Confirm no new connectivity or load balancer errors are observed after the change.
+
+
+
+
+
+
+
+
 Thanks for confirming the WIP/LB health checks are good.
 
 Since the issue is transaction-specific and the request is returning 504 after approximately 120 seconds, could you please share the NSS team DL or route this incident to NSS so they can check the packet/network logs for the provided transaction ID and confirm where the timeout is occurring?
