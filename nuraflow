@@ -1,15 +1,9 @@
 
+Thanks for confirming the WIP/LB health checks are good.
 
-Hi Team,
-Thanks for the update. When you mention that the LB health check looks good, are you confirming that the LB is not causing the 504 timeout issue?
+Since the issue is transaction-specific and the request is returning 504 after approximately 120 seconds, could you please share the NSS team DL or route this incident to NSS so they can check the packet/network logs for the provided transaction ID and confirm where the timeout is occurring?
 
-If this needs to be investigated by another team, could you please share the correct DL or forward the INC to the appropriate team?
-
-This is a PROD issue and we have already contacted multiple teams, so your help in routing this to the right team would be appreciated.
-
-Thanks,
-Pratap
-
+We need to identify whether the 504 is generated at the NSX/VIP layer or further downstream at the backend.
 
 
 
