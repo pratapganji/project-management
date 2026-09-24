@@ -1,3 +1,52 @@
+I have the following two files:
+
+1. **`get_citifix.json`** – response payload from the CitiFix GET API.
+2. **`put_catalogue_swagger.json`** – Swagger/request structure for the Catalogue PUT API.
+
+My requirement is to use the data received from the **CitiFix GET API** and prepare the corresponding request payload required by the **Catalogue PUT API**.
+
+Could you please analyze both JSON files and identify the fields that can be mapped between the CitiFix response and the Catalogue PUT request?
+
+Please prepare a **mapping sheet containing only the matching fields**. The mapping should show:
+
+| CitiFix JSON Field          | Catalogue PUT JSON Field      |
+| --------------------------- | ----------------------------- |
+| `<citifix structure>.field` | `<catalogue structure>.field` |
+
+For example:
+
+| CitiFix JSON Field      | Catalogue PUT JSON Field |
+| ----------------------- | ------------------------ |
+| `customer.customerId`   | `customer.id`            |
+| `customer.customerName` | `customer.name`          |
+| `customer.address.city` | `address.city`           |
+
+### Mapping requirements
+
+* Identify matching fields based on **field name, structure, and business meaning**.
+* Include nested JSON fields and their complete paths.
+* Include fields where the names are different but the **business meaning is clearly the same**, and mention this in a remarks column.
+* Include only fields for which a reasonable mapping can be established.
+* Do not include CitiFix fields that have no corresponding Catalogue field.
+* Do not include Catalogue fields for which there is no corresponding CitiFix source field.
+* Clearly identify any mappings that require **DataWeave transformation, type conversion, formatting, concatenation, splitting, or default values**.
+
+Please use the following mapping-sheet format:
+
+| # | CitiFix JSON Field | Catalogue PUT JSON Field | Mapping Type                             | Remarks     |
+| - | ------------------ | ------------------------ | ---------------------------------------- | ----------- |
+| 1 | `<citifix path>`   | `<catalogue path>`       | Direct / Business Match / Transformation | `<details>` |
+
+The ultimate objective is to use this mapping to create a **DataWeave transformation in Mule 4**, which will take the `get_citifix.json` response as input and generate the request payload for the Catalogue PUT API.
+
+DataWeave is specifically designed for restructuring JSON payloads and mapping fields between different data structures.
+
+
+
+
+
+
+
 We have attached put_catalogue_swagger.json and an Excel sheet.
 
 The Excel sheet contains the CitiFix DB schema, including the table names and column names. The JSON file contains the Catalogue API request structure and fields.
