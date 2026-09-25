@@ -1,0 +1,58 @@
+Schema Browser – New API Requirement
+
+Requirement:
+Create two new APIs in the existing Olympus Schema Browser API application.
+
+1. GET API
+- Create a GET endpoint to retrieve Field Map configuration data from the Oracle database.
+- The API should use the existing Schema Browser DEV datasource configuration.
+- Execute the below query:
+
+SELECT FIELD_MAP_SK,
+       TABLE_PHYSICAL_NAME,
+       FINAL_QUERY,
+       RUN_FREQUENCY
+FROM C167969RPC.om_catalogue_field_map_lkp
+WHERE is_current_flag = 'Y'
+ORDER BY dwh_created_timestamp;
+
+- Return the following fields as JSON:
+  1. FIELD_MAP_SK
+  2. TABLE_PHYSICAL_NAME
+  3. FINAL_QUERY
+  4. RUN_FREQUENCY
+
+- FINAL_QUERY may contain a relatively large query/CLOB value, so the API response should support the complete value without truncation.
+
+2. INSERT API
+- Create an API to insert data into the required database table.
+- Exact insert columns/request payload/query will be provided/confirmed by Mahesh.
+- This API should also use the existing Schema Browser datasource rather than creating a separate DB connection.
+
+Database Details – DEV:
+Environment: DEV
+Database: Oracle
+Database/SID: ORF1DEV
+Port: 8889
+Schema containing the required table: C167969RPC
+Table: OM_CATALOGUE_FIELD_MAP_LKP
+
+Schema Browser already has an ORF1DEV datasource configured in:
+application-dev.properties
+
+Therefore, the new APIs should reuse the existing Spring datasource/JDBC configuration.
+Do not create or hard-code a separate DB username/password/JDBC connection.
+
+Before implementation/testing, confirm that the existing Schema Browser application DB user has SELECT/required DML access to:
+C167969RPC.OM_CATALOGUE_FIELD_MAP_LKP
+
+Implementation Location:
+Existing Olympus Schema Browser API application/repository.
+
+Initial Deliverable:
+- Implement GET API first.
+- Deploy in DEV.
+- Validate that records are retrieved from ORF1DEV.
+- Verify all four fields, including complete FINAL_QUERY, are returned correctly in JSON.
+- Share the DEV endpoint for testing.
+- Implement INSERT API once the exact insert details are confirmed.
