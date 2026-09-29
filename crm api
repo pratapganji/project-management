@@ -1,5 +1,194 @@
 
 
+Okkasari idi pc lo petti chudandi em anukokunda  Rajat elago chadavadu kani document expect chesthadu so ,,
+
+
+CRM → Olympus API – Nucleus / Cloud Migration Assessment
+
+1. Application Overview
+
+Application: CRM → Olympus API
+App ID: 160970
+Repo: 160970.crm-olympus.crm-olympus-api
+Technology: Java / Spring Boot 4.1.1
+Runtime: Java 17+
+Deployment: UDeploy
+Current Hosting: Linux VM servers
+
+Purpose:
+CRM → Olympus is a pass-through integration service.
+CRM consumers call the APIs through Apigee. The application receives protobuf/binary
+payloads and publishes them to Kafka.
+
+Supported flows:
+- Client Meeting
+- Client Action Item
+- Call Report
+- Productivity Metrics
+
+No direct application database/JDBC dependency has been identified.
+
+
+2. Current Application Flow
+
+CRM Consumers
+    → Apigee
+    → VIP/WIP
+    → CRM → Olympus API on VM
+    → Protobuf processing
+    → Kafka
+    → Olympus downstream processing
+
+
+3. Current Servers
+
+UAT:
+- sd-81f4-a5b3.nam.nsroot.net
+- sd-f56c-4ee0.nam.nsroot.net
+- sd-ecuf-1mzk.nam.nsroot.net
+
+PROD/NJ:
+- sd-xz4e-1fwi.nam.nsroot.net
+- sd-t22w-1pku.nam.nsroot.net
+- sd-twa1-tgxa.nam.nsroot.net
+
+COB/NY:
+- sd-9c8f-45fd.nam.nsroot.net
+- sd-8e9d-f2de.nam.nsroot.net
+- sd-rpbx-abzo.nam.nsroot.net
+
+Application Home:
+/data/1/gfolybkb/bin/CRM_Olympus_New/current/install
+
+Logs:
+/data/1/gfolybkb/bin/CRM_Olympus_New/logs
+
+Configuration:
+/data/1/gfolybkb/bin/CRM_Olympus_Config/config
+
+
+4. Apigee / VIP / WIP
+
+Consumers currently access CRM → Olympus through Apigee.
+
+UAT Apigee base:
+https://uat.isg.icgservices.citigroup.net/isg/internal/
+
+Current architecture also uses VIP/WIP to route traffic to VM application servers.
+
+Cloud Migration:
+- Confirm whether existing Apigee consumer URLs remain unchanged.
+- Change Apigee backend/WIP target from VM to cloud runtime.
+- Confirm whether VIP/WIP is still required in Nucleus.
+- Confirm cloud TLS/certificate handling.
+
+
+5. Kafka
+
+Current Kafka configuration uses:
+- BOOTSTRAP_SERVERS_URL
+- SCHEMA_REGISTRY_URL
+- SASL_SSL
+- GSSAPI / Kerberos
+- Kafka truststore
+- JAAS configuration
+
+Topics:
+- TOPIC_CALL_REPORT_PROTO
+- TOPIC_ACTION_ITEM_PROTO
+- TOPIC_CLIENT_MEETING_PROTO
+- TOPIC_PRODUCTIVITY_METRICS_PROTO
+
+Cloud Migration:
+- Confirm whether Kafka moves to Confluent/cloud Kafka.
+- Confirm new bootstrap servers and Schema Registry.
+- Confirm replacement for Kerberos/GSSAPI authentication.
+- Maintain protobuf compatibility.
+- Define connectivity if Kafka/data must remain partly on-prem due to data-residency restrictions.
+
+
+6. Certificates / Security
+
+Current VM dependencies include:
+- finalcacerts.jks
+- kafkacacerts.jks
+- JAAS config
+- krb5.conf
+
+Cloud Migration:
+Replace VM filesystem-based certificate/secret handling with the Nucleus-approved
+cloud secret/certificate mechanism.
+
+Do not store actual passwords, client secrets or secret values in Confluence.
+
+
+7. Start / Stop and AutoSys
+
+Current application lifecycle is controlled through shell scripts and AutoSys.
+
+Scripts:
+- start_app.sh
+- stop_app.sh
+- gen_app.sh
+
+Example AutoSys job:
+167969_OM_CRM_OLYMPUS_API_HTTPS_SERVER1_STOP
+
+AutoSys Instance: QA8
+Machine: sd-81f4-a5b3.nam.nsroot.net
+Owner/Service Account: gfolybkb
+Schedule: Saturday 21:55
+
+Command uses:
+olympus_jobLauncher.ksh
+
+Cloud Migration:
+Confirm whether AutoSys start/stop jobs are still required.
+If Nucleus/ECS/EKS/GKE manages application lifecycle, AutoSys VM start/stop jobs
+and shell-script operations may be retired/replaced.
+
+
+8. Deployment
+
+Current deployment tool: UDeploy
+
+Cloud Migration:
+Confirm whether UDeploy continues to deploy the application or whether Nucleus
+provides a new container/cloud deployment pipeline.
+
+
+9. Main Questions for Nucleus / Architecture Team
+
+1. What cloud runtime will CRM → Olympus use?
+2. How will Apigee connect to the cloud runtime?
+3. Will VIP/WIP still be required?
+4. Will Kafka move to Confluent/cloud Kafka?
+5. What replaces current Kerberos/GSSAPI Kafka authentication?
+6. How will certificates and secrets be managed?
+7. What replaces AutoSys start/stop jobs and VM shell scripts?
+8. Will UDeploy remain the deployment mechanism?
+9. How will active-active/failover work between environments/regions?
+10. If some countries' data cannot move to public cloud, how will on-prem and
+    cloud traffic/Kafka routing be handled?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 CRM → Olympus API – Nucleus / Cloud Migration Assessment
 
 1. Application Overview
