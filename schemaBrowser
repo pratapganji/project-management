@@ -1,4 +1,717 @@
 
+
+SCHEMA BROWSER NEW GET API – CODE REVIEW EXPLANATION
+
+1. FIRST EXPLAIN WHAT WE ARE DOING
+
+The requirement is to create a new GET API in Schema Browser to retrieve active Field Map configuration records from Oracle.
+
+The query was provided by Mahesh.
+
+The API retrieves:
+
+1. FIELD_MAP_SK
+2. TABLE_PHYSICAL_NAME
+3. FINAL_QUERY
+4. RUN_FREQUENCY
+
+from:
+
+C167969RPC.OM_CATALOGUE_FIELD_MAP_LKP
+
+where:
+
+IS_CURRENT_FLAG = 'Y'
+
+and the records are ordered by:
+
+DWH_CREATED_TIMESTAMP
+
+The API returns the records as JSON.
+
+We are using the existing Schema Browser Oracle datasource and Spring JdbcTemplate. We are not creating a new database connection.
+
+Overall flow:
+
+Client
+   ↓
+FieldMapConfigController
+   ↓
+FieldMapConfigService
+   ↓
+JdbcTemplate
+   ↓
+Oracle Database
+   ↓
+ResultSet
+   ↓
+FieldMapConfigResponse
+   ↓
+JSON Response
+
+
+==================================================
+2. FIRST OPEN: FieldMapConfigController.java
+==================================================
+
+I will start with the controller because this is where the HTTP request enters the application.
+
+package com.citihawk.schemabrowser.controller;
+
+This class is under the existing Schema Browser controller package.
+
+
+IMPORTS:
+
+import com.citihawk.schemabrowser.model.schemabrowser.FieldMapConfigResponse;
+import com.citihawk.schemabrowser.service.FieldMapConfigService;
+
+FieldMapConfigService contains the database retrieval logic.
+
+FieldMapConfigResponse represents the response that will be returned as JSON.
+
+
+@RestController
+
+This tells Spring that this class exposes REST endpoints.
+
+The Java response returned by the controller will be converted into an HTTP response, in our case JSON.
+
+
+@RequestMapping(value = "/citihawk/schemabrowser/fieldmap")
+
+This defines the base URL for the Field Map API.
+
+
+@Tag(
+    name = "FieldMapConfigController",
+    description = "API for Field Map configurations"
+)
+
+This is a Swagger/OpenAPI annotation.
+
+It is used only for API documentation and groups the endpoint under Field Map configuration APIs.
+
+
+private static final Logger LOGGER =
+        LoggerFactory.getLogger(FieldMapConfigController.class);
+
+This logger is used to write execution information into the application logs.
+
+
+@Autowired
+private FieldMapConfigService fieldMapConfigService;
+
+Spring injects the FieldMapConfigService here.
+
+We keep the database logic inside the service instead of putting it directly inside the controller.
+
+This separates the API layer from the business/database layer.
+
+
+@Operation(
+    description = "Get active field map configuration records from Oracle"
+)
+
+This provides the API description in Swagger.
+
+
+@GetMapping(
+    value = "/configurations",
+    produces = "application/json"
+)
+
+This creates a GET API endpoint.
+
+The complete endpoint path becomes:
+
+/citihawk/schemabrowser/fieldmap/configurations
+
+produces = "application/json"
+
+means the response will be JSON.
+
+
+public ResponseEntity<List<FieldMapConfigResponse>>
+       getFieldMapConfigurations()
+
+The database can return multiple records, so the method returns:
+
+List<FieldMapConfigResponse>
+
+ResponseEntity represents the HTTP response.
+
+
+LOGGER.info("Fetching current field map configurations");
+
+This writes a log message whenever the endpoint is called.
+
+
+return ResponseEntity.ok(
+    fieldMapConfigService.getCurrentFieldMapConfigs()
+);
+
+This is the important controller line.
+
+The controller calls:
+
+fieldMapConfigService.getCurrentFieldMapConfigs()
+
+The service retrieves the data.
+
+ResponseEntity.ok() returns that data with HTTP status 200 OK.
+
+
+At this point I will move to FieldMapConfigService because this is where the database work happens.
+
+
+==================================================
+3. SECOND OPEN: FieldMapConfigService.java
+==================================================
+
+@Service
+public class FieldMapConfigService
+
+@Service tells Spring that this class is a service component.
+
+This class contains the database query and ResultSet mapping logic.
+
+
+QUERY:
+
+private static final String FIELD_MAP_QUERY =
+    "SELECT FIELD_MAP_SK, TABLE_PHYSICAL_NAME, FINAL_QUERY, RUN_FREQUENCY "
+  + "FROM C167969RPC.om_catalogue_field_map_lkp "
+  + "WHERE is_current_flag = 'Y' "
+  + "ORDER BY dwh_created_timestamp";
+
+This is the query provided by Mahesh.
+
+We retrieve four fields:
+
+FIELD_MAP_SK
+TABLE_PHYSICAL_NAME
+FINAL_QUERY
+RUN_FREQUENCY
+
+
+FROM C167969RPC.om_catalogue_field_map_lkp
+
+This is the Oracle schema and table we are reading from.
+
+
+WHERE is_current_flag = 'Y'
+
+This ensures that we only retrieve the currently active configuration records.
+
+
+ORDER BY dwh_created_timestamp
+
+This returns the records in a consistent order based on their created timestamp.
+
+
+==================================================
+4. JdbcTemplate
+==================================================
+
+@Autowired
+private JdbcTemplate jdbcTemplate;
+
+We use Spring JdbcTemplate to execute the Oracle SQL query.
+
+JdbcTemplate uses the datasource already configured in Schema Browser.
+
+We do not manually create JDBC connections and we do not put database URLs, usernames or passwords inside the service.
+
+JdbcTemplate also handles the connection lifecycle for us.
+
+
+WHY JdbcTemplate?
+
+For this requirement we already have a direct SQL query and only need to retrieve a defined set of database fields.
+
+JdbcTemplate is a simple way to execute that query and explicitly map each ResultSet row.
+
+It also gives us direct control over the CLOB field FINAL_QUERY.
+
+
+==================================================
+5. MAIN SERVICE METHOD
+==================================================
+
+public List<FieldMapConfigResponse> getCurrentFieldMapConfigs() {
+    return jdbcTemplate.query(
+        FIELD_MAP_QUERY,
+        (ResultSet resultSet, int rowNum) -> mapRow(resultSet)
+    );
+}
+
+When this method is called:
+
+jdbcTemplate.query()
+
+executes FIELD_MAP_QUERY against the configured Oracle datasource.
+
+
+(ResultSet resultSet, int rowNum) -> mapRow(resultSet)
+
+For each row returned by Oracle, JdbcTemplate provides a ResultSet.
+
+We send that ResultSet to the mapRow() method.
+
+The mapRow() method converts one database row into one FieldMapConfigResponse object.
+
+Flow:
+
+Oracle Row
+   ↓
+ResultSet
+   ↓
+mapRow()
+   ↓
+FieldMapConfigResponse
+
+JdbcTemplate collects all those objects and returns:
+
+List<FieldMapConfigResponse>
+
+
+==================================================
+6. mapRow() METHOD
+==================================================
+
+private FieldMapConfigResponse mapRow(ResultSet resultSet)
+        throws SQLException {
+
+This method converts one Oracle result row into one Java response object.
+
+
+FieldMapConfigResponse response =
+        new FieldMapConfigResponse();
+
+First we create an empty FieldMapConfigResponse object.
+
+
+FIELD_MAP_SK:
+
+response.setFieldMapSk(
+    resultSet.getObject("FIELD_MAP_SK", BigDecimal.class)
+);
+
+We read FIELD_MAP_SK from the database ResultSet.
+
+We use BigDecimal because the Oracle field is numeric.
+
+
+TABLE_PHYSICAL_NAME:
+
+response.setTablePhysicalName(
+    resultSet.getString("TABLE_PHYSICAL_NAME")
+);
+
+TABLE_PHYSICAL_NAME is a character field, so we retrieve it using getString().
+
+
+FINAL_QUERY:
+
+try {
+    response.setFinalQuery(readFinalQuery(resultSet));
+} catch (Exception exception) {
+    throw new SQLException(
+        "Unable to read FINAL_QUERY",
+        exception
+    );
+}
+
+FINAL_QUERY can contain a large SQL statement.
+
+It is stored as a CLOB in Oracle.
+
+Instead of assuming it is a normal VARCHAR/String column, we use a separate method called:
+
+readFinalQuery()
+
+to read the complete CLOB value.
+
+If reading FINAL_QUERY fails, we throw an SQLException with a meaningful error message.
+
+
+RUN_FREQUENCY:
+
+response.setRunFrequency(
+    resultSet.getString("RUN_FREQUENCY")
+);
+
+RUN_FREQUENCY is retrieved as a String.
+
+
+return response;
+
+At this point one database row has been completely mapped into one FieldMapConfigResponse object.
+
+
+==================================================
+7. readFinalQuery() METHOD
+==================================================
+
+private String readFinalQuery(ResultSet resultSet)
+        throws Exception {
+
+This helper method converts the Oracle FINAL_QUERY CLOB into a Java String.
+
+
+Clob clob = resultSet.getClob("FINAL_QUERY");
+
+First we try to retrieve FINAL_QUERY as a JDBC CLOB.
+
+
+if (clob == null) {
+    return resultSet.getString("FINAL_QUERY");
+}
+
+If the driver does not return a CLOB value, we fall back to reading FINAL_QUERY as a normal String.
+
+
+StringBuilder value = new StringBuilder();
+
+We use StringBuilder to build the complete query text.
+
+This is useful because FINAL_QUERY can be relatively large.
+
+
+try (Reader reader = clob.getCharacterStream()) {
+
+We open the CLOB as a character stream.
+
+This is try-with-resources, so Java automatically closes the Reader after we finish using it.
+
+
+char[] buffer = new char[4096];
+
+We create a buffer of 4096 characters.
+
+IMPORTANT:
+
+4096 is only the size of each chunk we read.
+
+It is NOT the maximum size of FINAL_QUERY.
+
+
+int charsRead;
+
+This stores how many characters were read in the current iteration.
+
+
+while ((charsRead = reader.read(buffer)) != -1) {
+
+The reader continues reading the CLOB until there is no more data.
+
+-1 means the end of the stream has been reached.
+
+
+value.append(buffer, 0, charsRead);
+
+Each chunk that is read is appended to StringBuilder.
+
+
+return value.toString();
+
+Once the complete CLOB has been read, we convert StringBuilder into a normal Java String.
+
+That String becomes FINAL_QUERY in the API response.
+
+
+At this point I will move to FieldMapConfigResponse because that class defines the JSON response structure.
+
+
+==================================================
+8. THIRD OPEN: FieldMapConfigResponse.java
+==================================================
+
+public class FieldMapConfigResponse
+
+This is the response DTO.
+
+One instance of this class represents one Field Map configuration record returned by the API.
+
+
+FIELD_MAP_SK:
+
+@JsonProperty("FIELD_MAP_SK")
+private BigDecimal fieldMapSk;
+
+The Java variable is:
+
+fieldMapSk
+
+but @JsonProperty makes the JSON field name:
+
+FIELD_MAP_SK
+
+
+TABLE_PHYSICAL_NAME:
+
+@JsonProperty("TABLE_PHYSICAL_NAME")
+private String tablePhysicalName;
+
+The JSON response will contain:
+
+TABLE_PHYSICAL_NAME
+
+
+FINAL_QUERY:
+
+@JsonProperty("FINAL_QUERY")
+private String finalQuery;
+
+Although FINAL_QUERY is stored as a CLOB in Oracle, the service converts it to String before setting it here.
+
+So the API returns FINAL_QUERY as a normal JSON string.
+
+
+RUN_FREQUENCY:
+
+@JsonProperty("RUN_FREQUENCY")
+private String runFrequency;
+
+This maps the run-frequency value into the JSON response.
+
+
+GETTERS AND SETTERS:
+
+Example:
+
+public BigDecimal getFieldMapSk() {
+    return fieldMapSk;
+}
+
+public void setFieldMapSk(BigDecimal fieldMapSk) {
+    this.fieldMapSk = fieldMapSk;
+}
+
+The remaining methods are standard getters and setters.
+
+The service uses the setter methods while mapping the ResultSet.
+
+Jackson uses this response model when creating the JSON response.
+
+There is no need to explain every getter and setter individually in the review.
+
+
+==================================================
+9. FOURTH OPEN: application-dev.properties
+==================================================
+
+Finally, I will show how the database connection is handled.
+
+We are not creating a new Oracle datasource for this API.
+
+Schema Browser already has an existing DEV datasource configuration.
+
+Example:
+
+spring.datasource.url=...
+spring.datasource.username=...
+spring.datasource.password=...
+spring.datasource.driverclass=oracle.jdbc.driver.OracleDriver
+
+Spring uses this configuration to create the datasource.
+
+JdbcTemplate automatically uses this datasource.
+
+That is why there is no JDBC URL, username or password inside FieldMapConfigService.
+
+The new API simply reuses the existing Schema Browser Oracle DEV connection.
+
+Do not expose or read the database password during the review.
+
+
+==================================================
+10. COMPLETE EXECUTION FLOW
+==================================================
+
+Client calls:
+
+GET /citihawk/schemabrowser/fieldmap/configurations
+
+        ↓
+
+FieldMapConfigController
+
+        ↓
+
+getFieldMapConfigurations()
+
+        ↓
+
+FieldMapConfigService
+
+        ↓
+
+getCurrentFieldMapConfigs()
+
+        ↓
+
+JdbcTemplate.query()
+
+        ↓
+
+Existing Schema Browser Oracle datasource
+
+        ↓
+
+C167969RPC.OM_CATALOGUE_FIELD_MAP_LKP
+
+        ↓
+
+Oracle executes:
+
+SELECT FIELD_MAP_SK,
+       TABLE_PHYSICAL_NAME,
+       FINAL_QUERY,
+       RUN_FREQUENCY
+FROM C167969RPC.OM_CATALOGUE_FIELD_MAP_LKP
+WHERE IS_CURRENT_FLAG = 'Y'
+ORDER BY DWH_CREATED_TIMESTAMP
+
+        ↓
+
+ResultSet
+
+        ↓
+
+mapRow()
+
+        ↓
+
+FIELD_MAP_SK → BigDecimal
+TABLE_PHYSICAL_NAME → String
+FINAL_QUERY → CLOB converted to String
+RUN_FREQUENCY → String
+
+        ↓
+
+FieldMapConfigResponse
+
+        ↓
+
+List<FieldMapConfigResponse>
+
+        ↓
+
+ResponseEntity.ok()
+
+        ↓
+
+HTTP 200
+
+        ↓
+
+JSON Response
+
+
+==================================================
+11. FINAL REVIEW SUMMARY
+==================================================
+
+I can finish the review by saying:
+
+"So overall, the controller exposes the new GET endpoint. The controller calls FieldMapConfigService. The service uses Spring JdbcTemplate and the existing Schema Browser Oracle datasource to execute the query provided by Mahesh. Each database row is mapped into FieldMapConfigResponse. FINAL_QUERY is handled separately because it is stored as a CLOB, so we read the complete value through a character stream and convert it to a String. Finally, Spring/Jackson converts the list of response objects into JSON and returns HTTP 200 to the caller."
+
+
+==================================================
+12. IF THEY ASK: WHY JdbcTemplate?
+==================================================
+
+Answer:
+
+"For this requirement we already have a direct SQL query and we are retrieving only a defined set of fields. JdbcTemplate gives us a straightforward way to execute the supplied query using the existing Spring datasource and explicitly map the ResultSet, including the CLOB field."
+
+
+==================================================
+13. IF THEY ASK: WHY SPECIAL HANDLING FOR FINAL_QUERY?
+==================================================
+
+Answer:
+
+"FINAL_QUERY can contain a large SQL statement and is stored as an Oracle CLOB. The helper method reads it through a character stream in chunks so the entire query can be returned without depending on a VARCHAR-size assumption."
+
+
+==================================================
+14. IF THEY ASK: WHY SERVICE CLASS?
+==================================================
+
+Answer:
+
+"We keep the HTTP/controller logic separate from database logic. The controller only handles the REST request and response, while the service handles the database query and mapping."
+
+
+==================================================
+15. IF THEY ASK: WHY @JsonProperty?
+==================================================
+
+Answer:
+
+"The Java variables follow camelCase naming, but the required JSON response needs the database-style field names such as FIELD_MAP_SK and TABLE_PHYSICAL_NAME. @JsonProperty controls those JSON field names."
+
+
+==================================================
+16. ORDER TO OPEN FILES DURING REVIEW
+==================================================
+
+1. Briefly explain the requirement and overall flow.
+
+2. Open:
+   FieldMapConfigController.java
+
+   Explain:
+   - @RestController
+   - base URL
+   - @GetMapping
+   - service injection
+   - endpoint method
+   - ResponseEntity.ok()
+
+3. Then open:
+   FieldMapConfigService.java
+
+   Explain:
+   - @Service
+   - SQL query
+   - JdbcTemplate
+   - getCurrentFieldMapConfigs()
+   - ResultSet
+   - mapRow()
+   - CLOB handling
+   - readFinalQuery()
+
+4. Then open:
+   FieldMapConfigResponse.java
+
+   Explain:
+   - four response fields
+   - @JsonProperty
+   - data types
+   - getters/setters briefly
+
+5. Finally open:
+   application-dev.properties
+
+   Explain:
+   - existing Oracle datasource
+   - JdbcTemplate uses it automatically
+   - no separate DB connection was added
+
+6. Finish by showing/testing the API response and summarize the complete flow.
+
+
+
+
+
+
+
+
+
 1. What is the authentication mechanism for the GET API
 A: right now we are not using any Authentication mechanism in Dev, so we can directly access the API.
 2. Can you share the full response schema / sample JSON payload
