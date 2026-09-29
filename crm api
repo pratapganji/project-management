@@ -1,4 +1,223 @@
 
+
+CRM -> OLYMPUS – NUCLEUS/CLOUD MIGRATION COMPONENT ASSESSMENT
+
+Current flow:
+CRM Consumers
+   -> Apigee / WIP-VIP
+   -> CRM -> Olympus API
+   -> Protobuf/Binary payload processing
+   -> Kafka
+   -> Olympus downstream processing
+
+Current application is hosted on Linux VM servers.
+UDeploy is used for application deployment.
+AutoSys jobs are used for starting/stopping the application.
+
+
+1. APPLICATION RUNTIME / VM SERVER
+
+Current:
+CRM -> Olympus Spring Boot application is running on Linux VM servers.
+
+Cloud consideration:
+- Confirm where the application will run in Nucleus cloud (ECS/EKS/GKE or other platform).
+- Confirm how current VM-specific files/scripts/paths will be migrated.
+- Confirm whether DEV/UAT/PROD will all move to cloud.
+- Current server start/stop dependency should be removed/replaced by cloud-native lifecycle management.
+
+
+2. API / APIGEE / WIP-VIP
+
+Current:
+CRM consumers access CRM -> Olympus APIs through Apigee and WIP/VIP routing.
+
+Cloud consideration:
+- Confirm whether existing Apigee URLs remain unchanged.
+- Confirm how Apigee will connect to the cloud-hosted application.
+- Confirm whether WIP/VIP is still required or cloud load balancer/ingress will replace it.
+- Confirm firewall/private connectivity requirements between Apigee/on-prem and cloud.
+
+
+3. AUTHENTICATION / ENTITLEMENT
+
+Current:
+Consumers use configured authentication/credentials for API access.
+
+Cloud consideration:
+- Confirm whether existing OAuth/client ID/client secret mechanism remains.
+- Confirm whether current consumer entitlements have to be recreated/migrated.
+- Confirm how cloud service identity/IAM will be handled.
+
+
+4. CERTIFICATES / HTTPS
+
+Current:
+Application uses certificates/keystores and WIP/VIP HTTPS configuration.
+
+Cloud consideration:
+- Confirm where TLS termination will happen in cloud.
+- Confirm whether application-level JKS certificates are still required.
+- Confirm cloud certificate creation, renewal and rotation process.
+- Confirm whether WIP/VIP certificates need to be recreated.
+
+
+5. KAFKA
+
+Current:
+CRM -> Olympus publishes protobuf messages to Kafka.
+Current connectivity uses Kafka bootstrap servers and configured authentication/certificates.
+
+Cloud consideration:
+- Confirm target Kafka platform – existing Kafka, Confluent Kafka or other cloud-managed Kafka.
+- Confirm new bootstrap servers/topics.
+- Confirm cloud Kafka authentication mechanism.
+- Confirm whether existing topics remain or need to be recreated.
+- Confirm connectivity if application moves to cloud but Kafka remains on-prem.
+
+
+6. ON-PREM + CLOUD KAFKA / DATA ROUTING
+
+Current:
+CRM data is published through the existing Kafka flow.
+
+Cloud consideration:
+- Some country/region data may not be allowed in public cloud.
+- Confirm how data will be separated between on-prem and cloud.
+- Confirm whether CRM -> Olympus needs connectivity to both on-prem and cloud Kafka.
+- Confirm who owns routing logic for cloud-approved vs on-prem-only data.
+- Confirm CDBC/data residency approval requirements.
+
+
+7. PROTOBUF
+
+Current:
+CRM -> Olympus APIs accept protobuf/binary payloads and publish protobuf messages.
+
+Cloud consideration:
+- Confirm protobuf remains the supported message format in cloud.
+- Confirm existing .proto schemas remain compatible.
+- Confirm whether Schema Registry will be required.
+- Avoid consumer payload/schema changes unless architecture specifically requires them.
+
+
+8. ACTIVE-ACTIVE / FAILOVER
+
+Current:
+Application has active-active/high-availability behavior across current infrastructure.
+
+Cloud consideration:
+- Confirm how active-active will work in the cloud.
+- Confirm whether cloud platform manages failover automatically or application changes are required.
+- Confirm DR/recovery approach between cloud regions/environments.
+
+
+9. UDEPLOY / APPLICATION DEPLOYMENT
+
+Current:
+UDeploy is used to deploy CRM -> Olympus application to the VM servers.
+
+Cloud consideration:
+- Confirm whether UDeploy continues to deploy to the cloud platform.
+- If not, identify replacement deployment mechanism (Harness/cloud CI-CD/container deployment).
+- Confirm container/image build and deployment process.
+- Replace VM-specific deployment paths/scripts where required.
+
+
+10. AUTOSYS – START/STOP JOBS
+
+Current:
+AutoSys jobs are used to start and stop CRM -> Olympus application instances.
+Example:
+167969_OM_CRM_OLYMPUS_API_HTTPS_SERVER1_STOP
+The job currently runs against the VM and invokes the application start/stop scripts.
+
+Cloud consideration:
+- Confirm whether AutoSys is still needed after cloud migration.
+- Cloud/container runtime may automatically manage application lifecycle.
+- If scheduling is still required, confirm replacement such as platform scheduler/Databricks Workflow/Kubernetes CronJob/etc.
+- Remove dependencies on specific VM hostname and server-side script paths.
+
+
+11. APPLICATION CONFIGURATION / SECRETS
+
+Current:
+Environment properties, Kafka details, certificates and other configuration are maintained through server/application configuration.
+
+Cloud consideration:
+- Confirm cloud configuration management approach.
+- Move passwords/secrets out of local server files.
+- Confirm approved secret store/Vault/IAM mechanism.
+- Confirm how DEV/UAT/PROD configuration will be separated.
+
+
+12. NETWORK / CONNECTIVITY
+
+Current:
+Application connects to Apigee/WIP/VIP and Kafka from on-prem servers.
+
+Cloud consideration:
+- Identify all connections crossing from cloud to on-prem.
+- Confirm firewall rules/private links/whitelisting/DNS changes.
+- Confirm required ports.
+- Confirm whether any direct server connectivity remains.
+
+
+13. LOGGING / MONITORING
+
+Current:
+Application logs are stored/monitored using current VM/server-based mechanism.
+
+Cloud consideration:
+- Confirm centralized cloud logging/monitoring solution.
+- Confirm application health checks, API failures and Kafka publish failures are monitored.
+- Confirm alerting and operational support model.
+
+
+14. DATABASE
+
+Current:
+No direct CRM -> Olympus application database dependency is currently identified.
+
+Cloud consideration:
+- Reconfirm that no DB persistence exists.
+- If no database is used, Oracle -> PostgreSQL migration is NOT applicable to this application.
+- Document this as “No DB dependency – confirmation required.”
+
+
+KEY QUESTIONS TO PLATFORM/NUCLEUS TEAM
+
+1. What cloud runtime will host CRM -> Olympus?
+2. Will current Apigee URLs remain unchanged?
+3. What replaces WIP/VIP in cloud?
+4. What Kafka platform will be used – Confluent or existing Kafka?
+5. How will cloud application connect to on-prem Kafka if required?
+6. How will restricted/CDBC data remain on-prem while approved data moves to cloud?
+7. Will protobuf and existing schemas remain unchanged?
+8. How will active-active/failover work?
+9. Will UDeploy remain or be replaced?
+10. Will AutoSys start/stop jobs still be required?
+11. What is the cloud standard for secrets and certificates?
+12. What logging/monitoring solution will be used?
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 CRM → OLYMPUS API – CLOUD MIGRATION ASSESSMENT / OPEN QUESTIONS
 
 Current State:
