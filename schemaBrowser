@@ -1,3 +1,28 @@
+
+1. What is the authentication mechanism for the GET API
+A: right now we are not using any Authentication mechanism in Dev, so we can directly access the API.
+2. Can you share the full response schema / sample JSON payload
+A: I am sharing the sample response in attachement
+3. Does the API return only active/current configurations, or do I need to filter (e.g., is_current_flag = 'Y') on my side
+A: right now I am already using is_current_flag in query to filter the data, so we no need to pass this flag as query Param/uri param. 
+4. What is the pagination behavior - does it return all tables in one response or is it paged
+A: we dont have any pagination behavior for this API, all the results will be in same response payload
+5. Since a single job looping through all tables increases runtime, is the intent to split the workload into multiple job instances by frequency/group - or keep it as one job
+A: In my dev API is returning about 400 records right now, so you can use this in single job to pull the data from API.
+6. If the job fails midway - if the API allows returns the full list - is there an agreed restart/idempotency strategy (e.g., skip tables already loaded successfully today via a status/audit table)
+A: since this is a GET API, you can use re-try mechanism if it is failed to fetch the data. and it maintains the idempotency, if success you will get all the records else you will get error.
+7. The shared endpoint is for all the environments (DEV / UAT / PROD)
+A: this endpoint is deployed in Dev right now, if it is deployed in UAT/PROD endpoint remains same.
+
+
+
+
+
+
+
+
+
+
 Schema Browser – New API Requirement
 
 Requirement:
