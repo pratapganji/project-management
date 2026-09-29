@@ -1,3 +1,133 @@
+Absolutely. I would frame it as a **Requirement Understanding / Analysis and Clarifications** document rather than saying “I compared” informally.
+
+Here is a polished version you can share with your manager/team:
+
+---
+
+# Requirement Understanding & Initial Analysis
+
+## 1. Requirement Understanding
+
+The requirement is to develop a **new API** that will retrieve data from the **CitiFix database** based on a SQL query and use that data to update the **Catalog** through the existing **PUT Catalog API**.
+
+### Proposed flow
+
+```text
+CitiFix DB
+    |
+    | SQL Query
+    v
+New API
+    |
+    | Transform / Map data as required
+    v
+PUT Catalog API
+    |
+    v
+Catalog
+```
+
+The new API will therefore act as an integration layer between **CitiFix DB** and the **Catalog API**.
+
+---
+
+# 2. Analysis Performed
+
+As part of the initial analysis, I reviewed and compared the available information from:
+
+* CitiFix / CitiFix UI
+* MOTrade Message structure
+* Catalog UI
+* Catalog PUT API information
+* CitiFix Excel sheet shared by Mahesh
+
+### Key observation
+
+There appears to be a **data/structure mismatch between CitiFix/MOTrade and Catalog**.
+
+The CitiFix/MOTrade message maintains a hierarchical structure containing:
+
+```text
+Main Tags
+   |
+   +-- Groups
+         |
+         +-- Subgroups
+                |
+                +-- Nested Subgroups
+```
+
+However, the **Catalog UI does not appear to maintain the same hierarchical structure**.
+
+Because of this difference, it is currently not clear how the CitiFix data should be mapped to the fields expected by the Catalog PUT API.
+
+---
+
+# 3. Data Mapping Gap
+
+I also reviewed the CitiFix Excel sheet shared by Mahesh.
+
+At this point, I was **not able to identify a clear one-to-one mapping between the CitiFix data and the data required by the Catalog PUT API**.
+
+In particular, I need to identify:
+
+* Which CitiFix DB fields correspond to the Catalog API fields
+* Which fields are mandatory for the Catalog PUT request
+* Whether any transformation is required before sending the data to Catalog
+* How the CitiFix hierarchical structure should be represented in the Catalog request
+* Whether all CitiFix fields need to be sent or only a subset
+
+---
+
+# 4. Clarifications / Support Required
+
+To proceed with the development of the new API, I need clarification on the following.
+
+### 4.1 CitiFix DB Query
+
+We need to identify the **SQL query against the CitiFix DB** that retrieves the required data.
+
+The expected output of this query should contain the data required to construct the **Catalog PUT API request**.
+
+Ideally, we need to establish:
+
+```text
+CitiFix DB Query Result
+        ↓
+Required Catalog fields
+        ↓
+Catalog PUT API request
+```
+
+### 4.2 Catalog PUT API Data Mapping
+
+I can provide the **Catalog Swagger URL and PUT API details** for reference.
+
+I need help identifying the required Catalog API fields and determining **which CitiFix DB tables/columns should be used to populate those fields**.
+
+The main requirement is to establish a mapping such as:
+
+| Catalog PUT API Field | CitiFix DB Table | CitiFix DB Column | Transformation/Logic |
+| --------------------- | ---------------- | ----------------- | -------------------- |
+| Field 1               | TBD              | TBD               | TBD                  |
+| Field 2               | TBD              | TBD               | TBD                  |
+| Field 3               | TBD              | TBD               | TBD                  |
+
+Once this mapping is confirmed, the new API can execute the CitiFix query, construct the required payload, and invoke the Catalog PUT API.
+
+---
+
+# 5. Main Open Question
+
+The primary dependency/blocker at this stage is:
+
+> **What is the CitiFix DB query and field mapping required to generate a valid payload for the Catalog PUT API?**
+
+Once we have the **Catalog API payload structure** and the corresponding **CitiFix DB tables/columns**, I can proceed with the design and implementation of the new API.
+
+---
+
+
 Requirement Understanding & Initial Analysis
 1. Requirement Understanding
 
