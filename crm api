@@ -1,4 +1,523 @@
 
+NUCLEUS – DATA MIGRATION TO AWS
+
+CSI ID: 173201
+
+Name: Nucleus
+
+Description:
+Nucleus is One Citi Data Strategy to enable industry-leading analytics, client,
+regulatory, surveillance, supervisory, risk & finance reporting and data science
+solutions on public cloud with modernization and simplification of the data ecosystem.
+
+
+============================================================
+1. NUCLEUS ONE CITI DATA STRATEGY
+============================================================
+
+Nucleus is One Citi Data Strategy to enable industry-leading analytics, client,
+regulatory, surveillance, supervisory, risk & finance reporting and data science
+solutions on public cloud with modernization and simplification of the data ecosystem.
+
+Business Lines:
+- Services
+- Markets
+- Banking
+- Wealth
+- USPB
+- Functions (Risk, Finance, HR, Compliance)
+
+Nucleus Cloud Platform:
+
+AWS:
+- Compute: Databricks
+- Storage: Iceberg / Apache Parquet
+
+Google Cloud:
+- Compute: Databricks
+- Storage: Iceberg / Apache Parquet
+
+Architecture is intended to support an Active-Active Environment.
+
+Consumers:
+- Services
+- Markets
+- Banking
+- Wealth
+- USPB
+- Clients and Trading Desks
+- Functions (Risk, Finance, HR, Compliance)
+
+Business Outcomes:
+
+Unified Data Model
+Simplification of data models into common model to reduce copies of data.
+
+Cross Business Synergies
+Cross-business synergies and collaboration with minimized data movement,
+faster response and action in decision making.
+
+Client 360 Insights
+Client insights across products, creating cross-sell opportunities with
+personalized client support.
+
+Enhanced Financial Reporting
+Faster reporting with real-time liquidity analysis, reconciliation,
+corrections, data governance and controls.
+
+Accelerated Risk Management & Compliance
+Firm-wide view of risk for faster exposure analysis with streamlined
+regulatory compliance across businesses.
+
+Native AI
+Platform has AI natively enabled to accelerate automation,
+decisioning and analytics.
+
+Strategy:
+Applications should migrate substantial compute processing and data storage
+to cloud, thereby reducing data copies and minimizing data movement.
+
+Only datasets having cross-border limitations may need to remain
+on-premises/on-prem.
+
+
+============================================================
+2. TRANSFORMATIONAL IMPACT WITH ORGANIZATIONAL SIMPLIFICATION
+============================================================
+
+The target state will deliver a unified data ecosystem in Cloud that will
+minimize internal data movement between applications, thereby eliminating
+the need for intersystem controls and reconciliations.
+
+CURRENT STATE – ON PREM
+
+Producers:
+- Services
+- Markets
+- Banking
+- Wealth
+- USPB
+- Functions
+- External Sources
+
+Authorized Re-distributors:
+- Olympus
+- Vanguard
+- DataHub
+
+Consumers:
+- Finance
+- Risk
+- Compliance
+- External Consumers
+
+Today multiple producers send data through different authorized
+redistribution/data platforms to multiple consumers.
+
+
+TARGET STATE
+
+Producers:
+- Services
+- Markets
+- Banking
+- Wealth
+- USPB
+- Functions
+- External Sources
+
+Cloud / Authorized Re-distribution:
+- Databricks Compute
+- AWS / GCP
+- Unified Data
+
+Consuming Applications:
+- Finance
+- Risk
+- Compliance
+
+Consumers:
+- Business Users
+- Internal On-Prem Applications
+- External Reporting
+
+Target objective:
+Move toward a common Unified Data platform instead of moving/copying the
+same data independently among multiple applications.
+
+"As we migrate, the tools and capabilities on-prem will be available on Cloud."
+
+
+============================================================
+3. WHAT IS DATABRICKS
+============================================================
+
+Databricks is a unified, open analytics vendor platform for building,
+deploying, sharing, and maintaining enterprise-grade data, analytics,
+and AI solutions at scale.
+
+Databricks supports areas including:
+
+- Business Intelligence
+- Data Warehousing
+- AI & Data Science
+- ETL & Real-Time Analytics
+- Data Intelligence Engine
+- Orchestration
+- Open Data Lake
+- Unified Governance
+- Unified Data
+
+
+Collaborative Data Science:
+Use interactive notebooks and managed ML flow to track experiments,
+reproduce runs, and manage the end-to-end machine-learning lifecycle.
+
+Generative AI & LLMs:
+Leverage built-in tools to fine-tune, deploy, and monitor large language
+models on private enterprise data securely.
+
+Workflow Orchestration:
+Automate complex data & AI workflows and integrate seamlessly with CI/CD
+tools for robust software delivery practices.
+
+Unified Data:
+Combines data warehouses and data lakes to store, manage, and govern
+structured and unstructured data in a single platform.
+
+Unified Governance:
+Manage and govern data, analytics, and AI assets with Unity Catalog
+for fine-grained access control and data lineage.
+
+Data Engineering Analytics and BI:
+Build reliable data pipelines with Delta Lake and perform large-scale
+BI and analytics using familiar SQL endpoints.
+
+
+============================================================
+4. COMPONENTS OF DATABRICKS
+============================================================
+
+# | Category | Availability | Databricks Component | Description
+
+1.
+Category: Storage - Bigdata
+Availability: Day1
+Component: Iceberg
+Description:
+Transactional data lake storage (open table format for data lakes).
+
+2.
+Category: Storage - RDBMS
+Availability: Day1
+Component: Lakebase
+Description:
+Fully managed, PostgreSQL-compatible operational database (OLTP)
+integrated directly into the Databricks Data Intelligence Platform.
+
+3.
+Category: Compute
+Availability: Day1
+Component: Databricks Compute
+Description:
+Scalable clusters for data engineering, analytics, and AI workloads.
+
+4.
+Category: Compute
+Availability: Day1
+Component: Databricks Data Engineering Jobs & Runs
+Description:
+Managed job execution for ETL pipelines and scheduled workloads.
+
+5.
+Category: Security & Governance
+Availability: Day1
+Component: Unity Catalog (with federation)
+Description:
+Centralized governance with cross-platform identity and metadata federation.
+
+6.
+Category: Security & Governance
+Availability: Day1
+Component: RBAC/ABAC Authentication
+Description:
+Role- and attribute-based access controls for fine-grained security.
+
+7.
+Category: SQL Analytics
+Availability: Day1
+Component: Databricks SQL
+Description:
+SQL warehouse for analytics and BI queries.
+
+8.
+Category: SQL Analytics
+Availability: Day1
+Component: SQL Editor
+Description:
+Browser-based SQL workspace for querying, visualization, and collaboration.
+
+9.
+Category: SQL Analytics
+Availability: Day1
+Component: Query History
+Description:
+Centralized tracking of past queries for auditing and optimization.
+
+10.
+Category: BI
+Availability: Day1
+Component: Databricks Dashboards
+Description:
+Interactive dashboarding and visualization on top of Lakehouse data.
+
+11.
+Category: Infrastructure Monitoring
+Availability: Day1
+Component: Lakehouse Monitoring
+Description:
+Observability for data pipelines, tables, and quality metrics.
+
+12.
+Category: Infrastructure Monitoring
+Availability: Day1
+Component: Alerts
+Description:
+Threshold-based notifications for jobs, queries, and resource metrics.
+
+13.
+Category: AI & Machine Learning
+Availability: Day1
+Component: Databricks Mosaic AI/ML
+Description:
+Managed model training, deployment, and lifecycle tracking.
+
+14.
+Category: AI & Machine Learning
+Availability: Day1
+Component: Genie
+Description:
+AI conversational interface for code generation, SQL, and debugging.
+
+15.
+Category: Job Scheduling
+Availability: Day1
+Component: Databricks Workflows
+Description:
+Pipeline orchestration with tasks, dependencies, and cross-step execution.
+
+16.
+Category: Job Scheduling
+Availability: Day1
+Component: Databricks Scheduler
+Description:
+Simple built-in schedule for recurring job runs.
+
+17.
+Category: Data Marketplace
+Availability: Day2
+Component: Databricks Marketplace
+Description:
+Curated exchange of datasets, models, and analytics assets.
+
+18.
+Category: Advanced Dashboards/Analytics
+Availability: Day2
+Component: Databricks Apps
+Description:
+Interactive, app-like analytics experiences built on the Lakehouse.
+
+
+============================================================
+5. DESIGN WITHOUT DATABRICKS
+============================================================
+
+CITI ON-PREM
+
+Sources:
+- Files
+- Kafka / Streams
+
+These send data to:
+
+Gateway
+
+The Gateway controls movement of the data from Citi on-prem into the
+cloud environment.
+
+
+PAAS OU / CITI AWS/GCP
+
+Cloud storage:
+- S3 Storage
+- S3 Bucket
+- Iceberg
+
+Other capabilities:
+- External sharing via S3 Access Points
+- Snowflake Warehouse & Sharing
+
+
+AWS/GCP COMPONENTS WITHOUT DATABRICKS
+
+Compute:
+- EKS/GKE Compute
+- Spark on EKS/GKE
+
+Metadata / Catalog:
+- Glue Catalog
+- Dataproc Metastore
+
+SQL:
+- Starburst SQL
+
+Workflow / Scheduling:
+- Managed Airflow
+
+BI / Visualization:
+- Tableau
+
+Messaging:
+- SNS / Pub Sub
+
+
+FLOW / STEPS
+
+1. Data flows from Files/Kafka to Gateway server.
+
+2. Gateway server controls uploads to S3 bucket on Cloud.
+
+3. Spark jobs utilize Glue Catalog-registered data for Compute.
+
+4. Cloud applications consume data utilizing multiple services.
+
+5. On-prem applications, with whitelisting, can connect to various
+   services through private link.
+
+6. External managed S3 data can be accessed by cloud applications
+   through AWS APIs.
+
+7. On-prem applications can access external managed S3 data through
+   the Gateway server.
+
+8. Snowflake Warehouse and sharing can be provided through AWS service
+   using zero-copy sharing.
+
+9. External data sharing can be provided through S3 Access Points for
+   Citi clients and partners.
+
+
+============================================================
+6. NUCLEUS CONSUMER ENABLEMENT ACROSS BUSINESS
+============================================================
+
+Nucleus will enable internal and external consumers with high data
+and process maturity.
+
+Major Consumer Groups:
+
+BUSINESS
+Markets, Services, Banking, USCC/USPB, Wealth
+
+Use cases include:
+- Trading analytics, controls, and quant research
+- Market/trade signals for event notification
+- Spend analysis and RoTCE datamarts for business decision making
+- Equities client reports
+- Client Analytics
+- Positions, Contracts & Risk
+- GSIB score review for capital buffer
+- Marketing analytics / behavior insights
+- Campaign management
+- Wealth advisor insights
+- Hub and banker scorecards
+
+
+EXTERNAL CONSUMERS
+Institutional and non-institutional clients
+
+Use cases include:
+- External Client / Partner reporting
+- Client recaps
+- Performance benchmarks
+- Regulatory Transaction Reporting
+- Transaction reporting for multiple regulatory jurisdictions
+  such as MiFID, Volcker and EMIR
+- Costs specific to order flow
+
+
+RISK
+Risk Managers including Credit/Market Risk, XVA, Enterprise Risk Analytics,
+Global Market Risk
+
+Use cases include:
+- Risk Oversight support for 14Q, PMAC, FDIC metrics, etc.
+- Data sourcing & derivations for Risk reports
+- Risk Metrics
+- Credit, Market and Liquidity Risk data access
+- PFE calculations
+- Trade sourcing for Risk & Capital Calculations
+- Loss mitigation
+- Loss forecasting
+
+
+FINANCE
+Liquidity Operations, Product Controllers,
+Valuation Control Group (VCG)
+
+Use cases include:
+- BCBS 239 Finance and Liquidity reports data preparation
+- Basel / RWA data inputs
+- CCAR
+- Capital Monitoring
+- Collateral reporting
+- PPNR & IRRBB data processing
+- Funding Treatment Calculation for Wholesale Loans
+- Resolution Plan Financial Forecasting
+- OCC movement-of-money reporting
+
+
+COMPLIANCE & SUPERVISORY
+Surveillance, AML, Second Line of Defense, Supervisory users
+
+Use cases include:
+- Compliance Risk appetite monitoring inputs
+- Enterprise AML processing inputs
+- Second Line of Defense trade surveillance
+- Ref-W reporting input
+- Reg-Z compliance monitoring
+
+
+REGULATORY REPORTING
+
+Transactional regulatory reporting to external jurisdictions.
+
+The diagram mentions approximately:
+- 271 transactional regulatory reports
+- Across 65 regulations
+
+Examples include:
+- CFTC
+- SEC
+- EMIR
+- ASIC
+- CAT
+- Volcker
+- MAS
+- HKMA
+
+
+
+
+
+
+
+
+
+
+
+
+
 CRM → OLYMPUS – NUCLEUS / CLOUD MIGRATION ASSESSMENT
 
 Application:
