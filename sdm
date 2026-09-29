@@ -1,5 +1,106 @@
 
 
+I need to prepare a cloud/Nucleus migration assessment document for the SDM File Export application, similar to the CRM -> Olympus migration document we prepared.
+
+Please use ALL information already available in this SDM File Export chat from the beginning. Do not ask me to repeat information that is already present in the conversation.
+
+I do NOT need a lengthy architecture document. I need a short, practical, Confluence/Word-ready document that explains the application component by component.
+
+Please include:
+
+1. Application overview
+- Application name
+- What SDM File Export does
+- Main flows/functions
+- Current technology/framework if known
+- Current hosting/runtime model
+
+2. Current environments and infrastructure
+- DEV/UAT/COB/PROD or whatever environments are known
+- Current servers/hosts
+- Application/service account
+- Current filesystem paths
+- Log paths
+- Config paths
+- Any NAS/shared-storage paths
+- Any server-specific dependencies
+
+3. APIs/endpoints
+Include all known SDM APIs, such as:
+- /exportSundry
+- /exportSourceSystem
+- /exportSourceSystemCoverage
+- /exportSourceSystemAdhocLatestFetch
+- /exportSourceSystemCoverageAdhocLatestFetch
+
+Explain briefly what each flow does.
+
+4. Database dependencies
+Include known Oracle/database dependencies and tables:
+- OM_CATALOGUE_SUNDRY
+- OM_CATALOGUE_SOURCE_SYSTEM
+- OM_CATALOGUE_SOURCE_SYSTEM_COVERAGE
+- OM_CATALOGUE_SDM_LOG
+and any other tables/config already identified in this chat.
+
+Mention how the application reads data, creates CSV/ZIP/.csv.ready files, and records success/failure.
+
+5. Batch/Scheduler/Autosys
+Include every known AutoSys/batch/cron job from this chat:
+- Job name
+- Purpose
+- Environment/server if known
+- Schedule if known
+- What it triggers
+Do not leave AutoSys information out.
+
+6. Deployment
+Mention the current deployment mechanism/tool (UDeploy/Jenkins/other, based on this chat), deployment scripts, application startup/shutdown mechanism, and anything tied to current VMs.
+
+7. External dependencies
+Include:
+- NGC/Vault/password retrieval
+- Database connectivity
+- Email notifications
+- downstream/shared-file consumers
+- certificates
+- VIP/WIP/Apigee/load balancer if applicable
+- network/firewall/ports if known
+
+8. Cloud/Nucleus migration – component-by-component questions
+For each current component, give only 1–3 short points describing what needs to be confirmed or changed in cloud.
+
+Examples:
+- Runtime/hosting: where will the application run in Nucleus/AWS?
+- Oracle: will Oracle remain or move to PostgreSQL/Lakebase?
+- File generation/storage: where will generated ZIP/CSV/.ready files live in cloud? S3?
+- Scheduler: what replaces AutoSys/cron?
+- Deployment: what replaces/continues UDeploy?
+- Secrets: how will NGC/Vault/passwords be handled?
+- Server filesystem paths: what replaces them?
+- Email/notification connectivity
+- Network/firewall/private connectivity
+- Monitoring/logging
+- Active-active/failover if applicable
+
+9. Main questions for Nucleus/Architecture team
+Create a short numbered list, similar to the CRM document.
+
+10. Give me a FINAL SHORT DOCUMENT only.
+Do not give generic cloud theory.
+Do not invent values.
+For anything not confirmed from this chat, mark it as "TBD / Confirm with Platform Team".
+
+The document should be short enough to review with Rajat in a meeting, but detailed enough to show the actual SDM application, jobs, DB tables, paths, APIs, deployment and dependencies.
+
+
+
+
+
+
+
+
+
 Use this slightly cleaner version:
 
 Hi Mukund,
