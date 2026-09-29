@@ -1,5 +1,275 @@
 
 
+CRM → Olympus API – Nucleus / Cloud Migration Assessment
+
+1. Application Overview
+
+Application: CRM → Olympus API
+App/CSI ID: 160970
+Repository: 160970.crm-olympus.crm-olympus-api
+Technology: Spring Boot / Java
+Current Hosting: Linux VM/server
+Deployment Tool: UDeploy
+
+Purpose:
+CRM → Olympus is a pass-through integration application. CRM consumers call
+the application through Apigee. The application receives protobuf/binary CRM
+payloads and publishes them to Kafka for downstream Olympus processing.
+
+Supported Flows:
+- Client Meeting
+- Client Action Item
+- Call Report
+- Productivity Metrics
+
+
+2. Current Flow
+
+CRM Consumer
+    ↓
+Apigee
+    ↓
+CRM → Olympus API running on VM
+    ↓
+Protobuf validation/parsing
+    ↓
+Kafka
+    ↓
+Olympus downstream processing
+
+
+3. Component-by-Component Cloud Assessment
+
+Component: Application Runtime
+Current:
+- Spring Boot Java application
+- Runs as a JAR on Linux VM/server
+- Java 17+ required; current server also has Java 21
+
+Cloud Consideration:
+- Confirm target Nucleus runtime: ECS/EKS/GKE or other managed platform
+- Containerize application if required
+- Remove dependency on VM-specific runtime/startup paths
+
+
+Component: APIs / Apigee
+Current:
+- Consumers access CRM → Olympus through Apigee
+- Publish and protobuf-template APIs are exposed through Apigee
+
+Cloud Consideration:
+- Keep existing consumer-facing URLs/contracts where possible
+- Update Apigee backend target to cloud runtime
+- Confirm Apigee → cloud network/private connectivity
+- Confirm authentication, TLS and certificate handling
+
+
+Component: Protobuf
+Current:
+- Publish APIs accept protobuf/binary payloads
+- Existing .proto contracts are used by all four CRM flows
+
+Cloud Consideration:
+- Preserve protobuf compatibility
+- No consumer payload change should be required only because of cloud migration
+- Validate serializer/deserializer compatibility with target Kafka platform
+
+
+Component: Kafka
+Current:
+Application uses environment configuration for:
+- Bootstrap servers
+- Schema Registry
+- Kafka truststore
+- Kafka login config
+- Kerberos config
+- Kafka topics
+
+Topics include:
+- Call Report
+- Action Item
+- Client Meeting
+- Productivity Metrics
+
+Current security:
+- SASL_SSL
+- GSSAPI/Kerberos
+- Kafka truststore/certificates
+
+Cloud Consideration:
+- Confirm whether target is Confluent Kafka or another cloud Kafka service
+- Confirm new bootstrap servers/topics
+- Confirm cloud authentication mechanism
+- Determine whether Kerberos/SASL remains or is replaced
+- Define connectivity if Kafka/on-prem and cloud coexist
+
+
+Component: Certificates / Secrets
+Current:
+- HTTPS keystore and Kafka truststore are server/filesystem based
+- Environment properties and security configuration are loaded from VM paths
+
+Cloud Consideration:
+- Move certificates/secrets to Nucleus-approved secret/certificate management
+- Remove dependency on server-local JKS/config paths
+- Define certificate rotation and ownership
+
+
+Component: Configuration
+Current:
+Environment-specific crm-olympus-application.properties is loaded from the server.
+
+Cloud Consideration:
+Move configuration to approved cloud mechanism such as:
+- Environment variables
+- Config maps
+- Secret store
+
+Separate normal configuration from credentials/secrets.
+
+
+Component: Start / Stop / Operations
+Current:
+Application uses start_app.sh / stop_app.sh and related shell scripts.
+
+AutoSys jobs are used to start/stop application instances.
+Example:
+167969_OM_CRM_OLYMPUS_API_HTTPS_SERVER1_STOP
+
+Cloud Consideration:
+- Confirm whether AutoSys start/stop jobs are still required
+- Prefer cloud/container lifecycle management where supported
+- Determine replacement for server shell-script based operations
+
+
+Component: Deployment
+Current:
+UDeploy deploys application/configuration to VM servers.
+
+Cloud Consideration:
+- Confirm whether UDeploy will continue for Nucleus
+- If not, identify target cloud CI/CD deployment mechanism
+- Define DEV/UAT/PROD deployment process
+
+
+Component: Database
+Current:
+No direct application JDBC/database persistence dependency has been identified.
+
+Cloud Consideration:
+Reconfirm during detailed runtime/config inventory.
+No Oracle → PostgreSQL migration is currently identified for this application.
+
+
+Component: Service Account / Entitlements
+Current:
+Application/server service account and Kafka/application entitlements are environment dependent.
+
+Cloud Consideration:
+- Capture DEV/UAT/PROD service accounts
+- Map them to cloud workload identity/IAM
+- Recreate Kafka/Apigee/deployment entitlements as required
+
+
+Component: Logging / Monitoring
+Current:
+Application logs are maintained on VM/server filesystem.
+
+Cloud Consideration:
+Move to cloud-standard centralized:
+- Logging
+- Monitoring
+- Alerts
+- Health/readiness/liveness checks
+
+
+Component: High Availability
+Current:
+Application runs across server instances and existing routing/failover mechanism.
+
+Cloud Consideration:
+Confirm:
+- Active-active cloud architecture
+- Load balancing
+- Failover behavior
+- Container restart/scaling ownership
+
+
+Component: Data Residency / CDBC
+Current:
+CRM → Olympus does not persist business data, but CRM payloads pass through
+the application and are published to Kafka.
+
+Cloud Consideration:
+- Confirm whether all CRM data is approved for public-cloud processing
+- Identify countries/regions requiring data to remain on-prem
+- Determine whether hybrid cloud/on-prem Kafka routing is required
+- Define routing for restricted vs cloud-approved data
+
+
+4. Environment Inventory
+
+The following needs to be captured separately for DEV, UAT and PROD:
+
+- VM/server hostname(s)
+- Service account
+- Apigee route
+- VIP/WIP
+- AutoSys jobs
+- UDeploy configuration
+- Kafka bootstrap servers/topics
+- Certificates/truststores
+- Config/property paths
+- Network/firewall dependencies
+
+
+5. Key Decisions Required from Nucleus / Platform Team
+
+1. Target runtime – ECS/EKS/GKE/other?
+2. Will UDeploy remain the deployment mechanism?
+3. Will AutoSys start/stop jobs still be required?
+4. What replaces VM shell-script lifecycle management?
+5. How will Apigee route to the cloud application?
+6. Will existing VIP/WIP configuration continue?
+7. How will TLS certificates and secrets be managed?
+8. What is the target Kafka platform?
+9. What Kafka authentication mechanism will be used?
+10. How will active-active/failover work in cloud?
+11. How will restricted-country/CDBC data be handled?
+12. Will any CRM traffic/Kafka processing remain on-prem?
+
+
+6. Next Step
+
+Complete environment-specific DEV/UAT/PROD inventory and review the above
+open decisions with the Nucleus/platform architecture team before defining
+the detailed migration plan.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 CRM -> OLYMPUS – NUCLEUS/CLOUD MIGRATION COMPONENT ASSESSMENT
 
 Current flow:
