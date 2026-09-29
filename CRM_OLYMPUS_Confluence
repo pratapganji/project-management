@@ -1,3 +1,31 @@
+what Rajath spoke in call to analyse below points.
+right now we are sending data in protobuf format will it impact in cloud?
+if the kafka topic is on -cloud 
+data procepective.
+some portion goes on to the cloud
+entitlement
+API level
+Connection to Kaka
+how kafka works in cloud are we going with Confluent Kafka if not how to manage the connection between in prem or kafka
+crm to olympus
+when is brain stroming session, is it today 7:30 to 8:30
+jdbc API is sufficient to consume the data?
+certificate for server
+
+
+
+
+
+these points are needed for CRM API migration to cloud.
+--> API level, Authentication and security how to manage for cloud api? using OAuth and APIGEE ? how to implement certificates in cloud for these API's
+--> how kafka works in cloud are we going with Confluent Kafka if not how to manage the connection between in prem or kafka (if only some portion goes to cloud how to manage the other partion?) 
+--> right now we are sending data in protobuf format will it impact in cloud?
+
+
+
+
+
+
 📄 Confluence Page: CRM to Olympus – HTTP to HTTPS Migration Guide
 
 ⸻
