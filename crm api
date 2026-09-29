@@ -1,4 +1,850 @@
 
+CRM → OLYMPUS – NUCLEUS / CLOUD MIGRATION ASSESSMENT
+
+Application:
+CRM → Olympus API
+
+============================================================
+1. CURRENT STATE / APPLICATION OVERVIEW
+============================================================
+
+CRM → Olympus is currently hosted on Linux VM/server infrastructure.
+
+The application is a Spring Boot / Java application and acts primarily as an integration/pass-through service between CRM consumer applications and Olympus.
+
+Current high-level flow:
+
+CRM Consumer Applications
+        |
+        v
+      Apigee
+        |
+        v
+CRM → Olympus Application
+(Spring Boot / Java on VM)
+        |
+        | Protobuf/Binary messages
+        v
+      Kafka
+        |
+        v
+Olympus / downstream processing
+
+The application currently supports CRM data flows including:
+
+1. Client Meeting
+2. Client Action Item
+3. Call Report
+4. Productivity Metrics
+
+Consumers call the CRM → Olympus APIs through Apigee.
+
+The application accepts the CRM payload, converts/processes it according to the protobuf contract, and publishes protobuf/binary messages to Kafka for downstream Olympus processing.
+
+The application also exposes protobuf-template APIs used by consumers to obtain the appropriate protobuf structure/template.
+
+Known CRM consumer teams include:
+- GSG CRM
+- TTS CRM
+- CCB CRM
+- Markets CRM
+- FX CRM
+- BCMA CRM
+
+The application does not currently appear to maintain/persist business data in its own database. It primarily receives, processes and publishes the data.
+
+Direct Oracle/database dependency:
+No direct application database dependency identified currently.
+This must be reconfirmed during the cloud assessment.
+
+Therefore, Oracle → PostgreSQL migration currently appears to be N/A for CRM → Olympus unless another dependency is identified.
+
+============================================================
+2. CURRENT INFRASTRUCTURE / SERVER DEPENDENCIES
+============================================================
+
+The application currently depends on VM/server infrastructure for:
+
+- Java runtime
+- Application process execution
+- Application installation directories
+- Application configuration files
+- Start/stop scripts
+- Log directories
+- Certificates/JKS files
+- Kafka certificates/configuration
+- Environment-specific properties
+- Service/application account
+- Network connectivity
+- WIP/VIP connectivity
+- Deployment automation
+- Operational monitoring/troubleshooting
+
+Current deployment contains server/file-system based paths such as:
+
+/data/.../CRM_Olympus_New/current/install
+/data/.../CRM_Olympus_New/logs
+
+These server-local dependencies need to be reviewed because the same server paths may not exist in the Nucleus/cloud/container environment.
+
+============================================================
+3. AUTOSYS / OPERATIONAL JOBS
+============================================================
+
+CRM → Olympus currently has operational automation/jobs associated with application start/stop or application operational activities.
+
+Current AutoSys/job details must be inventoried per environment:
+
+- AutoSys job name
+- DEV/UAT/PROD
+- Job purpose
+- Schedule
+- Host/server where it currently executes
+- Service account used
+- Script executed
+- Dependencies/predecessor jobs
+- Failure/retry configuration
+
+For CRM → Olympus, the important use case identified is application start/stop/restart processing.
+
+Current application startup ultimately executes the application start script, for example:
+
+start_app.sh
+
+Cloud requirement:
+
+Determine whether the existing AutoSys start/stop jobs will still be required after migration.
+
+If Nucleus/cloud runtime automatically manages:
+- container startup
+- restart
+- health checks
+- scaling
+- recovery
+
+then the existing server-based AutoSys start/stop jobs may no longer be required.
+
+If scheduled jobs are still required, determine the approved cloud replacement, such as:
+
+- Cloud scheduler
+- Kubernetes CronJob
+- ECS scheduled task
+- Databricks Workflow/Scheduler
+- Enterprise scheduler integration
+- Other Nucleus-supported scheduling mechanism
+
+Do not migrate AutoSys jobs automatically without confirming whether their functionality is already provided by the target cloud runtime.
+
+============================================================
+4. MAIN CLOUD MIGRATION REQUIREMENT
+============================================================
+
+CRM → Olympus currently runs on VM/server infrastructure.
+
+The requirement is to assess what changes are required to move CRM → Olympus from the existing VM/on-prem infrastructure to the approved Nucleus/public-cloud architecture while maintaining all existing application functionality.
+
+The cloud migration must preserve:
+
+- Existing CRM consumer connectivity
+- Existing APIs
+- Client Meeting flow
+- Client Action Item flow
+- Call Report flow
+- Productivity Metrics flow
+- Protobuf contracts
+- Kafka message publishing
+- Required security/authentication
+- High availability
+- Active-active capability where required
+- Environment separation
+- Logging/monitoring
+- Operational support
+- Data residency/regulatory controls
+
+Target hosting technology is not yet fully confirmed.
+
+Possible target technologies discussed include:
+- AWS
+- GCP
+- ECS
+- EKS/GKE
+- Nucleus cloud platform
+
+Therefore, these should currently be documented as assumptions/questions rather than confirmed design decisions.
+
+============================================================
+5. APPLICATION HOSTING REQUIREMENT
+============================================================
+
+Current:
+CRM → Olympus runs as a Java/Spring Boot application on Linux VM servers.
+
+Requirement:
+
+Confirm the target Nucleus runtime for the CRM → Olympus application.
+
+Questions:
+
+1. Will CRM → Olympus run on ECS?
+2. Will it run on EKS/Kubernetes?
+3. Will another Nucleus-managed application platform be used?
+4. Does the application need to be containerized?
+5. What base Java image/runtime should be used?
+6. Who will maintain Java/runtime patching?
+7. How will application scaling be handled?
+8. How will application health checks be handled?
+9. How will application restart/recovery be handled?
+10. Is application code modification required or mainly deployment/configuration modification?
+
+============================================================
+6. APIGEE / REST API REQUIREMENT
+============================================================
+
+Current:
+CRM consumers reach CRM → Olympus through Apigee.
+
+Requirement:
+
+Existing consumer/API functionality must continue after CRM → Olympus moves to cloud.
+
+Questions:
+
+1. Will existing Apigee URLs remain unchanged?
+2. Will only the Apigee backend/target server change?
+3. How will Apigee reach the cloud-hosted CRM Olympus application?
+4. Will new DNS/target URLs be created?
+5. Will existing client ID/client secret authentication remain unchanged?
+6. Will any consumer-side changes be required?
+7. Will firewall/private connectivity between Apigee and Nucleus be required?
+
+Preferred target outcome:
+
+Consumer-facing API contract should remain unchanged wherever possible so CRM consumers do not need application changes.
+
+============================================================
+7. WIP / VIP / LOAD BALANCER REQUIREMENT
+============================================================
+
+Current:
+CRM → Olympus currently uses enterprise WIP/VIP/load-balancer routing.
+
+Requirement:
+
+Determine what replaces or integrates with the existing WIP/VIP architecture when the application moves to cloud.
+
+Questions:
+
+1. Will WIP/VIP remain in front of the application?
+2. Will cloud load balancer/ingress replace WIP/VIP?
+3. Will Apigee directly route to a cloud load balancer?
+4. What internal DNS will be used?
+5. How will active-active routing be handled?
+6. Will separate endpoints exist for AWS/GCP or regions?
+
+============================================================
+8. CERTIFICATE / TLS REQUIREMENT
+============================================================
+
+Current:
+VM deployment contains certificate/JKS-based configuration and HTTPS handling.
+
+Requirement:
+
+Determine the Nucleus/cloud certificate-management model.
+
+Questions:
+
+1. Will application-level JKS certificates still be required?
+2. Will TLS terminate at:
+   - Apigee
+   - WIP/VIP
+   - Cloud load balancer
+   - Kubernetes ingress
+   - Application itself?
+3. Will certificates be automatically provisioned/renewed by the platform?
+4. Where will Kafka certificates be maintained?
+5. Will existing certificate-generation/deployment process be retired?
+
+If cloud ingress/load balancer handles TLS, application-level certificate management may be reduced or removed.
+
+============================================================
+9. KAFKA REQUIREMENT
+============================================================
+
+Current:
+
+CRM → Olympus publishes protobuf/binary messages to Kafka.
+
+Current Kafka configuration includes items such as:
+- Bootstrap servers
+- Authentication/security configuration
+- Credentials
+- Certificates
+- Topics
+- Environment-specific configuration
+
+Requirement:
+
+Confirm the target Kafka platform for Nucleus.
+
+One possibility discussed is migration to Confluent Kafka; this must be confirmed by the platform team.
+
+Questions:
+
+1. Is existing Kafka being replaced by Confluent Kafka?
+2. What are the cloud Kafka bootstrap servers?
+3. Will existing topic names remain?
+4. Who creates/provisions the cloud topics?
+5. What authentication mechanism will be used?
+6. Will username/password remain?
+7. Will certificates remain?
+8. Will OAuth/IAM/workload identity be introduced?
+9. What ports are required?
+10. What firewall/private connectivity is required?
+11. Will a Schema Registry be used?
+12. Will existing protobuf contracts remain unchanged?
+
+============================================================
+10. ACTIVE-ACTIVE / HIGH AVAILABILITY REQUIREMENT
+============================================================
+
+Current architecture supports resilient/active-active behavior across environments/locations.
+
+Requirement:
+
+Understand how active-active functionality will work after cloud migration.
+
+Questions:
+
+1. Will Nucleus/platform automatically provide active-active?
+2. Will CRM → Olympus need to publish to multiple Kafka locations?
+3. Will Kafka replication be handled by Confluent/platform?
+4. Will the application still need primary/secondary connectivity?
+5. Will AWS and GCP both be used?
+6. If one cloud/region fails, how will traffic fail over?
+7. Does Apigee perform failover?
+8. Does WIP/VIP/cloud load balancer perform failover?
+9. Does Kafka perform topic replication automatically?
+
+Avoid reproducing existing application-level active-active logic if the cloud/platform provides it natively.
+
+============================================================
+11. DATA RESIDENCY / CDBC REQUIREMENT
+============================================================
+
+A major migration concern is data residency.
+
+Some country/region data may not be approved for storage or processing in public cloud.
+
+Requirement:
+
+Determine which CRM data is authorized to move to Nucleus/public cloud.
+
+Questions:
+
+1. Which countries/data classifications have public-cloud approval?
+2. Which data must remain on-prem?
+3. Is CDBC/other regulatory approval required?
+4. Who provides the approval/decision?
+5. How will restricted records be identified?
+6. Will restricted data continue through existing on-prem Kafka?
+7. Will approved data go to cloud Kafka?
+8. Who performs routing based on data residency?
+
+Possible hybrid state:
+
+                         +--> Cloud Kafka / Nucleus
+CRM → Olympus ----------|
+                         +--> On-Prem Kafka / Olympus
+                              for restricted data
+
+This is currently a design question, not a confirmed architecture.
+
+============================================================
+12. HYBRID ON-PREM + CLOUD CONNECTIVITY
+============================================================
+
+If some Olympus/Kafka components remain on-prem while CRM → Olympus moves to cloud, hybrid connectivity will be required.
+
+Questions:
+
+1. How will cloud CRM Olympus connect to on-prem Kafka?
+2. Private Link?
+3. Gateway?
+4. Dedicated network connection?
+5. Firewall rules?
+6. DNS changes?
+7. Certificate/authentication changes?
+8. What latency requirements exist?
+9. Is cross-cloud/on-prem traffic allowed for the data classification?
+
+============================================================
+13. PROTOBUF REQUIREMENT
+============================================================
+
+Current:
+
+CRM → Olympus uses protobuf/binary payloads.
+
+Requirement:
+
+Existing protobuf functionality must be retained unless the target architecture explicitly replaces it.
+
+Validate:
+
+- Client Meeting protobuf
+- Action Item protobuf
+- Call Report protobuf
+- Productivity Metrics protobuf
+- Existing enum definitions
+- Existing message contracts
+- Consumer compatibility
+
+Questions:
+
+1. Will protobuf remain the message format?
+2. Will existing .proto definitions remain unchanged?
+3. Will cloud Kafka/Confluent use Schema Registry?
+4. Who owns protobuf schema versioning?
+5. How will backward compatibility be maintained?
+
+============================================================
+14. ENTITLEMENTS / IDENTITY / SERVICE ACCOUNT
+============================================================
+
+Current:
+
+The application uses existing server/application accounts and associated permissions.
+
+Requirement:
+
+Identify the equivalent cloud identity.
+
+Questions:
+
+1. Will the existing service account remain?
+2. Will it be replaced by:
+   - IAM role
+   - Workload identity
+   - Service principal
+   - Cloud service account?
+3. How will the application authenticate to Kafka?
+4. How will it retrieve secrets?
+5. What Apigee entitlements are required?
+6. What cloud IAM permissions are required?
+7. Are separate identities required for DEV/UAT/PROD?
+
+Capture existing service account and entitlement details for every environment before migration.
+
+============================================================
+15. SECRETS / PASSWORD MANAGEMENT
+============================================================
+
+Current:
+
+Application/Kafka credentials and security information are configuration driven.
+
+Requirement:
+
+Credentials should not depend on individual VM/server files after cloud migration.
+
+Questions:
+
+1. What is the approved Nucleus secret-management solution?
+2. AWS Secrets Manager?
+3. Vault?
+4. Kubernetes Secrets?
+5. Other enterprise secret store?
+6. How are secrets rotated?
+7. How does the application retrieve secrets at runtime?
+8. Are current encrypted properties/Jasypt configurations still required?
+
+============================================================
+16. APPLICATION CONFIGURATION
+============================================================
+
+Current:
+
+Environment-specific application configuration is deployed with/on the server.
+
+Requirement:
+
+Determine cloud configuration management approach.
+
+Review all current application properties and classify them into:
+
+- General configuration
+- Environment configuration
+- Secrets
+- Kafka configuration
+- Certificate configuration
+- API configuration
+- Network configuration
+
+Determine whether they should move to:
+
+- Container environment variables
+- ConfigMaps
+- Secret store
+- Cloud configuration service
+- Mounted configuration
+- Other Nucleus-managed configuration
+
+============================================================
+17. FILE SYSTEM / STORAGE
+============================================================
+
+Current:
+
+Application uses server directories for installation/configuration/logging.
+
+Requirement:
+
+Identify all dependencies on /data or local VM file systems.
+
+For each path determine whether it is:
+
+- Application binary
+- Configuration
+- Certificate
+- Log
+- Temporary file
+- Persistent data
+
+Cloud application containers should not assume that VM-local paths will exist.
+
+Determine whether any required persistent files need:
+- S3
+- shared storage
+- mounted volume
+- secret/config store
+
+CRM → Olympus currently appears to be stateless regarding business data, which should be confirmed.
+
+============================================================
+18. LOGGING / MONITORING
+============================================================
+
+Current:
+
+Application logs can currently be inspected on the VM/server.
+
+Requirement:
+
+Determine target cloud observability solution.
+
+Need capability for:
+
+- Application logs
+- API errors
+- Kafka publish failures
+- JVM/application health
+- CPU/memory
+- Container/pod health
+- Alerts
+- Restart history
+- Distributed tracing if available
+
+Questions:
+
+1. Where will cloud application logs be stored?
+2. What replaces server log access?
+3. What monitoring dashboard will be used?
+4. What alerting mechanism is provided?
+5. Will Splunk/enterprise monitoring remain integrated?
+
+============================================================
+19. CI/CD / DEPLOYMENT
+============================================================
+
+Current:
+
+Application build/deployment currently uses existing CI/CD/server deployment mechanisms.
+
+Requirement:
+
+Confirm target Nucleus CI/CD mechanism.
+
+Questions:
+
+1. Will current Jenkins pipeline remain?
+2. Will deployment move to Harness or another Nucleus pipeline?
+3. Will Docker/container images be built?
+4. What artifact repository is used?
+5. How are DEV/UAT/PROD promoted?
+6. How is rollback performed?
+7. How are configuration and secrets separated from application artifacts?
+8. Are deployment agents still required on target infrastructure?
+
+============================================================
+20. NETWORK / FIREWALL
+============================================================
+
+Current dependencies that must be inventoried:
+
+- Apigee → CRM Olympus
+- CRM Olympus → Kafka
+- CRM Olympus → any remaining on-prem components
+- WIP/VIP → application
+- Monitoring connectivity
+- Deployment connectivity
+
+Cloud migration must identify:
+
+- Source
+- Destination
+- Port
+- Protocol
+- DNS
+- Firewall
+- Private Link/network route
+- TLS requirement
+
+Existing Rutherford/DC-specific firewall rules should not simply be assumed to work in Nucleus.
+
+============================================================
+21. DATABASE ASSESSMENT
+============================================================
+
+Current assessment:
+
+No direct CRM → Olympus application database has been identified.
+
+Therefore:
+
+Oracle dependency: None currently identified.
+Oracle → PostgreSQL migration: Currently N/A.
+
+Action:
+
+Confirm through:
+- Source code/configuration
+- application properties
+- JDBC dependencies
+- runtime configuration
+- operations team
+
+If no DB dependency exists, explicitly record:
+
+"CRM → Olympus is a stateless integration service and does not currently persist business data to an application database."
+
+============================================================
+22. WHAT THE CLOUD / PLATFORM TEAM MAY TAKE CARE OF
+============================================================
+
+The following capabilities may be provided by Nucleus/cloud rather than implemented by CRM → Olympus itself:
+
+- VM replacement/container runtime
+- Container lifecycle
+- Automatic application restart
+- Health checks
+- Horizontal scaling
+- Load balancing
+- Service discovery
+- Active-active infrastructure
+- Certificate lifecycle
+- TLS termination
+- Cloud IAM
+- Secret management
+- Kafka/Confluent infrastructure
+- Kafka replication
+- Cloud networking
+- Private connectivity
+- Monitoring
+- Centralized logging
+- Cloud scheduler
+- High availability
+- Disaster recovery
+- Infrastructure patching
+
+These must be confirmed with the Nucleus/platform teams before implementing duplicate functionality in CRM → Olympus.
+
+============================================================
+23. WHAT CRM → OLYMPUS APPLICATION TEAM MUST TAKE CARE OF
+============================================================
+
+CRM → Olympus team should:
+
+1. Document complete current architecture.
+2. Inventory DEV/UAT/PROD separately.
+3. Identify all current VM/server dependencies.
+4. Capture server/service accounts.
+5. Capture AutoSys jobs.
+6. Capture scripts.
+7. Capture WIP/VIP dependencies.
+8. Capture Apigee APIs.
+9. Capture Kafka bootstrap servers.
+10. Capture Kafka topics.
+11. Capture Kafka security/certificates.
+12. Capture application certificates.
+13. Capture application configuration.
+14. Capture filesystem paths.
+15. Capture firewall/network dependencies.
+16. Capture deployment pipeline.
+17. Capture monitoring/logging.
+18. Confirm no DB dependency.
+19. Confirm all consumer teams.
+20. Identify data-residency requirements.
+21. Identify active-active requirements.
+22. Identify functionality that can be replaced by native cloud capabilities.
+23. Identify actual application/code changes required.
+24. Perform DEV migration testing.
+25. Perform UAT end-to-end regression.
+26. Validate every consumer flow.
+27. Validate Kafka downstream publishing.
+28. Validate failover/high availability.
+29. Obtain consumer/QE sign-off.
+30. Prepare production migration and rollback plan.
+
+============================================================
+24. E2E TESTING REQUIRED AFTER MIGRATION
+============================================================
+
+End-to-end validation must cover:
+
+CRM Consumer
+    ↓
+Apigee
+    ↓
+Cloud CRM → Olympus
+    ↓
+Protobuf conversion
+    ↓
+Kafka / Confluent
+    ↓
+Olympus downstream processing
+
+Validate separately for:
+
+- Client Meeting
+- Client Action Item
+- Call Report
+- Productivity Metrics
+
+Also validate:
+
+- Authentication
+- Certificates/TLS
+- Kafka connectivity
+- Protobuf correctness
+- API responses
+- Error handling
+- Logging
+- Monitoring
+- Failover
+- Active-active behavior
+- Restricted/on-prem data flow if hybrid architecture is required
+
+============================================================
+25. CURRENT ASSUMPTIONS – TO BE CONFIRMED
+============================================================
+
+1. CRM → Olympus application will move from VM/server infrastructure to a Nucleus-supported cloud runtime.
+
+2. Target runtime may be ECS/EKS/GKE or another Nucleus-supported platform – not yet confirmed.
+
+3. Existing Kafka may move to Confluent Kafka – confirmation required.
+
+4. CRM → Olympus will continue using protobuf unless architecture team directs otherwise.
+
+5. CRM → Olympus currently has no direct DB dependency.
+
+6. Existing consumer-facing APIs should ideally remain unchanged.
+
+7. Existing Apigee layer may remain while backend target changes to cloud.
+
+8. WIP/VIP/TLS implementation may change when moving to cloud.
+
+9. Cloud platform may replace server-based start/stop operations.
+
+10. Existing AutoSys start/stop jobs may therefore become unnecessary or need replacement with a cloud-native scheduler/orchestrator.
+
+11. Some data may need to remain on-prem due to country/data-residency restrictions.
+
+12. A temporary hybrid on-prem + cloud architecture may therefore be required.
+
+============================================================
+26. KEY DECISIONS REQUIRED FROM NUCLEUS / ARCHITECTURE TEAM
+============================================================
+
+1. Target runtime/platform?
+2. ECS/EKS/GKE/other?
+3. Container standard?
+4. Apigee connectivity design?
+5. WIP/VIP replacement?
+6. TLS/certificate ownership?
+7. Target Kafka platform?
+8. Confluent Kafka?
+9. Kafka authentication method?
+10. Kafka topic migration strategy?
+11. Active-active architecture?
+12. AWS/GCP strategy?
+13. Data-residency routing?
+14. Hybrid cloud/on-prem connectivity?
+15. Cloud IAM/service-account model?
+16. Secret-management platform?
+17. Configuration-management approach?
+18. Scheduler replacement for AutoSys?
+19. CI/CD platform?
+20. Logging/monitoring platform?
+21. Production support model?
+22. Disaster-recovery/failover model?
+
+============================================================
+27. OVERALL REQUIREMENT SUMMARY
+============================================================
+
+The CRM → Olympus migration is not simply a VM-to-cloud server move.
+
+The assessment must determine how each current infrastructure dependency is replaced or supported in Nucleus:
+
+VM/server
+→ Cloud application runtime
+
+Server Java
+→ Supported cloud Java/container runtime
+
+WIP/VIP
+→ Cloud load balancing/ingress solution
+
+Application certificates
+→ Cloud/platform certificate management
+
+Current Kafka
+→ Cloud Kafka/Confluent strategy
+
+Kafka username/password/certificates
+→ Cloud identity/secrets/authentication
+
+Server start/stop scripts
+→ Container/service lifecycle management
+
+AutoSys start/stop jobs
+→ Cloud-native orchestration/scheduler if still required
+
+Server filesystem
+→ Container/config/secret/persistent storage
+
+Server logs
+→ Centralized cloud logging/monitoring
+
+Current active-active implementation
+→ Nucleus/cloud HA and failover model
+
+On-prem-only data
+→ Hybrid/on-prem route
+
+Cloud-approved data
+→ Nucleus/cloud processing route
+
+The immediate deliverable is therefore a complete current-state inventory plus a list of component-level migration questions, assumptions, dependencies and required decisions. Once the Nucleus/platform team confirms the target architecture, these items can be converted into the detailed implementation and migration plan.
+
+
+
+
+
+
+
 
 Subject: Request to Restart SDM File Export Application in PROD
 
