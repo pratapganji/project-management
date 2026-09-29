@@ -1,4 +1,164 @@
 
+CRM → OLYMPUS API – CLOUD MIGRATION ASSESSMENT / OPEN QUESTIONS
+
+Current State:
+- CRM → Olympus application is currently running on VM/server infrastructure.
+- CRM applications call the CRM → Olympus APIs through WIP/VIP/Apigee.
+- The application receives CRM protobuf/binary payloads and publishes the data to Kafka.
+- Current supported flows include:
+  • Client Meeting
+  • Client Action Item
+  • Call Report
+  • Productivity Metrics
+- The application currently connects to Kafka using configured bootstrap servers, credentials and certificates.
+- Start/stop activities are currently handled through server scripts / AutoSys jobs.
+- Certificates and application configuration are currently maintained for the server-based deployment.
+
+Cloud Migration Questions / Requirements:
+
+1. API Hosting / Runtime
+- Where will the CRM → Olympus API application run in the cloud?
+- Will it be hosted on ECS/EKS/GKE or another Nucleus-supported runtime?
+- What changes are required when moving the existing VM-based application to the cloud/container platform?
+- How will DEV/UAT/PROD environments be maintained in the cloud?
+
+2. API Authentication & Security
+- How will authentication and authorization be handled for cloud-hosted CRM → Olympus APIs?
+- Will consumers continue using OAuth/client ID/client secret through Apigee?
+- Will the current Apigee layer remain or will there be a new cloud API gateway?
+- Will existing consumer entitlements need to be recreated or migrated?
+- How will application secrets/passwords be stored in the cloud?
+
+3. Certificates / HTTPS
+- How will certificates be managed for the cloud-hosted APIs?
+- Today certificates are handled at server/WIP/VIP/application level.
+- Will TLS termination be handled by cloud load balancer/API gateway instead of application code?
+- Do existing VIP/WIP certificates need to be recreated or replaced?
+- What is the certificate renewal/rotation process in cloud?
+
+4. Kafka / Messaging
+- What Kafka platform will CRM → Olympus use in the cloud?
+- Are we moving to Confluent Kafka or another managed Kafka service?
+- Will the existing Kafka bootstrap servers/topics change?
+- How will Kafka authentication be handled in cloud?
+- Will certificates/passwords currently used for Kafka connectivity change?
+
+5. On-Prem Kafka vs Cloud Kafka
+- If some CRM data remains on-prem and some moves to cloud, how will both Kafka environments be managed?
+- Will CRM → Olympus need connectivity to both on-prem Kafka and cloud Kafka?
+- Will there be separate topics for cloud-eligible and on-prem-only data?
+- Who will perform routing between on-prem and cloud Kafka?
+
+6. Cross-Border / CDBC Data Restrictions
+- Some country/region data may not be approved for public cloud.
+- How will CRM → Olympus determine which data can be published to cloud Kafka and which data must remain on-prem?
+- Is CDBC/cross-border approval required for the CRM data currently being processed?
+- Will routing rules be provided centrally or must CRM → Olympus implement them?
+
+7. Protobuf Payload
+- CRM → Olympus currently receives/publishes data in protobuf/binary format.
+- Will protobuf continue to be supported in the cloud?
+- Will the existing .proto schemas remain unchanged?
+- Is Schema Registry required in the target Kafka platform?
+- Will consumers need any payload/schema changes after migration?
+
+8. Active-Active / Resiliency
+- How will the current active-active processing model be maintained in cloud?
+- Will AWS/GCP provide active-active automatically or does the application need to handle routing/failover?
+- Will the application continue to send to primary/secondary environments?
+- What will be the failover and disaster-recovery mechanism?
+
+9. Network Connectivity
+- How will cloud CRM → Olympus connect to systems that remain on-prem?
+- Will PrivateLink/private connectivity/gateway be provided?
+- What firewall/whitelisting changes will be required?
+- Will WIP/VIP remain required or be replaced with cloud load-balancing services?
+- Are any new ports/DNS entries required?
+
+10. AutoSys / Scheduling / Start-Stop Jobs
+- Today server/application start-stop activities are controlled through scripts/AutoSys.
+- What is the equivalent mechanism in cloud?
+- Will AutoSys continue to trigger cloud workloads?
+- Should this be replaced by Databricks Scheduler, Databricks Workflows, Airflow, Kubernetes CronJob or platform-native scheduling?
+- Will application start/stop even be required for containerized deployment?
+
+11. Application Configuration
+- How will current application.properties/environment-specific configurations be managed?
+- Where will Kafka URLs, API URLs, client IDs, secrets and certificates be stored?
+- Will configuration be managed using cloud secrets/config maps/vault?
+
+12. Monitoring / Logging
+- What replaces the existing server-based application logs?
+- What centralized cloud logging/monitoring platform will be used?
+- How will API failures, Kafka publish failures and application health be monitored?
+- What alerting mechanism will be available?
+
+13. Deployment / CI-CD
+- How will the existing build/deployment pipeline change for cloud deployment?
+- Will Jenkins remain or move to Harness/cloud-native deployment?
+- What container/image repository will be used?
+- What changes are required to the existing deployment scripts?
+
+14. Consumer Impact
+- Existing consumers include:
+  • GSG CRM
+  • TTS CRM
+  • CCB CRM
+  • Markets CRM
+  • FX CRM
+  • BCMA CRM
+- Will consumers continue using the same Apigee URLs?
+- If endpoints change, what migration/communication is required?
+- Will existing client IDs/secrets continue to work?
+
+15. Data Persistence / Database
+- CRM → Olympus currently acts primarily as a pass-through application and does not maintain core business data locally.
+- Confirm whether any application/audit/configuration persistence needs to move to a cloud database.
+- If a database becomes necessary, should PostgreSQL/Lakebase be used instead of Oracle?
+
+16. Migration Validation
+- Perform end-to-end validation:
+  CRM Consumer
+      → Apigee/API Gateway
+      → CRM → Olympus API
+      → Protobuf processing
+      → Kafka publish
+      → Olympus downstream processing
+- Validate both cloud-enabled and on-prem-restricted data scenarios.
+- Validate failover/active-active behavior.
+- Validate authentication, certificates, connectivity and monitoring.
+
+Key Architecture Decisions Required:
+- Target runtime/platform for CRM → Olympus
+- API Gateway/Apigee strategy
+- Kafka/Confluent strategy
+- On-prem ↔ cloud connectivity model
+- CDBC/cross-border data handling
+- Certificate and secrets management
+- Active-active/failover design
+- Scheduling/AutoSys replacement
+- Monitoring/logging solution
+- CI/CD and deployment model
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 NUCLEUS – DATA MIGRATION TO AWS
 
 CSI ID: 173201
