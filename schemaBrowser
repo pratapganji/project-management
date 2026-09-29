@@ -1,5 +1,127 @@
 
 
+
+I need to prepare a cloud/Nucleus migration assessment document for the SB User Consumption application, similar to the CRM -> Olympus migration document we prepared.
+
+Please use ALL information already available in this SB User Consumption chat from the beginning. Do not ask me to repeat information already present in the conversation.
+
+I do NOT need a lengthy architecture document. I need a short, practical, Confluence/Word-ready document that explains the application component by component.
+
+Please include:
+
+1. Application overview
+- Application/pipeline name
+- What gen_user_consumption.py does
+- Source -> processing -> validation -> CSV -> Oracle load -> email flow
+- Current technology: Python
+- Current runtime/hosting model
+
+2. Current environments/infrastructure
+- DEV/UAT/PROD or known environments
+- Current servers/hosts/clusters
+- Application/service account
+- Current execution paths
+- Python/script location if known
+- Config/log/output/CSV paths
+- Any Rutherford/server-specific dependency already identified
+
+3. Source dependencies
+Document the current Starburst/Impala JDBC audit log source, including known source tables such as:
+- gfolydal_managed.jdbc_centralized_audit_log
+- jdbc_centralized_audit_common
+- API type JDBC
+Explain briefly how SELECT/AGGREGATE/FILTER/GROUP BY usage is expanded.
+
+4. Metadata validation dependencies
+Include:
+- OM_CATALOGUE_TABLE
+- OM_CATALOGUE_FIELD
+Explain that extracted usage is validated against catalogue metadata before loading.
+
+5. Target database
+Include:
+- OM_CATALOGUE_USER_CONSUMPTION
+- Oracle dependency
+- current load process
+- cleanup/load behavior if known
+- CSV vs DB validation used during testing
+
+6. Batch/Scheduler/AutoSys/Cron
+Include every known scheduled execution:
+- weekly cron/job
+- environment
+- server/host if known
+- schedule if known
+- purpose
+If AutoSys is used anywhere in this application's flow, capture the exact job names from the chat.
+Do not leave scheduler information out.
+
+7. Deployment
+Include current deployment method/tool, script deployment method, Python/runtime dependency and anything tied to current VM/server.
+
+8. External dependencies
+Include:
+- Starburst/Impala/JDBC connectivity
+- Olympus JDBC API metadata dependency if applicable
+- Oracle
+- email
+- service account
+- secrets/passwords/Vault
+- firewall/network
+- certificates if any
+- cluster/backend server dependency
+
+9. Known application-specific concerns
+Use information already discussed in this chat, such as:
+- source counts vs expanded output counts
+- large row volumes
+- TABLE_PHYSICAL_NAME length issue/fix
+- source/no-source-data handling
+- new backend/cloud server changes
+- JDBC metadata onboarding dependency
+Only include points relevant to migration.
+
+10. Cloud/Nucleus migration – component-by-component questions
+For each component, add only 1–3 short questions/actions.
+
+Examples:
+- Where will the Python job run in Nucleus/AWS?
+- Will Starburst/Impala/JDBC endpoints change?
+- Will the current JDBC audit source remain on-prem or move to cloud?
+- If source remains on-prem, how will cloud runtime connect to it?
+- Will Oracle target remain Oracle or move to PostgreSQL/Lakebase?
+- Will OM_CATALOGUE_USER_CONSUMPTION and metadata tables move?
+- What replaces the current cron/AutoSys execution?
+- Where will temporary CSV/output files be stored?
+- How will service accounts/secrets be handled?
+- How will email work from cloud?
+- What network/private-link/firewall changes are required?
+- How will logging/monitoring and failure/retry work?
+- Are any data-residency restrictions relevant to the audit/consumption data?
+
+11. Main questions for Nucleus/Architecture team
+Create a short numbered list similar to the CRM document.
+
+12. Give me a FINAL SHORT DOCUMENT only.
+Do not give generic cloud theory.
+Do not invent values.
+For anything that is not confirmed from the chat, write "TBD / Confirm with Platform Team".
+
+The document should be short enough to review with Rajat but must contain the real SB User Consumption application flow, source tables, target tables, scheduler, servers/paths, deployment and dependencies already discussed in this chat.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 SCHEMA BROWSER NEW GET API – CODE REVIEW EXPLANATION
 
 1. FIRST EXPLAIN WHAT WE ARE DOING
