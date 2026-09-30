@@ -63,3 +63,135 @@
         │ OLYMPUS DOWNSTREAM    │
         │ PROCESSING            │
         └───────────────────────┘
+
+
+ ┌──────────────────────┐
+ │ DEPLOYMENT           │
+ │                      │
+ │ UDeploy              │
+ └──────────────────────┘
+
+
+ ┌──────────────────────────────┐
+ │ APPLICATION OPERATIONS       │
+ │                              │
+ │ AutoSys Start/Stop Jobs      │
+ │ start_app.sh                 │
+ │ stop_app.sh                  │
+ │ gen_app.sh                   │
+ │ olympus_jobLauncher.ksh      │
+ │                              │
+ │ Service Account: gfolybkb    │
+ └──────────────────────────────┘
+
+
+ ┌──────────────────────────────┐
+ │ VM CONFIG / SECURITY         │
+ │                              │
+ │ application.properties       │
+ │ finalcacerts.jks             │
+ │ kafkacacerts.jks             │
+ │ JAAS configuration           │
+ │ krb5.conf                    │
+ │                              │
+ │ Kafka: SASL_SSL / GSSAPI     │
+ └──────────────────────────────┘
+
+
+
+                CRM → OLYMPUS API – PROPOSED NUCLEUS / CLOUD
+
+
+ ┌───────────────────────────────┐
+ │      CRM SOURCE SYSTEMS       │
+ │                               │
+ │ GSG / TTS / CCB / Markets     │
+ │ FX / BCMA CRM                 │
+ └───────────────┬───────────────┘
+                 │
+                 │ Same API / Protobuf Contract
+                 ▼
+        ┌───────────────────┐
+        │      APIGEE       │
+        │                   │
+        │ Existing consumer │
+        │ URL preferred     │
+        │ unchanged         │
+        └─────────┬─────────┘
+                  │
+                  ▼
+     ┌────────────────────────────┐
+     │ CLOUD INGRESS / LB         │
+     │                            │
+     │ VIP/WIP replacement or     │
+     │ cloud equivalent           │
+     │                            │
+     │        [TBD]               │
+     └────────────┬───────────────┘
+                  │
+                  ▼
+ ┌────────────────────────────────────┐
+ │ CRM → OLYMPUS API – CLOUD          │
+ │                                    │
+ │ Nucleus Cloud Runtime             │
+ │ EKS / ECS / GKE / Other           │
+ │              [TBD]                │
+ │                                    │
+ │ Existing functional flows remain  │
+ │ unchanged                         │
+ └─────────────────┬──────────────────┘
+                   │
+                   │ Protobuf Message
+                   ▼
+       ┌────────────────────────────┐
+       │ TARGET KAFKA              │
+       │                            │
+       │ Confluent / Cloud Kafka / │
+       │ Existing Kafka            │
+       │            [TBD]           │
+       └─────────────┬──────────────┘
+                     │
+                     ▼
+       ┌────────────────────────────┐
+       │ OLYMPUS DOWNSTREAM         │
+       │ PROCESSING                 │
+       └────────────────────────────┘
+
+
+
+ ┌──────────────────────────────┐
+ │ CLOUD SECURITY              │
+ │                              │
+ │ Certificates                │
+ │ Secrets                     │
+ │ Kafka authentication        │
+ │ Service identity            │
+ │                              │
+ │             [TBD]            │
+ └──────────────────────────────┘
+
+
+ ┌──────────────────────────────┐
+ │ CLOUD OPERATIONS            │
+ │                              │
+ │ AutoSys replacement?        │
+ │ Start/Stop replacement?     │
+ │ UDeploy or new pipeline?    │
+ │ Monitoring / Logging        │
+ │ Scaling / Restart           │
+ │                              │
+ │             [TBD]            │
+ └──────────────────────────────┘
+
+
+ ┌──────────────────────────────┐
+ │ DATA RESIDENCY             │
+ │                              │
+ │ Allowed data → Cloud        │
+ │ Restricted data → On-Prem   │
+ │                              │
+ │ Hybrid Kafka/routing may    │
+ │ be required                 │
+ │                              │
+ │             [TBD]            │
+ └──────────────────────────────┘
