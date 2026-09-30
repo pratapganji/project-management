@@ -1,4 +1,341 @@
 
+Create ONE clean, professional, high-level architecture diagram in Mermaid for the application:
+
+CRM → Olympus API – Nucleus / Cloud Migration Assessment
+
+The diagram is for a Confluence/architecture review with senior leads. It must be simple enough to understand immediately and should show BOTH:
+1. Current State (VM / On-Prem)
+2. Proposed Target State (Nucleus / Cloud)
+
+Do NOT invent architecture decisions that are not finalized.
+Anything not finalized must be clearly marked "TBD / To Confirm".
+
+--------------------------------------------------
+APPLICATION PURPOSE
+--------------------------------------------------
+
+CRM → Olympus is a pass-through integration service.
+
+Known CRM consumer/source teams:
+- GSG CRM
+- TTS CRM
+- CCB CRM
+- Markets CRM
+- FX CRM
+- BCMA CRM
+
+These CRM systems send the following business data:
+- Client Meeting
+- Client Action Item
+- Call Report
+- Productivity Metrics
+
+The CRM → Olympus APIs receive protobuf/binary payloads from consumers and publish protobuf messages to Kafka for downstream Olympus processing.
+
+There is no direct application database/JDBC dependency currently identified.
+
+--------------------------------------------------
+CURRENT STATE – SHOW THIS ON THE LEFT
+--------------------------------------------------
+
+Create a section named:
+
+"CURRENT STATE – VM / ON-PREM"
+
+Flow:
+
+CRM Source Systems
+    ↓
+Apigee
+    ↓
+VIP / WIP
+    ↓
+CRM → Olympus API
+    ↓
+Protobuf Processing
+    ↓
+Kafka
+    ↓
+Olympus Downstream Processing
+
+CRM Source Systems box should contain:
+- GSG CRM
+- TTS CRM
+- CCB CRM
+- Markets CRM
+- FX CRM
+- BCMA CRM
+
+Between CRM Source Systems and CRM → Olympus, show:
+
+Apigee
+Purpose:
+- Consumer API gateway
+- Authentication/routing
+- Existing consumer-facing API URLs
+
+Then:
+
+VIP / WIP
+Purpose:
+- Routes traffic to current VM application servers
+
+Then application box:
+
+CRM → Olympus API
+
+Technology:
+- Java
+- Spring Boot 4.1.1
+- Java 17+
+- Linux VM hosted
+- App ID: 160970
+- Repo: 160970.crm-olympus.crm-olympus-api
+
+Inside or directly below this application box show:
+
+Supported API/data flows:
+- Client Meeting
+- Client Action Item
+- Call Report
+- Productivity Metrics
+
+Message format:
+- Protobuf / Binary
+
+Then Kafka.
+
+Kafka currently uses:
+- Bootstrap servers
+- Schema Registry
+- SASL_SSL
+- GSSAPI / Kerberos
+- JAAS configuration
+- Kafka truststore
+
+Kafka topics:
+- TOPIC_CALL_REPORT_PROTO
+- TOPIC_ACTION_ITEM_PROTO
+- TOPIC_CLIENT_MEETING_PROTO
+- TOPIC_PRODUCTIVITY_METRICS_PROTO
+
+Then show:
+
+Olympus Downstream Processing
+
+--------------------------------------------------
+CURRENT OPERATIONAL DEPENDENCIES
+--------------------------------------------------
+
+Add a smaller supporting box below the Current State called:
+
+"Current VM Operational Dependencies"
+
+Include:
+
+Deployment:
+- UDeploy
+
+Application lifecycle:
+- AutoSys start/stop jobs
+- start_app.sh
+- stop_app.sh
+- gen_app.sh
+- olympus_jobLauncher.ksh
+
+Service account:
+- gfolybkb
+
+Example AutoSys dependency:
+- 167969_OM_CRM_OLYMPUS_API_HTTPS_SERVER1_STOP
+
+VM filesystem/config dependencies:
+- Application installation path
+- Application logs path
+- CRM_Olympus_Config/config
+- crm-olympus-application.properties
+- finalcacerts.jks
+- kafkacacerts.jks
+- JAAS client configuration
+- krb5.conf
+
+Do not print every full filesystem path in the diagram because it will make the diagram unreadable.
+Represent these as "VM filesystem/config dependencies".
+
+--------------------------------------------------
+TARGET STATE – SHOW THIS ON THE RIGHT
+--------------------------------------------------
+
+Create a section named:
+
+"PROPOSED TARGET STATE – NUCLEUS / CLOUD"
+
+Flow should conceptually remain:
+
+CRM Source Systems
+    ↓
+Apigee
+    ↓
+Cloud Ingress / Load Balancing
+    ↓
+CRM → Olympus API on Nucleus Cloud Runtime
+    ↓
+Protobuf Processing
+    ↓
+Target Kafka
+    ↓
+Olympus Downstream Processing
+
+IMPORTANT:
+The target architecture is NOT finalized.
+
+Therefore label the following explicitly as TBD:
+
+Cloud runtime:
+- EKS / ECS / GKE / Nucleus-managed runtime – TBD
+
+Ingress:
+- Whether VIP/WIP remains or is replaced by cloud-native ingress/load balancer – TBD
+
+Apigee:
+- Existing consumer URLs should preferably remain unchanged
+- Backend target will need to point to cloud runtime
+- Final Apigee → cloud connectivity pattern – TBD
+
+Kafka:
+- Confluent Kafka / Cloud Kafka / existing Kafka – TBD
+- New bootstrap servers – TBD
+- New Schema Registry – TBD
+- Authentication mechanism replacing current Kerberos/GSSAPI if required – TBD
+
+Protobuf:
+- Keep existing protobuf message contract if possible
+- Existing business payloads and topic behavior should remain compatible
+
+Security:
+Show a box named:
+
+"Cloud Security / Identity – TBD"
+
+Include:
+- Replace VM-local JKS/certificate handling
+- Replace filesystem secrets
+- Determine cloud secret/certificate management
+- Determine workload/service identity
+- Determine Kafka authentication model
+
+Operations:
+Show a box named:
+
+"Cloud Operations – TBD"
+
+Include:
+- Determine replacement for AutoSys start/stop jobs
+- Determine replacement for VM shell-script lifecycle management
+- Determine cloud deployment mechanism
+- Determine whether UDeploy remains or a Nucleus/cloud CI/CD pipeline replaces it
+- Cloud logging / monitoring / health checks
+- Scaling and restart/recovery handled by cloud platform where applicable
+
+--------------------------------------------------
+DATA RESIDENCY / HYBRID CONSIDERATION
+--------------------------------------------------
+
+Add ONE small note/callout on the Target State:
+
+"Data Residency / Hybrid Routing – To Confirm"
+
+Text:
+Some jurisdictions may restrict CRM data from moving to public cloud.
+If required, architecture may need to support:
+- permitted data → Cloud/Nucleus path
+- restricted data → On-Prem path
+- connectivity/routing between on-prem and cloud Kafka/processing
+
+Clearly mark this as:
+"Architecture decision required – not current confirmed design."
+
+--------------------------------------------------
+ACTIVE-ACTIVE / DR
+--------------------------------------------------
+
+Add another small note:
+
+"HA / Active-Active – TBD"
+
+Include:
+- Current environments use multiple servers/regions
+- Confirm how active-active/failover will work in Nucleus/cloud
+- Confirm PROD/COB or equivalent cloud-region strategy
+
+--------------------------------------------------
+VISUAL REQUIREMENTS
+--------------------------------------------------
+
+Create ONE Mermaid `flowchart LR` diagram.
+
+Layout:
+LEFT = Current State
+RIGHT = Proposed Target State
+
+Use clear subgraphs:
+1. CRM Consumer Systems
+2. Current State – VM / On-Prem
+3. Proposed Target State – Nucleus / Cloud
+4. Current Operational Dependencies
+5. Target Cloud Considerations
+
+Do not create a huge detailed sequence diagram.
+Do not add source code classes.
+Do not list every REST endpoint.
+Do not add database boxes because this application currently has no confirmed direct DB dependency.
+
+The main message of the diagram should be immediately understandable:
+
+CURRENT:
+CRM Consumers
+→ Apigee
+→ VIP/WIP
+→ CRM → Olympus API on Linux VM
+→ Protobuf processing
+→ Kafka
+→ Olympus
+
+TARGET:
+CRM Consumers
+→ Apigee
+→ Cloud ingress
+→ CRM → Olympus API on Nucleus cloud runtime
+→ Same protobuf contract
+→ Target Kafka
+→ Olympus
+
+Migration changes mainly concern:
+- hosting/runtime
+- Apigee backend connectivity
+- VIP/WIP / ingress
+- Kafka connectivity/authentication
+- certificates/secrets
+- AutoSys/start-stop operations
+- deployment mechanism
+- active-active/failover
+- data residency/hybrid routing
+
+Keep functional CRM business flows unchanged wherever possible.
+
+Output ONLY the Mermaid code block so I can copy it directly into a Markdown file in Git and render it.
+
+
+
+
+
+
+
+
+
+
+
+
 fine bro you can put these points in document. plz add below points also
 
 if only publishing portion goes to cloud how to manage the consumer partion? 
