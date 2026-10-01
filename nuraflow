@@ -1,4 +1,11 @@
 
+
+“I analyzed the existing Schema Browser resourcesWithActions API. It calls EEMS using the user SOEID and returns the resources and allowed actions like view, upload, and update. I also confirmed this API does not return any S3 path. I’m also analyzing the Query Enrichment Entitlements API and the Bulk API details that were shared to understand how the access check should be handled in the new NuraRec flow.”
+
+
+
+
+
 short description :
 Increase NuraRec PROD and COB VIP response timeout from 120 seconds to 300 seconds
 
