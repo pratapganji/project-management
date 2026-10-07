@@ -1,5 +1,370 @@
 
 
+I need to enhance the existing Schema Browser Field Map GET API with an OPTIONAL RUN_FREQUENCY filter.
+
+IMPORTANT:
+Do not create a new API.
+Do not break the current behavior.
+Keep the existing endpoint and response DTO unchanged.
+
+Current endpoint:
+
+GET /citihawk/schemabrowser/fieldmap/configurations
+
+Current behavior:
+If this URL is called without any parameter, it returns ALL active/current field map configuration records.
+
+Existing current query:
+
+SELECT FIELD_MAP_SK,
+       TABLE_PHYSICAL_NAME,
+       FINAL_QUERY,
+       RUN_FREQUENCY
+FROM C167969RPC.om_catalogue_field_map_lkp
+WHERE is_current_flag = 'Y'
+ORDER BY FIELD_MAP_SK
+
+Current classes:
+
+1. FieldMapConfigController
+2. FieldMapConfigService
+3. FieldMapConfigResponse
+
+--------------------------------------------------
+NEW REQUIREMENT
+--------------------------------------------------
+
+Add an OPTIONAL query parameter:
+
+RUN_FREQUENCY
+
+Supported values:
+- WEEKLY
+- MONTHLY
+
+Expected API behavior:
+
+1. Existing call WITHOUT parameter:
+
+GET /citihawk/schemabrowser/fieldmap/configurations
+
+Must continue to work exactly as it works now.
+
+It should return ALL active/current records:
+
+WHERE is_current_flag = 'Y'
+ORDER BY FIELD_MAP_SK
+
+
+2. WEEKLY call:
+
+GET /citihawk/schemabrowser/fieldmap/configurations?RUN_FREQUENCY=WEEKLY
+
+Return only:
+
+WHERE is_current_flag = 'Y'
+AND RUN_FREQUENCY = 'WEEKLY'
+ORDER BY FIELD_MAP_SK
+
+
+3. MONTHLY call:
+
+GET /citihawk/schemabrowser/fieldmap/configurations?RUN_FREQUENCY=MONTHLY
+
+Return only:
+
+WHERE is_current_flag = 'Y'
+AND RUN_FREQUENCY = 'MONTHLY'
+ORDER BY FIELD_MAP_SK
+
+
+The parameter must be optional because we must preserve the existing API behavior.
+
+--------------------------------------------------
+CURRENT CONTROLLER
+--------------------------------------------------
+
+The current controller method is conceptually:
+
+@GetMapping(value = "/configurations", produces = "application/json")
+public ResponseEntity<List<FieldMapConfigResponse>> getFieldMapConfigurations() {
+    LOGGER.info("Fetching current field map configurations");
+    return ResponseEntity.ok(fieldMapConfigService.getCurrentFieldMapConfigs());
+}
+
+Please modify this existing method instead of creating another endpoint.
+
+Add:
+
+@RequestParam(name = "RUN_FREQUENCY", required = false)
+
+Use a Java variable such as:
+
+String runFrequency
+
+Then pass runFrequency to the service.
+
+Example desired shape:
+
+public ResponseEntity<List<FieldMapConfigResponse>> getFieldMapConfigurations(
+        @RequestParam(name = "RUN_FREQUENCY", required = false) String runFrequency) {
+
+    ...
+    fieldMapConfigService.getCurrentFieldMapConfigs(runFrequency);
+}
+
+Also add the required RequestParam import.
+
+--------------------------------------------------
+CURRENT SERVICE
+--------------------------------------------------
+
+Current service has:
+
+private static final String FIELD_MAP_QUERY =
+        "SELECT FIELD_MAP_SK, TABLE_PHYSICAL_NAME, FINAL_QUERY, RUN_FREQUENCY "
+      + "FROM C167969RPC.om_catalogue_field_map_lkp "
+      + "WHERE is_current_flag = 'Y' "
+      + "ORDER BY FIELD_MAP_SK";
+
+@Autowired
+private JdbcTemplate jdbcTemplate;
+
+public List<FieldMapConfigResponse> getCurrentFieldMapConfigs() {
+    return jdbcTemplate.query(
+        FIELD_MAP_QUERY,
+        (ResultSet resultSet, int rowNum) -> mapRow(resultSet)
+    );
+}
+
+The existing mapRow() and readFinalQuery() methods are already working.
+
+DO NOT modify:
+- mapRow()
+- readFinalQuery()
+- CLOB handling
+- FieldMapConfigResponse
+unless absolutely required.
+
+--------------------------------------------------
+SERVICE CHANGE REQUIRED
+--------------------------------------------------
+
+Change:
+
+getCurrentFieldMapConfigs()
+
+to:
+
+getCurrentFieldMapConfigs(String runFrequency)
+
+Use two query paths:
+
+A. If runFrequency is null or blank:
+Run the EXISTING query and return all active/current records.
+
+B. If runFrequency is present:
+Filter using RUN_FREQUENCY.
+
+Use parameter binding with JdbcTemplate.
+Do NOT concatenate the RUN_FREQUENCY value directly into SQL.
+
+For example create:
+
+private static final String FIELD_MAP_QUERY =
+    existing all-record query;
+
+private static final String FIELD_MAP_BY_FREQUENCY_QUERY =
+    "SELECT FIELD_MAP_SK, TABLE_PHYSICAL_NAME, FINAL_QUERY, RUN_FREQUENCY "
+  + "FROM C167969RPC.om_catalogue_field_map_lkp "
+  + "WHERE is_current_flag = 'Y' "
+  + "AND UPPER(RUN_FREQUENCY) = ? "
+  + "ORDER BY FIELD_MAP_SK";
+
+Then implement logic similar to:
+
+if (runFrequency == null || runFrequency.trim().isEmpty()) {
+    return jdbcTemplate.query(
+        FIELD_MAP_QUERY,
+        (resultSet, rowNum) -> mapRow(resultSet)
+    );
+}
+
+String normalizedFrequency = runFrequency.trim().toUpperCase();
+
+return jdbcTemplate.query(
+    FIELD_MAP_BY_FREQUENCY_QUERY,
+    (resultSet, rowNum) -> mapRow(resultSet),
+    normalizedFrequency
+);
+
+--------------------------------------------------
+VALIDATION
+--------------------------------------------------
+
+For now supported values are:
+
+WEEKLY
+MONTHLY
+
+If runFrequency is supplied and it is something else, such as:
+
+DAILY
+YEARLY
+ABC
+
+return HTTP 400 Bad Request with a clear message such as:
+
+"RUN_FREQUENCY must be WEEKLY or MONTHLY"
+
+Please follow the existing project exception-handling pattern if one already exists.
+
+Do not introduce a new exception framework if the project already has a standard way to return 400 responses.
+
+Case-insensitive input should be accepted.
+
+Examples:
+
+weekly  -> WEEKLY
+Weekly  -> WEEKLY
+MONTHLY -> MONTHLY
+
+--------------------------------------------------
+RESPONSE DTO
+--------------------------------------------------
+
+Keep FieldMapConfigResponse exactly as it is.
+
+It already contains:
+
+@JsonProperty("FIELD_MAP_SK")
+private BigDecimal fieldMapSk;
+
+@JsonProperty("TABLE_PHYSICAL_NAME")
+private String tablePhysicalName;
+
+@JsonProperty("FINAL_QUERY")
+private String finalQuery;
+
+@JsonProperty("RUN_FREQUENCY")
+private String runFrequency;
+
+No response fields should be added or removed.
+
+--------------------------------------------------
+CLOB HANDLING
+--------------------------------------------------
+
+FINAL_QUERY is stored as CLOB.
+
+The current code already uses readFinalQuery(ResultSet resultSet)
+and reads it using a character stream.
+
+Do not change this logic.
+
+--------------------------------------------------
+BACKWARD COMPATIBILITY IS VERY IMPORTANT
+--------------------------------------------------
+
+These calls must work:
+
+1.
+GET /citihawk/schemabrowser/fieldmap/configurations
+
+Result:
+All current records.
+
+
+2.
+GET /citihawk/schemabrowser/fieldmap/configurations?RUN_FREQUENCY=WEEKLY
+
+Result:
+Only WEEKLY current records.
+
+
+3.
+GET /citihawk/schemabrowser/fieldmap/configurations?RUN_FREQUENCY=MONTHLY
+
+Result:
+Only MONTHLY current records.
+
+
+4.
+GET /citihawk/schemabrowser/fieldmap/configurations?RUN_FREQUENCY=weekly
+
+Result:
+Treat as WEEKLY.
+
+
+5.
+GET /citihawk/schemabrowser/fieldmap/configurations?RUN_FREQUENCY=DAILY
+
+Result:
+HTTP 400 Bad Request.
+
+
+--------------------------------------------------
+UNIT TESTS
+--------------------------------------------------
+
+Please update/add tests for:
+
+1. No RUN_FREQUENCY parameter
+   - existing behavior still returns all active records.
+
+2. RUN_FREQUENCY=WEEKLY
+   - service is called with WEEKLY.
+   - only weekly query path is used.
+
+3. RUN_FREQUENCY=MONTHLY
+   - only monthly query path is used.
+
+4. Lowercase weekly/monthly
+   - normalized correctly.
+
+5. Invalid RUN_FREQUENCY
+   - returns HTTP 400.
+
+6. Existing FieldMapConfigResponse structure remains unchanged.
+
+--------------------------------------------------
+IMPORTANT IMPLEMENTATION RULES
+--------------------------------------------------
+
+- Make the smallest possible code change.
+- Do not create a new controller.
+- Do not create a new endpoint.
+- Do not create a new DTO.
+- Do not modify unrelated code.
+- Do not remove existing FIELD_MAP_SK ordering.
+- Do not change FINAL_QUERY CLOB logic.
+- Use JdbcTemplate parameter binding.
+- Preserve the current URL behavior when no parameter is supplied.
+- Follow the existing coding style in this repository.
+
+First inspect the existing controller, service, exception handling, and test classes in this project.
+
+Then show me:
+1. Exact files that need changes.
+2. Exact code changes.
+3. Why each change is needed.
+4. Any existing tests that also need to be updated.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 SCHEMA BROWSER GET API – NEW REQUIREMENT
 
