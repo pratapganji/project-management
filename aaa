@@ -1,4 +1,5 @@
 
+git diff --name-only origin/feature/pg16424-updated..HEAD
 
 git diff origin/feature/pg16424-updated..HEAD -- src/main/java/com/citi/olympus/nura/api/service/StartBustService.java
 
