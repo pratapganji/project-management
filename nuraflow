@@ -1,5 +1,90 @@
 
 
+
+
+Yes. For C167969Y-9378 – Add ENV Fallback lookup for NuraFlow Search API using GTID, you can fill the Jira like this.
+
+Description
+
+Implemented ENV fallback logic for the NuraFlow Search API.
+
+For Search API requests:
+
+* If env is provided in the request payload, the provided ENV is used.
+* If env is missing or blank, the application uses the request globalTransactionId (GTID) to fetch the ENV from A167969NURAREC.OM_NURAFLOW_ENV_TRACKING.
+* The resolved ENV is then passed to the Starburst/Olympus JDBC connection.
+* GTID is propagated through the Search API flow for the ENV lookup.
+
+
+Environment
+
+DEV – development and local validation completed.
+
+Ready for QE validation in UAT after deployment.
+
+Acceptance Criteria
+
+1. When Search API request contains a valid env, the request ENV must be used.
+2. When env is null/blank, ENV must be retrieved from OM_NURAFLOW_ENV_TRACKING using the incoming GTID.
+3. The same GTID must be propagated through the Search API → Starburst flow.
+4. The Search API should successfully execute using the resolved ENV.
+5. Existing Search API functionality should not be impacted.
+6. If no ENV is available in the request, QE should validate the configured GTID-to-ENV mapping in the tracking table.
+7. Existing calls to Starburst from other application flows should continue to work without regression.
+
+Release Notes Description
+
+Enhanced NuraFlow Search API to support ENV fallback lookup using GTID. When ENV is not supplied in the request, the application retrieves ENV from OM_NURAFLOW_ENV_TRACKING.
+
+Business Comment
+
+This enhancement allows Search API requests to determine the appropriate environment using GTID when ENV is not explicitly supplied by the caller, reducing dependency on the caller always providing ENV.
+
+Current Workaround
+
+Before this enhancement, the caller had to explicitly provide the correct env in the Search API request payload.
+
+BSMS/Test Cases Impacted
+
+Search API / Starburst integration.
+
+QE should cover:
+
+* ENV supplied in request.
+* ENV omitted/blank with valid GTID mapping.
+* Different ENV values in request and DB to confirm request ENV takes precedence.
+* Invalid/non-existing GTID when ENV is missing.
+* Search API successful response and record count.
+* Regression validation of existing Search API functionality.
+
+Next Steps
+
+Deploy the change to UAT and hand over to QE for functional and regression validation.
+
+QE to validate ENV resolution for both:
+
+* Request-provided ENV.
+* GTID-based fallback ENV.
+
+Project Objectives
+
+Improve NuraFlow Search API environment resolution by introducing GTID-based ENV fallback while maintaining backward compatibility with existing requests that already provide ENV.
+
+QE handover comment
+
+You can put this as the Jira comment when handing it over:
+
+Development is completed for ENV fallback lookup for NuraFlow Search API using GTID. If ENV is provided in the request, the request ENV is used; if ENV is missing/blank, the application retrieves ENV from OM_NURAFLOW_ENV_TRACKING using GTID. Local validation is completed and Maven build passed with 420 tests, 0 failures and 0 errors. Please proceed with UAT functional and regression testing.
+
+
+
+
+
+
+
+
+
+
 “I analyzed the existing Schema Browser resourcesWithActions API. It calls EEMS using the user SOEID and returns the resources and allowed actions like view, upload, and update. I also confirmed this API does not return any S3 path. I’m also analyzing the Query Enrichment Entitlements API and the Bulk API details that were shared to understand how the access check should be handled in the new NuraRec flow.”
 
 
