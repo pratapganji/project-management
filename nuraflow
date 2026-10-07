@@ -1,5 +1,19 @@
 
 
+Subject: QE Handover – ENV Fallback for Search API
+
+Hi Team,
+
+The changes for C167969Y-9378 – ENV fallback lookup for NuraFlow Search API using GTID are completed and ready for QE testing.
+
+Please validate:
+
+* If env is provided in the request, the request value is used.
+* If env is missing/blank, ENV is fetched from OM_NURAFLOW_ENV_TRACKING using the GTID.
+
+Thanks,
+Pratap
+
 
 
 Yes. For C167969Y-9378 – Add ENV Fallback lookup for NuraFlow Search API using GTID, you can fill the Jira like this.
