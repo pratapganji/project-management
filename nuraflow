@@ -1,5 +1,7 @@
 
 
+git log --oneline --left-right HEAD...origin/backup-pg16424-env
+
 Subject: QE Handover – ENV Fallback for Search API
 
 Hi Team,
