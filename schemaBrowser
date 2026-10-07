@@ -1,6 +1,110 @@
 
 
 
+SCHEMA BROWSER GET API – NEW REQUIREMENT
+
+Do NOT create a separate API for monthly tables.
+
+Enhance the existing GET API by adding an input parameter:
+
+RUN_FREQUENCY
+
+Allowed values:
+- WEEKLY
+- MONTHLY
+
+Based on the value passed, the API should return only those records.
+
+Examples:
+
+If request is:
+
+RUN_FREQUENCY=WEEKLY
+
+then return only rows where:
+
+RUN_FREQUENCY = 'WEEKLY'
+
+If request is:
+
+RUN_FREQUENCY=MONTHLY
+
+then return only rows where:
+
+RUN_FREQUENCY = 'MONTHLY'
+
+
+The existing conditions should still remain:
+
+IS_CURRENT_FLAG = 'Y'
+
+and the response should still be ordered by:
+
+FIELD_MAP_SK
+
+
+Expected query logic:
+
+SELECT FIELD_MAP_SK,
+       TABLE_PHYSICAL_NAME,
+       FINAL_QUERY,
+       RUN_FREQUENCY
+FROM C167969RPC.OM_CATALOGUE_FIELD_MAP_LKP
+WHERE IS_CURRENT_FLAG = 'Y'
+  AND RUN_FREQUENCY = ?
+ORDER BY FIELD_MAP_SK;
+
+
+API behavior:
+
+Existing endpoint:
+GET /citihawk/schemabrowser/fieldmap/configurations
+
+Enhance it to accept something like:
+
+GET /citihawk/schemabrowser/fieldmap/configurations?RUN_FREQUENCY=WEEKLY
+
+or
+
+GET /citihawk/schemabrowser/fieldmap/configurations?RUN_FREQUENCY=MONTHLY
+
+
+Required code changes:
+
+1. FieldMapConfigController.java
+   - Add RUN_FREQUENCY as a request parameter.
+   - Pass it to the service.
+
+2. FieldMapConfigService.java
+   - Accept RUN_FREQUENCY as an input parameter.
+   - Add RUN_FREQUENCY filtering to the SQL query.
+   - Continue ordering by FIELD_MAP_SK.
+
+3. No new response DTO changes are required.
+   FIELD_MAP_SK, TABLE_PHYSICAL_NAME, FINAL_QUERY and RUN_FREQUENCY
+   are already returned.
+
+4. Validate both:
+   - WEEKLY
+   - MONTHLY
+
+5. Deploy the change in:
+   - DEV
+   - UAT
+
+6. Share the UAT endpoint with Shakti for testing.
+
+Rajat's final instruction:
+"Please add the parameter in the API as RUN_FREQUENCY. Possible values will be WEEKLY or MONTHLY, complete this today in dev and UAT both and share the UAT URL with Shaktivel."
+
+
+
+
+
+
+
+
+
 I need to prepare a cloud/Nucleus migration assessment document for the SB User Consumption application, similar to the CRM -> Olympus migration document we prepared.
 
 Please use ALL information already available in this SB User Consumption chat from the beginning. Do not ask me to repeat information already present in the conversation.
