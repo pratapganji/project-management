@@ -1,4 +1,52 @@
 
+JIRA Title:
+Enhance Template Service Environment Validation for PRODNJ and PRODNY
+
+Description:
+Update the Template Service environment handling logic to explicitly support the production environment values PRODNJ and PRODNY.
+
+Previously, when an environment value was provided:
+- NJ was converted to PRODNJ.
+- NY was converted to PRODNY.
+- Any other non-empty environment value was passed directly in the "env" header without validation.
+- If environment was null or empty, UAT was used as the default.
+
+With this change:
+- PRODNJ and PRODNY are accepted directly and passed in the "env" header.
+- NJ continues to be mapped to PRODNJ.
+- NY continues to be mapped to PRODNY.
+- Any other non-empty environment value is treated as invalid.
+- For an invalid environment, an error is logged and IllegalArgumentException is thrown instead of forwarding an unsupported environment value.
+- If environment is null or empty, UAT continues to be used as the default.
+- Add logging to capture the final environment value populated in the request header.
+
+This change prevents unsupported environment values from being sent to the downstream Bulk API and ensures that only the expected production environment values are used.
+
+Acceptance Criteria:
+
+1. When the incoming environment is "PRODNJ", the "env" header must be set to "PRODNJ".
+
+2. When the incoming environment is "PRODNY", the "env" header must be set to "PRODNY".
+
+3. When the incoming environment is "NJ", it must be mapped to "PRODNJ" in the "env" header.
+
+4. When the incoming environment is "NY", it must be mapped to "PRODNY" in the "env" header.
+
+5. When the incoming environment is null or empty, the existing default behavior must remain unchanged and the "env" header must be set to "UAT".
+
+6. When any other non-empty environment value is received, the application must:
+   - Log the invalid environment value.
+   - Throw an IllegalArgumentException.
+   - Not send the unsupported environment value to the downstream API.
+
+7. The application must log the final environment value populated in the "env" header.
+
+8. Existing NJ, NY, and UAT behavior must continue to work without regression.
+
+9. Unit tests must be updated/added to validate PRODNJ, PRODNY, NJ, NY, invalid environment, and null/empty environment scenarios.
+
+
+
 
 git log --oneline --left-right HEAD...origin/backup-pg16424-env
 
