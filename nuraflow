@@ -1,4 +1,14 @@
 
+
+SELECT *
+FROM A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+WHERE CONSUMER_NAME = 'ROCK'
+  AND DATATYPE = 'Attribute'
+  AND REPORT = 'FRY15'
+  AND PRODUCT = 'CAD';
+
+
+
 JIRA Title:
 Enhance Template Service Environment Validation for PRODNJ and PRODNY
 
