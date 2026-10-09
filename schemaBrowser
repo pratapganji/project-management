@@ -1,5 +1,211 @@
 
 
+
+
+
+
+Subject: QE Testing Request – Schema Browser Field Map GET API – C167969S-153034
+
+Hi Sanket,
+
+The Schema Browser Field Map GET API changes are ready for QE testing in UAT.
+
+JIRA: C167969S-153034
+API: GET /citihawk/schemabrowser/fieldmap/configurations
+
+Scope of changes:
+
+1. Existing behavior is retained:
+   When the API is called without RUN_FREQUENCY, it returns all active/current Field Map configuration records.
+
+   GET /citihawk/schemabrowser/fieldmap/configurations
+
+2. New optional RUN_FREQUENCY parameter has been added.
+
+   Supported values:
+   - WEEKLY
+   - MONTHLY
+
+   Examples:
+
+   GET /citihawk/schemabrowser/fieldmap/configurations?RUN_FREQUENCY=WEEKLY
+
+   Returns only active WEEKLY configuration records.
+
+   GET /citihawk/schemabrowser/fieldmap/configurations?RUN_FREQUENCY=MONTHLY
+
+   Returns only active MONTHLY configuration records.
+
+3. Active records are fetched using:
+   IS_CURRENT_FLAG = 'Y'
+
+4. Response ordering has been updated to:
+   ORDER BY FIELD_MAP_SK
+
+   FIELD_MAP_SK is used as the stable unique identifier for each returned configuration record.
+
+5. Response contains:
+   - FIELD_MAP_SK
+   - TABLE_PHYSICAL_NAME
+   - FINAL_QUERY
+   - RUN_FREQUENCY
+
+6. FINAL_QUERY may contain CLOB-backed/large SQL content and should be returned completely without truncation.
+
+7. The existing Schema Browser datasource/JDBC configuration is reused; no additional DB connection has been introduced.
+
+The changes have been deployed in UAT and are ready for validation.
+
+Please validate:
+- Existing URL without RUN_FREQUENCY returns all active records.
+- RUN_FREQUENCY=WEEKLY returns only weekly records.
+- RUN_FREQUENCY=MONTHLY returns only monthly records.
+- Response is ordered by FIELD_MAP_SK.
+- FIELD_MAP_SK is present in every response record.
+- FINAL_QUERY is returned completely.
+- API returns HTTP 200/application-json for successful requests.
+
+Please let me know if you need any additional details.
+
+Thanks,
+Pratap
+
+
+
+
+
+
+Jira Description:
+
+Implement and enhance the Schema Browser GET API to fetch active Field Map configuration records from Oracle using the existing Schema Browser datasource configuration. No new database connection is introduced.
+
+Endpoint:
+GET /citihawk/schemabrowser/fieldmap/configurations
+
+Controller:
+FieldMapConfigController
+
+Service:
+FieldMapConfigService
+
+Response Model:
+FieldMapConfigResponse
+
+Database Table:
+C167969RPC.OM_CATALOGUE_FIELD_MAP_LKP
+
+Base behavior:
+The API retrieves active configuration records where:
+
+IS_CURRENT_FLAG = 'Y'
+
+and orders the response by:
+
+FIELD_MAP_SK
+
+Response fields:
+- FIELD_MAP_SK
+- TABLE_PHYSICAL_NAME
+- FINAL_QUERY
+- RUN_FREQUENCY
+
+
+Parameterized Enhancement:
+
+RUN_FREQUENCY has been added as an OPTIONAL request parameter.
+
+Supported values:
+- WEEKLY
+- MONTHLY
+
+Behavior:
+
+1. No RUN_FREQUENCY supplied:
+
+GET /citihawk/schemabrowser/fieldmap/configurations
+
+Returns all active/current configuration records.
+
+2. Weekly:
+
+GET /citihawk/schemabrowser/fieldmap/configurations?RUN_FREQUENCY=WEEKLY
+
+Returns only active records having RUN_FREQUENCY = 'WEEKLY'.
+
+3. Monthly:
+
+GET /citihawk/schemabrowser/fieldmap/configurations?RUN_FREQUENCY=MONTHLY
+
+Returns only active records having RUN_FREQUENCY = 'MONTHLY'.
+
+The existing behavior is therefore backward compatible. Consumers that do not supply RUN_FREQUENCY continue to receive the complete active configuration list.
+
+FIELD_MAP_SK is retained in the response and the API response is ordered by FIELD_MAP_SK to provide stable identification/order for downstream processing.
+
+FINAL_QUERY is CLOB-backed and is returned completely without truncation.
+
+Environment:
+UAT
+
+Changes have been deployed in UAT and are ready for QE validation.
+
+
+
+
+
+
+
+Acceptance Criteria:
+
+1. GET /citihawk/schemabrowser/fieldmap/configurations returns HTTP 200 with application/json.
+
+2. When RUN_FREQUENCY is not supplied, the API returns all active records where:
+   IS_CURRENT_FLAG = 'Y'.
+
+3. The existing API behavior remains backward compatible when no RUN_FREQUENCY parameter is supplied.
+
+4. When:
+   RUN_FREQUENCY=WEEKLY
+   is supplied, the API returns only active WEEKLY records.
+
+5. When:
+   RUN_FREQUENCY=MONTHLY
+   is supplied, the API returns only active MONTHLY records.
+
+6. Records are ordered by FIELD_MAP_SK.
+
+7. Each response record contains:
+   - FIELD_MAP_SK
+   - TABLE_PHYSICAL_NAME
+   - FINAL_QUERY
+   - RUN_FREQUENCY
+
+8. FIELD_MAP_SK is available as a stable unique identifier for downstream processing.
+
+9. FINAL_QUERY is returned completely for large/CLOB-backed values without truncation.
+
+10. If FINAL_QUERY is null in the database, the API handles the value without failing the entire response.
+
+11. The existing Schema Browser datasource/JDBC configuration is used. No hardcoded or secondary DB connection is introduced.
+
+12. Existing CLOB handling remains functional.
+
+13. DEV/UAT deployment is completed and the UAT endpoint is available for QE testing.
+
+QE scenarios should validate:
+- No parameter → all active records
+- WEEKLY → weekly records only
+- MONTHLY → monthly records only
+- Stable FIELD_MAP_SK ordering
+- Complete FINAL_QUERY values
+
+
+
+
+
+
+
+
 I need to enhance the existing Schema Browser Field Map GET API with an OPTIONAL RUN_FREQUENCY filter.
 
 IMPORTANT:
