@@ -1,5 +1,17 @@
 
 
+SELECT ID,
+       CONSUMER_NAME,
+       REPORT,
+       PRODUCT,
+       ENTITY,
+       SQL_PAYLOAD
+FROM A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+WHERE ID = 3104;
+
+
+
+
 C:\Users\pg16424\github repo\167969.olympus-onerec.olympus-onerec-script
 
 
