@@ -1,4 +1,49 @@
 
+
+
+Subject: SB User Consumption – Request for Updated Olympus JDBC JAR for CVM Remediation
+
+Hi Keya,
+
+Thanks for sharing the governance meeting minutes.
+
+One item discussed today from our side was not captured in the summary. Sharing the details below for tracking.
+
+Application: SB User Consumption
+Project/Domain: Olympus Data
+App ID: 176352
+Repository: 176352.olympus-data.olympus-sb-user-consumption
+Application Type: Python
+FID: sb_olympus_fid
+Datasource: STARBURST
+Current JDBC Driver: olympus-jdbc-driver-3.0.17.jar
+
+The application uses the Olympus JDBC JAR through JayDeBeApi. The current 3.0.17 driver is working functionally, but Black Duck is still reporting the following JDBC-related CVM findings:
+
+* Kotlin 2.1.0
+* Logback 1.5.19
+* Netty Project 4.1.130
+
+We need an updated/remediated Olympus JDBC JAR that resolves these CVM findings.
+
+Could you please help us with the correct updated JDBC JAR/version that we should use for SB User Consumption?
+
+Once we receive the updated JAR, we will update the application, validate it in UAT, run the Black Duck scan, and proceed with QE/sign-off.
+
+Could you also please add this item to the governance tracking/minutes?
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
+
+
+
 Hi QE Team,
 
 The OpenShift CLI image update for the SB User Consumption restart CronJob has been deployed to UAT.
