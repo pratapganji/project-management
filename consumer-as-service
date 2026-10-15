@@ -1,3 +1,56 @@
+
+Update the existing Python application directly.
+
+Files:
+
+* src/main.py
+* src/configuration_repository.py
+* src/payload_parser.py
+* src/spark_runtime.py
+* src/spark_executor.py
+
+Reuse existing functions and classes.
+
+INPUT JSON:
+{
+“consumer”: “Workstation”,
+“globalTransactionId”: “b26afa01-24a4-4283-b7f0-9af7c7879e8267”,
+“reportStreamName”: [
+{“report”: “2052a”, “product”: “Loans”, “entity”: “”}
+],
+“runDate”: [20250331]
+}
+
+INPUT HEADERS:
+username = lodt_olympus_fid
+s3path = s3a://lodt-ops-uploads-uat/olympus/2026/03/31/
+
+IMPLEMENT:
+
+1. Accept the JSON body and header values through –request-file and –headers-file in src/main.py.
+2. Connect to Oracle using the existing environment-specific Oracle configuration and credentials, independently of the incoming username header.
+3. Retrieve matching rows from A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD.
+4. Lookup mapping:
+    consumer -> CONSUMER_NAME
+    username header -> FID
+    reportStreamName[].report -> REPORT
+    reportStreamName[].product -> PRODUCT
+    reportStreamName[].entity -> ENTITY
+5. Use Oracle bind parameters. For empty entity use ENTITY IS NULL. Process every reportStreamName entry independently. Raise errors for missing or ambiguous matches.
+6. Retrieve ID, CONSUMER_NAME, FID, DATATYPE, REPORT, PRODUCT, ENTITY, HIERARCHY_PATH and SQL_PAYLOAD.
+7. Parse SQL_PAYLOAD JSON. Preserve dataSource, sqlQuery, fileName, databaseFetchSize, environment, s3path and other existing payload attributes. Use the incoming s3path header as request context without overwriting the original payload.
+8. For dataSource=SPARKYAML, execute the complete sqlQuery using the existing SparkSession and spark_executor.py. Support large result sets without collecting all rows into Python memory.
+9. Preserve globalTransactionId, runDate, consumer, FID, report, product, entity, fileName, databaseFetchSize and s3path in the execution context.
+10. Return structured execution results with success/failure and error details. Report completion only after the corresponding Spark action has actually succeeded.
+11. Add/update unit tests for request parsing, Oracle lookup, empty entity, multiple report entries, payload parsing and Spark execution.
+
+Implement changes directly in existing files. Run tests and report actual results.
+
+
+
+
+
+
 SELECT
     ID,
     CONSUMER_NAME,
