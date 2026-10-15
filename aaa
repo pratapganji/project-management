@@ -1,5 +1,29 @@
 
 
+Analyze the existing Python code. Do not modify any files.
+
+Locate and show the exact source filenames, functions, and line numbers for:
+
+1. SparkSession creation and configuration.
+2. Oracle connection using spark.read.jdbc().
+3. SQL_PAYLOAD retrieval from A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD.
+4. sqlQuery extraction and placeholder replacement.
+5. Every spark.sql() execution in this repository.
+6. Any execution of WORKSTATION SQL that produces actual output data, not only validation counts.
+7. Any existing S3 output-writing implementation.
+
+For each, show the actual code snippet and explain whether it can be reused to implement Oracle configuration retrieval → execute the complete SQL using Spark → produce query output.
+
+Clearly distinguish validation SQL execution from actual report/data-export SQL execution.
+
+Do not implement or refactor anything yet. Do not guess. Identify exactly what exists and what is missing.
+
+
+
+
+
+
+
 Review the Python files already generated in this repository. Do not recreate them or modify unrelated existing application code.
 
 First fix the Python interpreter configuration and dependency setup.
