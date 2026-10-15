@@ -1,5 +1,48 @@
 
 
+Act as a senior PySpark developer. Work in the CURRENT repository. Implement the missing direct Spark execution functionality in our new src/ modules.
+
+Existing reference:
+scripts/generic_trigger_v1.py
+
+Existing code:
+
+* SparkSession initialization: lines ~96–103
+* Oracle JDBC configuration: lines ~51–62
+* Oracle JDBC query execution: lines ~586–594
+* SQL_PAYLOAD extraction: lines ~187–269
+* spark.sql() execution: lines ~287–290
+* Existing NGC/environment credential handling and Spark launch configurations
+
+TASK:
+
+1. Reuse the existing SparkSession initialization, JDBC configuration and environment-based credentials. Extract reusable functions into NEW src/ modules without changing generic_trigger_v1.py.
+2. Integrate with existing src/configuration_repository.py and src/payload_parser.py.
+3. Read configuration from:
+    A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+4. Retrieve and preserve:
+    ID, CONSUMER_NAME, FID, DATATYPE, REPORT, PRODUCT, ENTITY, SQL_PAYLOAD, HIERARCHY_PATH.
+5. Parse SQL_PAYLOAD fields:
+    dataSource, sqlQuery, s3path, fileName, catalog, environment, callBackUrl, databaseFetchSize.
+6. Use the COMPLETE sqlQuery retrieved from Oracle. Do not use validation SQL or modify report business logic.
+7. Verify that the current SparkSession has access to the tables and SQL dialect required by the configured WORKSTATION query. Do not assume validation SQL compatibility proves report SQL compatibility.
+8. If compatible, create src/spark_executor.py implementing:
+    execute_query(spark, sql_query, configuration)
+    Use spark.sql(sql_query) to obtain the resulting DataFrame. Handle errors and empty results. Do not call collect() on large datasets.
+9. Update src/main.py to support an explicitly configured SPARK execution mode. Preserve the existing HTTP execution_client.py as a separate option; do not delete it.
+10. Reuse existing NGC credential propagation and Spark launch configuration. Do not hardcode credentials, introduce a new credential system, or alter existing production scripts.
+11. Create mocked unit tests for Oracle configuration retrieval, SQL_PAYLOAD parsing and Spark execution.
+12. Do not implement callbacks, notifications, audit tables, schedulers or S3 upload. Later, a Schema Browser role check must authorize S3 access before upload.
+
+Create the code changes now. Run available unit tests. Clearly report whether direct Spark execution is compatible with our WORKSTATION SQL or what runtime validation is still required.
+
+
+
+
+
+
+
+
 Inspect scripts/generic_trigger_v1.py and its existing Spark configuration, shell launchers, imports and helper modules. Do not modify code yet.
 
 Find the exact code responsible for:
