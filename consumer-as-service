@@ -1,23 +1,25 @@
-def write_csv_output(dataframe, output_path: str) -> str:
-    """
-    Write the complete Spark DataFrame as CSV files.
-    """
-    if dataframe is None:
-        raise ValueError("Spark DataFrame is required")
+safe_transaction_id = re.sub(
+    r"[^A-Za-z0-9_-]", "_", str(global_transaction_id)
+)
 
-    if not output_path or not output_path.strip():
-        raise ValueError("Output path is required")
+safe_file_name = re.sub(
+    r"[^A-Za-z0-9_.-]", "_",
+    str(parsed.payload.fileName or "report")
+)
 
-    output_path = output_path.strip()
+if not args.output_dir:
+    raise ValueError("--output-dir is required for Spark CSV output")
 
-    # S3 writing must wait until access authorization is implemented.
-    if output_path.lower().startswith(("s3://", "s3a://", "s3n://")):
-        raise ValueError("S3 authorization is not implemented yet")
+output_path = (
+    f"{args.output_dir.rstrip('/')}/{safe_transaction_id}/"
+    f"{stream_number:03d}_{safe_file_name}"
+)
 
-    dataframe.write \
-        .mode("errorifexists") \
-        .option("header", "true") \
-        .option("emptyValue", "") \
-        .csv(output_path)
+written_path = write_csv_output(
+    spark_result["dataframe"],
+    output_path
+)
 
-    return output_path
+
+"outputPath": written_path,
+"emptyResult": spark_result["empty_result"],
