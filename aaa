@@ -1,4 +1,167 @@
 
+Implement a Python application in this NEW repository. Create actual files, functions, tests and configuration. No existing application code is available. Execute development tasks; do not generate documentation instead of code.
+
+FUNCTIONALITY
+
+Oracle configuration lookup → JSON payload extraction → HTTP SQL job submission → response/job ID handling.
+
+1. ORACLE CONFIGURATION
+
+Use oracledb. Configure connections by environment:
+
+ENV	HOST	PORT	SERVICE	USERNAME
+DEV	ORF1DEV.oraas.dyn.nsroot.net	8889	HAORF1DEV	A167969NURAREC
+UAT	ORF1UAT.oraas.dyn.nsroot.net	8889	HAORF1UAT	A167969NURAFLOW
+PROD	ORF1PRD.oraas.dyn.nsroot.net	8889	HAORF1PRD	A167969NURAFLOW
+
+Passwords: environment variables / approved secret store only. COB Oracle connection: configurable placeholder until provided.
+
+Configuration table:
+
+A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+
+Columns:
+
+ID, CONSUMER_NAME, FID, DATATYPE, REPORT, PRODUCT, ENTITY, SQL_PAYLOAD, HIERARCHY_PATH
+
+Implement parameterized lookup:
+
+SELECT ID, CONSUMER_NAME, FID, DATATYPE,
+       REPORT, PRODUCT, ENTITY, SQL_PAYLOAD, HIERARCHY_PATH
+FROM A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+WHERE ID = :config_id
+
+Also support lookup by CONSUMER_NAME, REPORT, PRODUCT, ENTITY, optionally FID, DATATYPE, HIERARCHY_PATH.
+
+Sample record: ID=3104, CONSUMER_NAME=Workstation, REPORT=FRY14Q, PRODUCT=Loans, ENTITY=Facility_ISR.
+
+Support Oracle CLOB extraction. Reject zero or multiple matching records.
+
+2. SQL_PAYLOAD — EXACT FIELDS
+
+Parse JSON from the Oracle SQL_PAYLOAD column:
+
+{
+  "dataSource": "SPARKYAML",
+  "sqlQuery": "<FULL_SQL_FROM_ORACLE>",
+  "s3path": "s3_path",
+  "fileName": "FRY14Q-Loans-Facility_ISR",
+  "catalog": null,
+  "environment": "UAT",
+  "callBackUrl": null,
+  "databaseFetchSize": 50000
+}
+
+Use exact field names. Extract COMPLETE sqlQuery; never hardcode SQL.
+
+Validate dataSource, sqlQuery, environment, fileName, databaseFetchSize. Preserve catalog, s3path, callBackUrl, and all Oracle record columns in the execution context. Do not enrich, rewrite or substitute the SQL.
+
+3. SQL EXECUTION SERVICE — HTTP POST
+
+Configure URLs per environment:
+
+ENV	BASE URL
+DEV	http://bdnyr007x05h5:8887
+UAT	http://bdnyr011x03h5:8887
+COB	http://bdnyr011x04h5:8887
+PROD	http://bdnjr004x03h5:8887
+
+Endpoint paths:
+
+* Submit: /dataservice/submit/job/hive_sql
+* Status: /dataservice/getStatus
+* Download: /dataservice/downloadfile/zip/
+* Move to S3: /dataservice/movefiletos3/zip/
+
+Use Python requests.Session, environment-based URL selection, configurable authentication headers, timeouts and error handling.
+
+Construct the observed SQL submission structure:
+
+{
+  "jobDetails": [
+    {
+      "sql": "<SQL_PAYLOAD.sqlQuery>",
+      "sqlIdentifier": "SqlOne",
+      "fileName": "<SQL_PAYLOAD.fileName>"
+    }
+  ]
+}
+
+Optional execution-job properties: headers, separator, fileType. Send only if configured and supported.
+
+Keep dataSource, environment, catalog, databaseFetchSize, s3path and record metadata in Python context. Do not invent additional HTTP JSON properties.
+
+The URL/payload are known from an existing SQL execution implementation; compatibility with SPARKYAML and its authentication contract is not yet confirmed. Implement HTTP submission using the observed structure, isolate the contract in a configurable adapter, and do not report live compatibility without verification.
+
+4. EXECUTION RESPONSE
+
+Validate HTTP status and JSON.
+
+Observed successful submission response contains:
+
+{
+  "status": "SUCCESS",
+  "jobDetails": [
+    {
+      "jobId": "<RETURNED_JOB_ID>"
+    }
+  ]
+}
+
+Extract status and jobId. Treat this as submission acknowledgment, not completed query output.
+
+Implement status-check and download client modules using the configured endpoints, but do not invent their HTTP methods, parameters or response structures; keep them disabled until verified.
+
+Produce structured execution metadata including configuration ID, FID, consumer, report, product, entity, datasource, environment, jobId, submission status, fileName, s3path and errors.
+
+5. CREATE FILES
+
+src/
+  __init__.py
+  config.py
+  oracle_connection.py
+  configuration_repository.py
+  payload_parser.py
+  execution_client.py
+  execution_payload.py
+  execution_result.py
+  main.py
+tests/
+  test_oracle_connection.py
+  test_configuration_repository.py
+  test_payload_parser.py
+  test_execution_payload.py
+  test_execution_client.py
+.env.example
+.gitignore
+requirements.txt
+README.md
+
+Dependencies: oracledb, requests, python-dotenv, pytest.
+
+Implement connection cleanup, parameterized SQL, structured logging, request correlation IDs, secret masking and retry-safe error handling. Do not retry uncertain job submissions blindly.
+
+6. RUN COMMAND
+
+python -m src.main --config-id 3104 --environment UAT
+
+Also support consumer/report/product/entity selection.
+
+7. TEST
+
+Mock Oracle queries and HTTP requests. Test CLOB, JSON parsing, every payload field, environment URL selection, SQL-to-job mapping, successful submission, job ID extraction, authentication errors, timeouts, malformed responses, and cleanup.
+
+Run pytest, fix failures and list any remaining external configuration requirements.
+
+IMPLEMENT NOW. Create all files and working code in the current repository. No Java project, external application repository or other team’s database is available.
+
+S3 authorization and upload are the next phase. Preserve FID and s3path for that phase; do not upload anything until role-based access is checked through the Schema Browser API, whose contract will be supplied later.
+
+
+
+
+
+
 
 SELECT DATA_SOURCE, ENV, DATA_SOURCE_TYPE,
        CONNECTION_NAME, DRIVER_CLASS, JDBC_URL
