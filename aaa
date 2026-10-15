@@ -1,4 +1,22 @@
 
+
+Review the Python files already generated in this repository. Do not recreate them or modify unrelated existing application code.
+
+First fix the Python interpreter configuration and dependency setup.
+
+The terminal shows HTTP 401 from Citi Artifactory while installing oracledb, followed by ModuleNotFoundError: No module named ‘requests’.
+
+Use the configured project virtual environment and approved Citi Python package repository. Do not hardcode repository credentials or bypass authentication.
+
+Verify requirements.txt contains oracledb, requests, python-dotenv and pytest.
+
+Once package installation succeeds, run the existing unit tests, fix Python implementation errors, and verify that main.py imports correctly.
+
+Do not attempt live Oracle or SQL execution until the environment and tests work. Report any Artifactory authentication issue that requires user action.
+
+
+
+
 Act as a senior Python developer. This is a NEW repository. Create the actual Python application, files, functions, configuration and tests. Do not provide pseudocode or an architecture document. Implement directly.
 
 1. ORACLE CONNECTION
