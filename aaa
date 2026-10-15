@@ -1,5 +1,29 @@
 
 
+Inspect scripts/generic_trigger_v1.py and its existing Spark configuration, shell launchers, imports and helper modules. Do not modify code yet.
+
+Find the exact code responsible for:
+
+1. Creating SparkSession and connecting to the Spark cluster.
+2. Running SQL through spark.sql().
+3. Reading Oracle configuration through Spark JDBC, including how NGC-provided credentials are consumed.
+4. Configuring Spark JARs, authentication and execution environment.
+
+Compare these existing mechanisms with our new src/configuration_repository.py, src/oracle_connection.py and src/execution_client.py.
+
+Determine whether our new implementation can execute the complete SQL_PAYLOAD.sqlQuery through the existing SparkSession instead of HTTP.
+
+Show exact filenames, functions and relevant code. Clearly distinguish pre-trigger validation SQL from report-data execution.
+
+Do not change existing production scripts or newly created files yet.
+
+
+
+
+
+
+
+
 Analyze the existing Python code. Do not modify any files.
 
 Locate and show the exact source filenames, functions, and line numbers for:
