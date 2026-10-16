@@ -1,4 +1,6 @@
 
+yarn application -status application_1791720581700_360910
+
 yarn logs -applicationId application_1791720581700_360910 -log_files stderr
 
 yarn logs -applicationId application_1791720581700_360910 -log_files stderr 2>&1 | grep -nEi -A 12 -B 5 'Traceback|ModuleNotFoundError|ImportError|Exception|Error'
