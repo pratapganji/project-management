@@ -1,5 +1,10 @@
 
 
+
+grep -nEi 'spark|pyspark|py.files|python' /data/1/gfolygcm/bin/common/current/scripts/olympus_jobLauncher.ksh
+
+
+
 SELECT *
 FROM A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
 WHERE CONSUMER_NAME = 'ROCK'
