@@ -1,4 +1,8 @@
 
+
+yarn logs -applicationId application_1791720581700_360910 -appOwner gfolygsm
+
+
 yarn application -status application_1791720581700_360910
 
 yarn logs -applicationId application_1791720581700_360910 -log_files stderr
