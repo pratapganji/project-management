@@ -2,6 +2,23 @@
 
 Hi Rajat,
 
+We checked the Autosys and YARN logs on bdnyr041x15t2 and bdnyr009x01h5.
+
+The Spark application starts but exits with status 1 during initialization, resulting in YARN exit code 13. We suspect a Python startup, dependency, configuration, or access issue, but the exact cause is not confirmed.
+
+We also tried retrieving the complete YARN logs, but our user pg16424 is getting HDFS permission denied for /tmp/logs/gfolygsm.
+
+Could you please share the contact/team who can help us access the driver logs and investigate the failure?
+
+Application ID: application_1791720581700_360910
+
+
+
+
+
+
+Hi Rajat,
+
 We investigated the failure of Autosys job 167969_OM_ONEREC_FRY14Q_LOANS_COLLATERAL_ISR_TRIGR_COB on October 16.
 
 We checked the following two servers:
