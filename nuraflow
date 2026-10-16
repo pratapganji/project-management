@@ -1,5 +1,45 @@
 
 
+Hi Rajat,
+
+We investigated the failure of Autosys job 167969_OM_ONEREC_FRY14Q_LOANS_COLLATERAL_ISR_TRIGR_COB on October 16.
+
+We checked the following two servers:
+
+1. Autosys execution server – bdnyr041x15t2.nam.nsroot.net
+
+* Reviewed the Autosys job configuration, agent logs and job launcher logs.
+* Confirmed that Autosys successfully triggered the job and submitted the Spark application to YARN.
+* The Spark application failed with exit code 1, which was propagated back to Autosys.
+* We attempted to retrieve the YARN application logs, but initially encountered Kerberos authentication errors. After obtaining a Kerberos ticket, log retrieval failed due to HDFS permission restrictions.
+
+2. YARN server – bdnyr009x01h5.nam.nsroot.net
+
+* Connected to the server and verified that the YARN command is available.
+* Initially, our user pg16424 did not have a Kerberos ticket. We authenticated using kinit and confirmed the ticket using klist.
+* Checked the application status using yarn application -status.
+* Confirmed that the Spark application ran under service account gfolygsm and failed with YARN exit code 13 (User application exited with status 1).
+* Attempted to retrieve the application logs using yarn logs -applicationId ... -appOwner gfolygsm, but received an HDFS permission-denied error for /tmp/logs/gfolygsm.
+
+Application ID: application_1791720581700_360910
+
+At this point, we have confirmed the Spark application failure, but the underlying Python/application exception is still unknown because we cannot access the complete YARN logs.
+
+Could you please share the contact person or support team who can help us retrieve the complete YARN application/driver logs using the authorized service account or provide the required read access?
+
+We need those logs to identify the actual root cause before rerunning the job.
+
+I am attaching the relevant Autosys, YARN failure and permission-denied screenshots for reference.
+
+
+
+
+
+
+
+
+
+
 yarn logs -applicationId application_1791720581700_360910 -appOwner gfolygsm
 
 
