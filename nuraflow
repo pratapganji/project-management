@@ -1,5 +1,8 @@
 
 
+find /data/1/gfolygcm -type f -name 'spark_session.py' 2>/dev/null
+
+
 grep -nEi 'py-files|py_files|spark-submit|archives|pythonpath' exec_jobLauncher.ksh
 
 
