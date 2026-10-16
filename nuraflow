@@ -1,5 +1,10 @@
 
 
+
+yarn logs -applicationId application_1791720581700_360910 -log_files stderr 2>&1 | grep -nEi -A 12 -B 5 'Traceback|ModuleNotFoundError|ImportError|Exception|Error'
+
+
+
 sed -n '1,180p' /data/1/gfolygsm/bin/onerec/current/scripts/generic_trigger_v1.py
 
 
