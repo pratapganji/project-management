@@ -1,5 +1,8 @@
 
 
+ls -la /data/1/gfolygsm/bin/onerec/current/config/
+
+
 grep -nE 'spark-submit|generic_trigger_v1|PYTHONPATH|pyFiles|py_files|--py-files' /data/1/gfolygsm/bin/onerec/current/lib/utils/spark_session.py
 
 ls -la /data/1/gfolygsm/bin/onerec/current/lib/utils/
