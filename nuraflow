@@ -1,5 +1,7 @@
 
 
+ls -la /data/1/gfolygsm/bin/onerec/current/lib/utils/
+
 
 grep -nE '(^from lib|^import lib|sys.path|PYTHONPATH)' /data/1/gfolygsm/bin/onerec/current/scripts/generic_trigger_v1.py
 
