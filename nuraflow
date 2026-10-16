@@ -1,5 +1,7 @@
 
 
+grep -nEi 'py-files|py_files|spark-submit|archives|pythonpath' exec_jobLauncher.ksh
+
 
 grep -nEi 'spark|pyspark|py.files|python' /data/1/gfolygcm/bin/common/current/scripts/olympus_jobLauncher.ksh
 
