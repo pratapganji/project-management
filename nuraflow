@@ -1,3 +1,12 @@
+
+
+
+grep -nE '(^from lib|^import lib|sys.path|PYTHONPATH)' /data/1/gfolygsm/bin/onerec/current/scripts/generic_trigger_v1.py
+
+
+ls -l /data/1/gfolygsm/bin/onerec/current
+
+
 ls -l /data/1/gfolygsm/bin/onerec/current
 
 find /data/1 -type f -name 'generic_trigger_v1.py' 2>/dev/null
