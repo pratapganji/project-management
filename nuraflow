@@ -1,4 +1,4 @@
-
+find /data/1/gfolycmn -type f -name 'spark_session.py' 2>/dev/null
 
 find /data/1/gfolygcm -type f -name 'spark_session.py' 2>/dev/null
 
