@@ -1,5 +1,24 @@
 
 
+Hi Keya,
+
+Following up on the below request.
+
+Could you please help confirm with the Black Duck/CVM team what remediated versions are required for the reported Kotlin, Logback, Netty, and Jackson Core findings, and help us with an updated Olympus JDBC JAR that contains those versions and resolves these Black Duck findings?
+
+Once we receive the updated JAR, we can validate it in UAT and rerun the Black Duck scan to confirm the issues are resolved.
+
+Please help us with an update on this.
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
 
 Subject: SB User Consumption – Request for Updated Olympus JDBC JAR for CVM Remediation
 
