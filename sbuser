@@ -1,5 +1,12 @@
 
 
+Hi Suraj, we are seeing the same issue for multiple Python packages like urllib3, pytest, Werkzeug and sqlparse. The current available versions are still flagged by Black Duck, but newer versions are not available in LSE Artifactory.
+
+Can you please guide what we need to do from our side to upgrade to the required newer versions? Do we need to raise any request for those versions to be added to Artifactory?
+
+
+
+
 Hi Keya,
 
 Following up on the below request.
