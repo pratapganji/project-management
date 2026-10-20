@@ -1,5 +1,18 @@
 
 
+Check whether the FID/service account used by OneRec is configured in CCP for COB.
+Compare the COB setup with the working PROD setup.
+Verify whether the application can retrieve the required passwords, particularly the database/JDBC password and Workstation authentication credentials.
+Investigate why COB is failing even though the connections are expected to be the same.
+
+
+
+
+
+
+
+
+
 /data/1/gfolygsm/logs/onerec/
 
 /data/1/gfolycmn/bin/common/current/scripts/spark_batchProfile_small.ksh
