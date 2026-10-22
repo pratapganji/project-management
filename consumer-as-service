@@ -1,5 +1,290 @@
 
 
+
+Implement Schema Browser S3 access authorization in the existing Python file caas.py.
+
+Repository: 167969.olympus-onerec.olympus-onerec-script
+Branch: STAGING_24_AUG_2026
+
+IMPORTANT:
+This is Venkat’s existing end-to-end S3 export implementation. Reuse its existing functions and flow. Make minimal changes. Do not recreate Spark execution, Oracle configuration retrieval, CSV generation, S3 staging, or S3 publishing.
+
+CURRENT IMPLEMENTATION:
+
+1. process_single_config() starts around line 338.
+2. It resolves c.target_s3_path, creates c_eff, and calls validate_config(c_eff).
+3. At approximately lines 354–359, it conditionally calls authorize_fid(c_eff) based on ENABLE_S3_PATH_ACCESS_CHECK.
+4. authorize_fid() exists around lines 467–485, but currently performs an HTTP POST to a different authorization API and expects {"authorized": true}.
+5. Spark SQL or HDFS data is written to an S3 staging location before publish_run() copies it to the final S3 destination.
+6. Therefore authorization MUST occur before the first staging S3 write, at the existing authorization call location.
+
+IMPLEMENT THE FOLLOWING CHANGES.
+
+1. REPLACE THE EXISTING AUTHORIZATION API INTEGRATION
+
+Use the existing Schema Browser API:
+
+GET /citihawk/schemabrowser/resourcesWithActions
+
+Supported optional query parameters:
+
+* soeid
+* resource
+* applicationPrefix
+
+The Python authorization check must always explicitly provide soeid and resource.
+
+Example full response when only soeid is supplied:
+
+{
+“resource_one”: [“view”],
+“resource_two”: [“upload”, “update”]
+}
+
+When the exact resource query parameter is supplied, the Java controller returns the list of actions for that resource, or null when the resource does not exist.
+
+Schema Browser was successfully called using:
+soeid=lodt_olympus_fid
+
+A successful HTTP 200 alone DOES NOT mean the user is authorized.
+
+2. IMPLEMENT ENVIRONMENT-SPECIFIC SCHEMA BROWSER URL SELECTION
+
+The application supports DEV, UAT, PROD and may also run in COB.
+
+Read the existing job environment from ENV and normalize it to uppercase.
+
+Use separate environment variables:
+
+SCHEMA_BROWSER_URL_DEV
+SCHEMA_BROWSER_URL_UAT
+SCHEMA_BROWSER_URL_PROD
+SCHEMA_BROWSER_URL_COB
+
+Each variable must contain the complete Schema Browser resourcesWithActions endpoint URL appropriate to that environment.
+
+For example, an environment variable will contain a URL ending in:
+
+/citihawk/schemabrowser/resourcesWithActions
+
+Do not hardcode the URL for every environment.
+
+Do not invent DEV, PROD, or COB hostnames.
+
+Use explicit mapping:
+
+DEV -> SCHEMA_BROWSER_URL_DEV
+UAT -> SCHEMA_BROWSER_URL_UAT
+PROD -> SCHEMA_BROWSER_URL_PROD
+COB -> SCHEMA_BROWSER_URL_COB
+
+Do not silently map COB to UAT or PROD.
+
+Do not reuse the unrelated environment translation used for other application functionality.
+
+If ENV is unsupported, missing, or the matching endpoint URL is not configured, raise JobError and block S3 writing whenever authorization is enabled.
+
+3. REUSE THE EXISTING authorize_fid(c: ExportConfig) FUNCTION
+
+Replace only its existing POST-based implementation with an HTTP GET call to Schema Browser.
+
+The request must be equivalent to:
+
+requests.get(
+schema_browser_url,
+params={
+“soeid”: resolved_user,
+“resource”: resolved_resource_id
+},
+headers={“Accept”: “application/json”},
+timeout=(5, 20)
+)
+
+Make the timeout configurable through SCHEMA_BROWSER_TIMEOUT, with a reasonable default.
+
+Keep HTTPS certificate verification enabled using the environment’s approved CA/trust configuration.
+
+Do not disable SSL verification.
+
+Do not log tokens, passwords, certificates, or secrets.
+
+Reuse the existing requests dependency and existing JobError and AccessDenied exception classes.
+
+4. HANDLE USER ID CORRECTLY
+
+The existing ExportConfig contains c.fid.
+
+Before using it, inspect how the existing code populates this value.
+
+For the initial integration, use the FID from the active export configuration only if that value represents the user whose authorization must be checked.
+
+Do not use the Oracle JDBC database username as the authorization identity.
+
+Do not invent a WORKSTATION HTTP request handler or a new username source.
+
+Keep the authorization identity resolution isolated so it can be changed when the final WORKSTATION identity contract is confirmed.
+
+If the identity is missing, deny authorization.
+
+5. IDENTIFY THE EXACT EEMS RESOURCE FOR THE S3 DESTINATION
+
+Schema Browser resource IDs and S3 bucket paths are not automatically the same.
+
+Implement environment-specific approved mappings between S3 destination prefixes and EEMS resource IDs.
+
+Use configuration such as:
+
+S3_EEMS_RESOURCE_MAP_DEV
+S3_EEMS_RESOURCE_MAP_UAT
+S3_EEMS_RESOURCE_MAP_PROD
+S3_EEMS_RESOURCE_MAP_COB
+
+Each mapping can be a JSON object where:
+
+* Key = approved S3 bucket/prefix
+* Value = corresponding approved EEMS resource ID
+
+Example structure (placeholders only):
+
+{
+“s3a://approved-bucket/approved-prefix”: “approved_eems_resource_id”
+}
+
+Do not invent actual bucket names or EEMS resource IDs.
+
+Select the mapping based on ENV.
+
+Find the most specific valid S3 destination prefix matching c.target_s3_path.
+
+Ensure prefix matching respects path boundaries to prevent similarly named prefixes from being confused.
+
+If no approved resource mapping is found, raise AccessDenied.
+
+Do not authorize based on an unrelated resource in the Schema Browser response.
+
+6. VALIDATE UPDATE PERMISSION
+
+The required action is:
+
+update
+
+Make the action configurable through SCHEMA_BROWSER_REQUIRED_ACTION, defaulting to update.
+
+The access check succeeds only when the exact configured resource’s returned actions include the required action.
+
+Expected behavior:
+
+[“update”] -> authorized
+[“view”, “update”] -> authorized
+[“view”] -> denied
+[“upload”] -> denied when required action is update
+[] -> denied
+null -> denied
+Missing resource -> denied
+Invalid response -> denied
+API timeout -> deny and fail the job
+HTTP error -> deny and fail the job
+
+Validate the response type. A resource-filtered request should return a JSON list of action strings or null, according to the Java controller.
+
+Do not incorrectly interpret a JSON object, missing value, HTTP 200, or non-empty unrelated permissions as authorization.
+
+If permission is denied, raise the existing AccessDenied exception with a clear message such as:
+
+“User does not have update permission for the configured S3 destination”
+
+7. IMPLEMENT THE EXISTING FLAG REQUIREMENT
+
+Reuse the current check in process_single_config().
+
+Environment variable:
+
+ENABLE_S3_PATH_ACCESS_CHECK
+
+Required behavior:
+
+Y -> perform Schema Browser authorization
+N -> bypass Schema Browser authorization
+Missing -> default to Y
+Any other value -> raise JobError
+
+Only explicit N can bypass authorization.
+
+Log when authorization is checked and when an explicit bypass is enabled, without logging secrets.
+
+Preserve the existing authorization call location BEFORE S3 staging.
+
+Do not move authorization after Spark execution, because the existing Spark writer already writes its output directly to an S3 staging URI.
+
+8. PRESERVE VENKAT’S EXISTING IMPLEMENTATION
+
+Do not modify:
+
+* load_configs()
+* validate_consumer_config_count()
+* Oracle JDBC configuration retrieval
+* SparkSession creation
+* write_spark_sql()
+* copy_hdfs_tree()
+* publish_run()
+* publish_run_hadoop()
+* publish_run_boto3()
+* Existing S3 write modes
+* Existing staging naming
+* Existing output formats
+* Existing Hive registration
+* Existing run_job() processing
+
+Unless a strictly necessary small change is required to pass identity or configuration to the authorization function.
+
+Do not add an unrelated REST application, callback implementation, scheduler, or alternate S3 publishing system.
+
+9. SECURITY AND ERROR HANDLING
+
+Fail closed whenever authorization is enabled.
+
+Never perform the first S3 staging write unless access has been explicitly granted.
+
+Never hardcode API passwords, authentication tokens or new credentials.
+
+Preserve the existing job error handling behavior.
+
+Do not silently swallow Schema Browser failures or convert failures into successful authorization.
+
+10. FINAL OUTPUT
+
+Implement the changes in the existing caas.py file.
+
+Avoid modifying unrelated files.
+
+Do not add new dependencies if existing requests/json modules are sufficient.
+
+Do not run actual S3 uploads or production calls as part of this change.
+
+After implementation, show:
+
+* Exact methods changed
+* Updated line numbers
+* Environment variables required for DEV, UAT, PROD and COB
+* How access is checked
+* How Y and N flag values behave
+* Any unresolved EEMS resource mapping or identity assumptions
+
+Only report implementation as complete for behavior actually added to the code.
+
+Make the code changes directly now.
+
+
+
+
+
+
+
+
+
+
+
+
 if user id having update entitlement then he can upload the file , otherwise cannot do the upload. 3 request params are optional
 
 
