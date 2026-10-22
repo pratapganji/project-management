@@ -1,5 +1,37 @@
 
 
+Short Description:
+Required Python dependency versions not available in LSE Artifactory – SB User Consumption
+
+Description:
+
+We are working on Black Duck/CVM remediation for 176352 – Olympus SB User Consumption.
+
+Several current Python dependency versions are still being flagged by Black Duck. When we update requirements.txt to newer versions, the LSE pipeline fails with “No matching distribution found” because those versions are not available in the configured Artifactory repository.
+
+Example: urllib3 maximum available version is 2.2.3, but Black Duck is still flagging 2.2.3. Higher versions cannot be resolved from Artifactory.
+
+We are seeing the same issue with packages including:
+
+* urllib3
+* pytest
+* Werkzeug
+* sqlparse
+
+Please help confirm how the required newer versions can be made available/resolvable through LSE Artifactory.
+
+Application: SB User Consumption
+App ID: 176352
+Project: Olympus Data
+
+
+
+
+
+
+
+
+
 Hi Suraj, we are seeing the same issue for multiple Python packages like urllib3, pytest, Werkzeug and sqlparse. The current available versions are still flagged by Black Duck, but newer versions are not available in LSE Artifactory.
 
 Can you please guide what we need to do from our side to upgrade to the required newer versions? Do we need to raise any request for those versions to be added to Artifactory?
