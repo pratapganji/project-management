@@ -1,5 +1,59 @@
 
 
+Update the existing Venkat Python repository to configure environment-specific Schema Browser API URLs.
+
+File: caas.py
+Branch: STAGING_24_AUG_2026
+
+The code already contains _normalized_runtime_env(), _schema_browser_url_for_env() and has_permission(). Reuse these functions. Do not rewrite the existing authorization implementation.
+
+1. Configure these environment variables:
+
+export SCHEMA_BROWSER_URL_DEV=""
+export SCHEMA_BROWSER_URL_UAT="https://olympus-api-schema-browser-icg-isg-olympus-swayam-176352.apps.namicg39023u.ecs.dyn.nsroot.net/citihawk/schemabrowser/resourcesWithActions"
+export SCHEMA_BROWSER_URL_PROD=""
+export SCHEMA_BROWSER_URL_COB=""
+
+The UAT URL is verified from Swagger. Leave the other URLs empty until I provide the correct endpoints.
+
+2. Find the existing configuration mechanism.
+
+Inspect the repository to identify how ENV, jdbc_url, and other environment variables are supplied to caas.py.
+
+Add the Schema Browser URL variables to the same appropriate shell or deployment configuration.
+
+If no launcher or deployment configuration is present, add the entries to .env.example as a documented template and clearly report that runtime configuration is still required. Do not assume Python automatically reads .env.example.
+
+3. Preserve environment selection.
+
+* ENV=DEV selects SCHEMA_BROWSER_URL_DEV
+* ENV=UAT selects SCHEMA_BROWSER_URL_UAT
+* ENV=PROD selects SCHEMA_BROWSER_URL_PROD
+* ENV=COB selects SCHEMA_BROWSER_URL_COB
+
+If the selected URL is empty, fail with a clear configuration error whenever authorization checking is enabled.
+
+Do not use the UAT URL as a fallback for another environment.
+
+4. Preserve existing functionality.
+
+Keep the existing ENABLE_S3_PATH_ACCESS_CHECK behavior:
+
+* Y = perform Schema Browser authorization
+* N = bypass authorization
+* Missing = default to Y
+
+Do not modify Oracle retrieval, Spark SQL execution, S3 staging, S3 publishing, or existing permission-validation logic.
+
+5. After implementation, tell me exactly which file you modified, where the URL values are configured, and how they are supplied to caas.py at runtime.
+
+Make only these configuration changes. Do not execute the job or upload anything to S3.
+
+
+
+
+
+
 
 Implement Schema Browser S3 access authorization in the existing Python file caas.py.
 
