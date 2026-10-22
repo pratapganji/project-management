@@ -1,4 +1,24 @@
 
+Schema Browser Tekton build is failing during the Docker image build step while pulling the Java 17 base image from BinaryRepo.
+
+Application: Olympus API Schema Browser
+CSI: 176352
+Project: olympus-data
+Pipeline: olympus-api-schema-browser
+Branch: feature/pg16424-OCT-release-fieldMap
+
+Error: manifest unknown
+
+Failing image:
+binaryrepo.nam.nsroot.net/docker-enterprise-prod/developersvcs-java/oracle-jdk-rhel8/17o64:latest
+
+The pipeline fails at Dockerfile STEP 1/18 (FROM) because the image manifest cannot be found in the registry.
+
+Please investigate the base image availability, confirm the correct supported image tag, and help resolve the build failure so we can proceed with the release.
+
+
+
+
 
 Hi Team, the Schema Browser Tekton build is failing while pulling the Java 17 base image (oracle-jdk-rhel8/17o64:latest) from BinaryRepo with a “manifest unknown” error.
 
