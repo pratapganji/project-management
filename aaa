@@ -1,5 +1,34 @@
 
 
+
+Quick update on SB User Consumption CVM remediation:
+
+For the Java/JDBC CVM issues, I connected with Keya Patel in the Olympus governance call, and the JDBC team has provided the new 3.0.20.CVM JAR with the latest vulnerability fixes. I will validate this in UAT.
+
+For the Python dependency version issues, Suraj advised raising an INC with the Artifactory team since the required newer versions are not available in LSE Artifactory. I have raised the INC and am following up.
+
+
+
+Hi,
+
+QE team has provided sign-off for the Schema Browser Field Map GET API (/citihawk/schemabrowser/fieldmap/configurations) changes, including the new RUN_FREQUENCY parameter.
+
+To proceed with the PROD ROD, I created a feature branch from release/master and incorporated my changes. However, the Tekton build is failing due to a Docker base image issue.
+
+I reached out to Preethi for the correct Docker image version, and she advised raising an INC with the Lightspeed support team. I have raised the INC and am following up with them.
+
+Once the Docker issue is resolved, I will merge my changes and proceed with raising the ROD for the PROD release.
+
+
+
+
+
+
+
+
+
+
+
 Hi Sachin,
 
 Change Review Board approval is completed for CR CHG0001795196, but QE approval is still pending. The QE team is currently unavailable. Could you please help follow up and get the required approval?
