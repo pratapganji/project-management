@@ -1,5 +1,8 @@
 
 
+if user id having update entitlement then he can upload the file , otherwise cannot do the upload. 3 request params are optional
+
+
 before uploading the output csv to s3, integrate  schema browser api to check the user has sufficient permissions to update the s3 bucket content. also add flag saying if true, check schema browser api permissions other wise dont check schema browser api i mean by- pass calling the api.
 schema browser api contract& url is below
 
