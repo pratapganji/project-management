@@ -1,4 +1,10 @@
 
+
+Hi Team, the Schema Browser Tekton build is failing while pulling the Java 17 base image (oracle-jdk-rhel8/17o64:latest) from BinaryRepo with a “manifest unknown” error.
+
+It looks like the latest tag is not available at the configured registry path. Could someone please confirm the correct image tag and advise on the required Dockerfile changes to unblock the build?
+
+
 Schema Browser GET API enhancement has been deployed in UAT and is ready for QE validation. Updated the Jira with the latest optional RUN_FREQUENCY parameter changes and FIELD_MAP_SK ordering. Assigning to Sanket for QE testing as discussed.
 
 
