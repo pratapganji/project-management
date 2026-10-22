@@ -1,5 +1,7 @@
 
 
+For the CRM → Olympus AutoSys VM mapping issue, I connected with Veerachokkanathan, who investigated and shared the proxy mapping documents yesterday. Upon review, we found that our existing VM hostnames were not included in the mapping list. He also couldn’t find the mappings and suggested reaching out in the existing email chain. Accordingly, I have sent an email to the team requesting the correct proxy mappings, including DEV and UAT details, so we can validate the changes in lower environments before proceeding with PROD/COB. Currently awaiting their response.
+
 
 Quick update on SB User Consumption CVM remediation:
 
