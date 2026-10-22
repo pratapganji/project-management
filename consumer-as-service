@@ -1,3 +1,104 @@
+
+
+Implement Schema Browser authorization in the existing Python repository. Make the code changes directly using the existing implementation. Do not recreate existing functionality.
+
+Existing files:
+
+* src/main.py
+* src/config.py
+* src/spark_executor.py
+* src/payload_parser.py
+
+1. Create src/schema_browser_client.py
+
+Implement an HTTP GET client for the existing Schema Browser endpoint:
+
+GET /citihawk/schemabrowser/resourcesWithActions
+
+Supported query parameters:
+
+* soeid
+* resource (optional)
+* applicationPrefix (optional)
+
+The API returns JSON mapping resource IDs to permitted action IDs.
+
+Example response:
+{“resource_one”: [“view”], “resource_two”: [“upload”, “update”]}
+
+Implement a function:
+
+has_permission(soeid, resource_id, required_action)
+
+Requirements:
+
+* Use the existing requests dependency.
+* Read the Schema Browser base URL from environment configuration.
+* Use a configurable request timeout.
+* Validate HTTP status and JSON response.
+* Return True only when the exact resource contains the required action.
+* Return False or raise an appropriate error when access is missing or the API fails.
+* Never treat HTTP 200 alone as authorization.
+
+2. Update src/config.py
+
+Add configuration for:
+
+* Schema Browser URL for DEV/UAT/PROD.
+* HTTP timeout.
+* Required EEMS resource ID.
+* Required EEMS action ID.
+* EEMS identity mapping when applicable.
+
+Do not invent resource IDs, action names, service URLs, or identity mappings. Require valid configuration.
+
+3. Update src/main.py
+
+Preserve the existing WORKSTATION request handling:
+
+* JSON request body containing consumer, globalTransactionId, reportStreamName, runDate.
+* Header username containing WORKSTATION FID.
+* Header s3path containing the requested S3 destination.
+* Oracle configuration lookup.
+* SQL_PAYLOAD parsing.
+* Existing direct Spark SQL execution.
+
+Integrate the Schema Browser permission-checking function as a reusable authorization step for the future S3 write.
+
+Do not assume that WORKSTATION’s username/FID is automatically a valid EEMS SOEID.
+
+Do not assume that an S3 path is itself an EEMS resource ID.
+
+Only authorize when the configured resource and required action are explicitly returned for the resolved EEMS identity.
+
+4. Preserve existing CSV output
+
+The existing src/spark_executor.py already contains:
+
+write_csv_output(dataframe, output_path)
+
+Keep the current Spark DataFrame CSV-writing functionality unchanged.
+
+Do not implement or enable direct S3 writing yet. The existing restriction against S3 output must remain until authorization mapping and S3 integration are confirmed.
+
+5. Final requirements
+
+* Reuse existing classes, functions and configuration patterns.
+* Make minimal changes.
+* Do not modify unrelated modules.
+* Do not add duplicate functionality.
+* Do not hardcode credentials.
+* Handle failures securely.
+* Summarize modified files and any unresolved configuration requirements.
+
+Implement the changes directly in the existing repository.
+
+
+
+
+
+
+
 safe_transaction_id = re.sub(
     r"[^A-Za-z0-9_-]", "_", str(global_transaction_id)
 )
