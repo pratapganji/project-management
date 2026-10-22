@@ -22,7 +22,9 @@ I reached out to Preethi for the correct Docker image version, and she advised r
 Once the Docker issue is resolved, I will merge my changes and proceed with raising the ROD for the PROD release.
 
 
+Hi Rajat, we followed up with the Apigee team regarding increasing the Olympus Search API timeout from 2 to 5 minutes. Satheesh responded that the default timeout is 55 seconds and we already have 2 minutes configured. He recommended not increasing it further, as the API runs on shared infrastructure and a 5-minute timeout could impact overall performance.
 
+Please advise how we should proceed with this.
 
 
 
