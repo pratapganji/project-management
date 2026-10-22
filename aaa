@@ -31,6 +31,15 @@ Hi Rajat, we followed up with the Apigee team regarding increasing the Olympus S
 Please advise how we should proceed with this.
 
 
+Hi Rajat,
+
+Regarding the COB2 CCP setup and production job failure, we verified that the required CCP credentials are onboarded for COB2 as well as PROD, so it may not be a credential issue.
+
+We haven’t identified the exact root cause of the job failure yet. However, as Venkat suggested, I triggered one COB job that was kept on ice, and it completed successfully. We are continuing the investigation.
+
+
+
+
 
 
 
