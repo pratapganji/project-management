@@ -1,5 +1,17 @@
 
 
+curl -X POST \
+  "https://sit.isg.icgservices.citigroup.net/isg/internal/cv/api/oauth2/token" \
+  -H "X-IBM-Client-Id: <TOKEN_CLIENT_ID>" \
+  -H "X-IBM-Client-Secret: <TOKEN_CLIENT_SECRET>" \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  --data-urlencode "grant_type=client_credentials" \
+  --data-urlencode "scope=/api"
+
+
+
+
+
 Hi Rajat, so far I have completed the ROCK backfill activity for 76 jobs end-to-end, including execution, validation, and reverting the changes. I’m continuing to work on the remaining jobs and will keep you updated on the progress.
 
 
