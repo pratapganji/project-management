@@ -7,7 +7,9 @@ Field Map GET API – Status Update:
 
 Received the updated Docker base image through the INC and updated the configuration accordingly. Raised the ROD request for tomorrow’s PROD release and am currently following up with the respective teams to obtain the required approvals.
 
+For SB User Consumption CVM remediation, I have updated the application with the new 3.0.20.CVM JDBC JAR and triggered the UAT deployment. The deployment is currently failing at the pre-deployment/GATR validation step with HTTP 422 (1 failure gate). I have reached out to Suraj to review the CD Gate failure and help us proceed with the UAT deployment.
 
+Anand reached out to me regarding the Spring Boot upgrade for the Citi Protocol to DC repository. I have completed the upgrade.
 
 
 
