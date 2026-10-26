@@ -1,5 +1,16 @@
 
 
+Our CRM → Olympus API is a pass-through service that receives Protobuf messages from CRM source systems and publishes them to Kafka.
+
+We do not maintain historical data or have a dedicated backfill mechanism in our application.
+
+If historical data needs to be backfilled, the source system can resend the messages through our existing APIs, and we can validate their publication to Kafka. If the messages are already available in Kafka, the downstream Olympus consumer team would need to check replay options.
+
+Could you please confirm whether 33404 is one of the source applications sending data through our CRM → Olympus API and what date range needs to be backfilled?
+
+
+
+
 curl -X POST \
   "https://sit.isg.icgservices.citigroup.net/isg/internal/cv/api/oauth2/token" \
   -H "X-IBM-Client-Id: <TOKEN_CLIENT_ID>" \
