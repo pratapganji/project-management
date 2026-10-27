@@ -1,5 +1,7 @@
 
 
+Hi Team, the Field Map Configuration API changes, including the RUN_FREQUENCY parameter to support WEEKLY and MONTHLY filtering, have been successfully deployed to PROD. The Apigee URL changes are being handled separately.
+
 SDM File Export – the upstream team reported a data corruption issue where additional double quotes were getting added in the generated CSV records. Development is completed, the changes are deployed to UAT, and QE validation is in progress.
 
 
