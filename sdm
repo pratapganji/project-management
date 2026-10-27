@@ -1,5 +1,36 @@
 
 
+Hi Team,
+
+Development is completed for the SDM File Export double-quote handling issue and the changes have been deployed to UAT.
+
+The fix updates the CSV generation logic so existing double quotes in the source data are preserved correctly without adding additional quotes.
+
+Please validate the following flows in UAT:
+
+* Sundry export
+* Source System export
+* Source System Coverage export
+* 1-day / 7-day / full-load flows as applicable
+* Verify records containing double quotes are exported correctly
+* Confirm ZIP/CSV/control file generation is working without regression
+
+Please share the QE sign-off once validation is completed.
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
+
+
+
+
+
 Summary:
 SDM File Export – Extra double quotes added in Sundry CSV output
 
