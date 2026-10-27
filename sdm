@@ -1,5 +1,44 @@
 
 
+Summary:
+SDM File Export – Extra double quotes added in Sundry CSV output
+
+Description:
+In the SDM File Export Sundry flow, when SOURCE_DESCRIPTION contains double quotes in Oracle, the generated CSV adds an additional quote character.
+
+Example:
+
+Oracle value:
+"n" days Sight
+
+Generated Sundry CSV:
+""n"" days Sight
+
+The issue is caused by the CSV writer configuration using CSVWriter.NO_QUOTE_CHARACTER together with CSVWriter.DEFAULT_ESCAPE_CHARACTER.
+
+Update the Sundry CSV generation logic in both getCsv() and getCsvStream() to use CSVWriter.NO_ESCAPE_CHARACTER so existing double quotes are preserved without adding extra quotes.
+
+The .csv.ready control-file generation is not impacted.
+
+Acceptance Criteria:
+
+* Existing double quotes in Sundry data are preserved exactly in the generated CSV.
+* "n" days Sight should remain "n" days Sight in the exported file.
+* Fix is applied to both incremental and full-load Sundry export flows.
+* 1-day, 7-day and full-load Sundry exports are validated successfully in UAT.
+* Existing CSV/ZIP and control-file generation continues to work without regression.
+
+
+
+
+
+
+
+
+
+
+
+
 I need to prepare a cloud/Nucleus migration assessment document for the SDM File Export application, similar to the CRM -> Olympus migration document we prepared.
 
 Please use ALL information already available in this SDM File Export chat from the beginning. Do not ask me to repeat information that is already present in the conversation.
