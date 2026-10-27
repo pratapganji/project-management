@@ -1,5 +1,17 @@
 
 
+SDM File Export – the upstream team reported a data corruption issue where additional double quotes were getting added in the generated CSV records. Development is completed, the changes are deployed to UAT, and QE validation is in progress.
+
+
+For the Olympus Schema Browser Field Map Configuration API, Java code changes have been successfully deployed to PROD. We are now proceeding with the Apigee proxy changes to enable the Apigee URL. During release preparation, we encountered a Loki build issue, which has been resolved, and verified that the required properties are populated in uDeploy. Shared the details with Suraj to raise the ROD for Thursday, October 29, at 10 AM ET.
+
+
+
+
+
+
+
+
 Hi Team,
 
 Gentle follow-up on the below email.
