@@ -1,4 +1,20 @@
 
+Hi Team,
+
+Yes, the required versions are already released and available on PyPI. For example:
+
+* urllib3 2.8.0
+* pytest 9.1.1
+* Werkzeug 3.1.8
+* sqlparse 0.6.0
+* numpy 2.1.3
+
+However, our LSE build using pypi-prod-rcmd is not able to resolve these versions and reports No matching distribution found.
+
+Could you please check why these PyPI versions are not available/resolvable through the configured Artifactory repository and help sync/onboard them or advise the correct repository we should use?
+
+
+
 
 We followed the recommendation to move to Python 3.13. The application now requires a Python 3.13-compatible NumPy version. We tried numpy==2.1.3, but the LSE pypi-prod-rcmd repository currently only provides NumPy versions through 1.24.4, and the build fails with No matching distribution found for numpy==2.1.3.
 
