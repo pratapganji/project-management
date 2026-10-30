@@ -1,14 +1,26 @@
 
+
 Hi Team,
 
-We migrated our application base image from the older Red Hat Python 3.9 image to the approved Miniconda RHEL8 Python 3.13 image.
+We upgraded the SB User Consumption application to the Miniconda RHEL8 Python 3.13 base image.
 
-Our application requires Java at runtime for the NGC credential-decryption client and the Olympus JDBC driver through JayDeBeApi/JPype.
+After deployment, the application is failing at runtime with:
 
-The previous Python 3.9 base image contained Java, but the new Miniconda Python 3.13 image does not. We also verified the enabled yum repository in the new image:
+/usr/bin/ngc: line 1: java: command not found
 
-citi-ubi-8
+The application requires Java for the NGC credential-decryption client and for the Olympus JDBC driver through JayDeBeApi/JPype.
 
-and yum list available '*openjdk*' returns No matching packages to list.
+We checked the new base image and only the citi-ubi-8 yum repository is enabled. Running:
 
-Could you please advise the approved way to include a JRE/JDK with the Miniconda Python 3.13 base image, or provide the approved Python 3.13 base image that already includes Java?
+yum list available '*openjdk*'
+
+returns:
+
+No matching Packages to list
+
+The previous Red Hat Python 3.9 base image already contained Java, but the new Miniconda Python 3.13 image does not.
+
+Could you please advise the Citi-approved way to install Java/OpenJDK in this Python 3.13 Miniconda image, or whether there is an approved Python 3.13 base image that includes Java?
+
+Thanks,
+Pratap
