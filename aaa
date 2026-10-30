@@ -1,5 +1,26 @@
 
 
+Hi Ashraf,
+
+As discussed, forwarding the email chain regarding the AutoSys machine mapping issue for our CRM → Olympus API application.
+
+We identified 12 impacted jobs, but our existing VM hostnames are missing from the shared mapping document.
+
+Could you please help us confirm the correct proxy mappings for PROD/COB and DEV/UAT, including whether we need to configure one or both proxies?
+
+Please let us know if there is any updated documentation or if we can connect for a quick discussion.
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
+
+
 
 Hi Ashraf, good morning.
 
