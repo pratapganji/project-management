@@ -1,5 +1,26 @@
 
 
+
+Hi Ashraf, good morning.
+
+Rajat suggested I connect with you regarding the AutoSys job machine mapping issue for our CRM → Olympus API application.
+
+We identified 12 jobs running directly on VM servers, but couldn’t find our hostnames in the shared proxy mapping document.
+
+I’m forwarding the email chain for your reference. Could you please help us understand the correct proxy mappings for PROD/COB and DEV/UAT?
+
+Please let me know if we can have a quick call to discuss this.
+
+
+
+
+
+
+
+
+
+
+
 Hi team, I’ll be taking today off due to some unplanned personal work.
 
 Hi [Name], I need to take today off due to some unplanned personal work. I’ll log in around noon to take care of today’s production deployment. Thank you for understanding.
