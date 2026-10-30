@@ -1,5 +1,19 @@
 
 
+Hi Team,
+
+We have already migrated the build to Python 3.13 as recommended. The build logs confirm it is running with Python 3.13.
+
+However, while installing numpy==2.1.3, the LSE pypi-prod-rcmd repository only lists versions up to 1.24.4 and fails with No matching distribution found for numpy==2.1.3.
+
+Could you please check why the newer NumPy versions are not available/resolvable through pypi-prod-rcmd, or confirm which NumPy version/repository should be used with Python 3.13 in LSE?
+
+
+
+
+
+
+
 Short Description:
 Required Python dependency versions not available in LSE Artifactory – SB User Consumption
 
