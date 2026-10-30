@@ -1,11 +1,4 @@
-Hi Andrzej,
-
-Thanks for the details. Our application currently uses requirements.txt and the Docker build installs dependencies using:
-
-source /env && pip install -r requirements.txt
-
-We are not currently using uv or pyproject.toml for dependency installation.
-
-Could you please confirm how we should configure pypi-dev as the secondary/fallback repository for our current pip/requirements.txt based build? Should this be configured through the LSE /env pip configuration or through a pip extra-index-url?
-
-Thanks.
+# Java required for NGC password decryption and Olympus JDBC
+RUN yum -y install java-11-openjdk-headless && \
+    java -version && \
+    yum clean all
