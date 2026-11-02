@@ -1,4 +1,51 @@
 
+
+Hi Rajat,
+
+Update on SB User Consumption CVM work. We faced multiple issues during the upgrade, and the application/runtime changes are now resolved and validated successfully in UAT.
+
+Issue 1 – Old Docker Image
+While deploying the JDBC CVM remediation JAR, the PR was blocked because the existing Python 3.9 Docker image was older than the allowed 90-day limit. We moved the application to the current approved Miniconda Python 3.13 image.
+
+Issue 2 – Python 3.13 Dependency / Artifactory Issues
+After moving to Python 3.13, some existing dependencies were incompatible and some required upgraded versions were not resolving through the previous pip configuration.
+
+Based on INC/LSE guidance, we changed pip-conf-handling to secondary, stopped using the application pip.conf during the Docker build, and used the LSE-provided /env configuration:
+source /env && pip install -r requirements.txt
+
+We then upgraded the compatible dependency versions available through the pipeline Artifactory. This resolved the build dependency issues and also allowed us to remediate the Python CVM dependencies.
+
+Issue 3 – Java Missing in New Python Image
+The old Python 3.9 image already contained Java, but the new Python 3.13 Miniconda image did not, which caused NGC password retrieval/JDBC execution to fail.
+
+INC support provided the approved JDK repository approach. We added jdk-jre.repo, installed JDK 21 in the Dockerfile, and verified it using java -version. NGC password retrieval and JDBC connectivity are now working.
+
+Issue 4 – Python Runtime Warnings
+After the Python upgrade, we received regex and Python dependency compatibility warnings. We corrected the regex and aligned the Requests-related dependencies. The warnings are no longer appearing in the latest UAT run.
+
+Issue 5 – JDBC CVM JAR Integration
+Integrated the updated Olympus JDBC 3.0.20 CVM JAR provided by the JDBC team and validated it with the new Java 21/Python 3.13 runtime. JDBC connectivity and the complete UAT job execution are working successfully.
+The updated JDBC JAR is running successfully with Java 21.
+
+So along with the JDBC CVM remediation, we also completed the Docker image upgrade and Python dependency/CVM remediation required for Python 3.13. The latest UAT end-to-end execution completed successfully.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 Hi Rajat,
 
 Update on SB User Consumption CVM work. We had multiple issues during the upgrade, and all application/runtime issues are now resolved and validated in UAT.
