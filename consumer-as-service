@@ -1,6 +1,81 @@
 
 
 
+def check_s3_access_from_oracle(
+    spark,
+    requesting_fid,
+    target_s3_path,
+    jdbc_url,
+    conn_properties,
+):
+    """Check the active Oracle configuration before S3 upload."""
+
+    if not access_check_enabled():
+        return True
+
+    fid = str(requesting_fid or "").strip()
+
+    if not fid:
+        raise S3AccessDenied("Requesting FID is missing")
+
+    # Escape quotes before including FID in Spark JDBC SQL.
+    safe_fid = fid.upper().replace("'", "''")
+
+    query = f"""
+        (
+            SELECT FID, TARGET_S3_PATH
+            FROM A167969NURAREC.OM_NURAFLOW_S3_EXPORT_CONFIG
+            WHERE UPPER(TRIM(FID)) = '{safe_fid}'
+              AND IS_ACTIVE = 'Y'
+        ) access_config
+    """
+
+    rows = spark.read.jdbc(
+        url=jdbc_url,
+        table=query,
+        properties=conn_properties,
+    ).collect()
+
+    if not rows:
+        raise S3AccessDenied(
+            "FID is not registered in the active S3 export configuration"
+        )
+
+    for row in rows:
+        approved_path = str(row["TARGET_S3_PATH"] or "").strip()
+
+        if not approved_path:
+            continue
+
+        # The configured path can contain dynamic folder placeholders.
+        # Compare against the fixed prefix before the first placeholder.
+        approved_prefix = approved_path.split("{", 1)[0].rstrip("/")
+
+        try:
+            authorize_s3_upload(
+                requesting_fid=fid,
+                approved_fid=row["FID"],
+                target_s3_path=target_s3_path,
+                approved_s3_prefix=approved_prefix,
+            )
+            return True
+        except S3AccessDenied:
+            continue
+
+    raise S3AccessDenied(
+        "FID is not authorized for the requested S3 destination"
+    )
+
+
+
+
+
+
+
+
+
+
+
 
 import os
 from urllib.parse import urlsplit
