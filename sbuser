@@ -1,5 +1,13 @@
 
 
+
+Issue 2 – Python Dependency / Pipeline Artifactory Issue
+After moving to Python 3.13, we had to upgrade some existing Python dependencies. However, the required versions were not available/resolving from the Artifactory repository being used by the build pipeline, which caused the build to fail.
+
+Based on INC/LSE guidance, we changed the pipeline pip configuration to use pip-conf-handling: secondary and used the LSE-provided /env configuration instead of the application pip.conf. This allowed the required dependency versions to resolve successfully and also helped us complete the Python CVM dependency upgrades.
+
+
+
 Hi Rajat,
 
 Update on SB User Consumption CVM work. We faced multiple issues during the upgrade, and the application/runtime changes are now resolved and validated successfully in UAT.
