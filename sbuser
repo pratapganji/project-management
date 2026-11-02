@@ -1,6 +1,9 @@
 
 
 
+We have also requested the JDBC team to pre-validate the FID/JDBC connectivity in PROD before the production deployment to avoid any runtime connectivity issue.
+
+
 Issue 2 – Python Dependency / Pipeline Artifactory Issue
 After moving to Python 3.13, we had to upgrade some existing Python dependencies. However, the required versions were not available/resolving from the Artifactory repository being used by the build pipeline, which caused the build to fail.
 
