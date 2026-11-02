@@ -1,5 +1,11 @@
 
 
+CRM → Olympus AutoSys Machine Mapping: Connected with Ashraf Arif regarding the proxy mappings. He mentioned that the available mappings are for physical edge nodes and is not aware of VM hostname mappings. Following up with him to identify the right contact/team who can help us confirm the correct mappings for DEV, UAT, PROD, and COB.
+
+
+
+
+
 SDM File Export – QE sign-off has been received for the double-quote handling change. ROD has been created for tomorrow’s production release, and the CR is approved with all required approvals. Production deployment is planned for tomorrow at 10:00 AM EST.
 
 
