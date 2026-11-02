@@ -1,5 +1,9 @@
 
 
+SDM File Export – QE sign-off has been received for the double-quote handling change. ROD has been created for tomorrow’s production release, and the CR is approved with all required approvals. Production deployment is planned for tomorrow at 10:00 AM EST.
+
+
+
 
 We have also requested the JDBC team to pre-validate the FID/JDBC connectivity in PROD before the production deployment to avoid any runtime connectivity issue.
 
