@@ -1,6 +1,100 @@
 
 
 
+
+import os
+from urllib.parse import urlsplit
+
+
+class S3AccessDenied(Exception):
+    """Raised when an S3 upload is not authorized."""
+    pass
+
+
+def access_check_enabled():
+    flag = os.environ.get(
+        "ENABLE_S3_PATH_ACCESS_CHECK", "Y"
+    ).strip().upper()
+
+    if flag not in ("Y", "N"):
+        raise ValueError(
+            "ENABLE_S3_PATH_ACCESS_CHECK must be Y or N"
+        )
+
+    return flag == "Y"
+
+
+def normalize_s3_path(path):
+    value = str(path or "").strip()
+    parsed = urlsplit(value)
+
+    if (
+        parsed.scheme != "s3a"
+        or not parsed.netloc
+        or not parsed.path.strip("/")
+        or parsed.query
+        or parsed.fragment
+    ):
+        raise S3AccessDenied("Invalid S3 destination")
+
+    segments = parsed.path.split("/")
+
+    if (
+        any(part in (".", "..") for part in segments)
+        or "//" in parsed.path
+        or "%" in parsed.path
+        or "\\" in value
+        or "{" in value
+        or "}" in value
+    ):
+        raise S3AccessDenied("Unsafe S3 destination")
+
+    return f"s3a://{parsed.netloc}{parsed.path.rstrip('/')}"
+
+
+def authorize_s3_upload(
+    requesting_fid,
+    approved_fid,
+    target_s3_path,
+    approved_s3_prefix,
+):
+    if not access_check_enabled():
+        return True
+
+    requester = str(requesting_fid or "").strip()
+    approved_user = str(approved_fid or "").strip()
+
+    if not requester or not approved_user:
+        raise S3AccessDenied("FID is missing")
+
+    if requester != approved_user:
+        raise S3AccessDenied(
+            "FID is not authorized for this destination"
+        )
+
+    target = normalize_s3_path(target_s3_path)
+    prefix = normalize_s3_path(approved_s3_prefix)
+
+    if target != prefix and not target.startswith(prefix + "/"):
+        raise S3AccessDenied(
+            "FID does not have access to the requested S3 path"
+        )
+
+    return True
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 https://swdc-obj-wip4.nam.nsroot.net/browser/index.html#/list/olympus/2026/09/01
 
 s3a://nurarec-project-prd/olympus/2026/09/01
