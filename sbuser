@@ -1,4 +1,55 @@
 
+Hi Rajat,
+
+Update on SB User Consumption CVM work. We had multiple issues during the upgrade, and all application/runtime issues are now resolved and validated in UAT.
+
+Issue 1 – Old Docker Image
+The existing Python 3.9 Docker image was older than the allowed 90-day limit and could not be used for the release. We checked the available approved images and moved the application to the current Miniconda Python 3.13 image, with python-version: 3.13 configured in pipeline.yaml.
+
+Issue 2 – Python 3.13 Dependency / Artifactory Issues
+After moving to Python 3.13, several existing Python dependencies were incompatible or the required upgraded versions were not resolving through the previous pip setup.
+
+Based on INC/LSE guidance, we changed the pipeline to pip-conf-handling: secondary, stopped using the application pip.conf during the Docker build, and used the LSE-provided /env configuration with:
+source /env && pip install -r requirements.txt.
+
+We then updated/pinned the Python 3.13-compatible dependency versions available in Citi Artifactory and added pip check for compatibility validation. This also allowed us to address the Python dependency CVM items as part of the upgrade.
+
+Issue 3 – Java Missing in New Python Image
+The old Python 3.9 image already contained Java, but the new Python 3.13 Miniconda image did not. Because our application uses JayDeBeApi/JPype with the Olympus JDBC JAR, the application initially failed with java: command not found.
+
+INC support provided the approved JDK repository approach. We added jdk-jre.repo to the repository and installed the approved JDK 21 package in the Dockerfile. The build now verifies Java with java -version, and JDBC connectivity is working successfully.
+
+Issue 4 – Python Runtime Warnings
+After the Python upgrade, we also received a regex invalid escape sequence warning and a Requests dependency compatibility warning.
+
+We changed the regex to a raw string and aligned the Requests-related dependencies, including adding the compatible chardet version. We also use pip check during the build to validate the dependency set. These warnings are no longer appearing in the latest UAT run.
+
+Issue 5 – JDBC CVM Remediation
+The remaining Java CVMs were coming from the Olympus JDBC JAR itself. The JDBC team provided the CVM-remediated 3.0.20.CVM JAR. We used the same JAR content in our application as olympus-jdbc-driver-3.0.20.jar; only the filename was changed for our application convention.
+
+The updated JAR is now running successfully with the newly installed Java 21 runtime.
+
+Validation
+The latest UAT execution completed successfully end-to-end:
+
+* Oracle connectivity successful
+* Olympus JDBC/Starburst login successful
+* Source data fetched successfully
+* Metadata processing completed
+* Data loaded into OM_CATALOGUE_USER_CONSUMPTION
+* Notification sent successfully
+* Process completed successfully
+
+So along with the JDBC CVM remediation, we also completed the Docker image upgrade and Python dependency/CVM remediation required for the newer Python 3.13 image.
+
+
+
+
+
+
+
+
+
 
 Thanks, Ashraf, for the clarification.
 
