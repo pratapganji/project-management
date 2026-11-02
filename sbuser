@@ -1,4 +1,33 @@
 
+Hi Team,
+
+We are planning to deploy the SB User Consumption changes to PROD using the latest JDBC driver shared by your team for CVM remediation.
+
+Could you please confirm whether the below FID is already onboarded and ready in PROD for this JDBC driver/API Gateway setup?
+
+Details:
+
+FID: sb_olympus_fid
+Datasource: STARBURST
+JDBC Driver: olympus-jdbc-driver-3.0.20.CVM.jar
+Application file name: olympus-jdbc-driver-3.0.20.jar
+Environment: PROD
+
+We have already validated this driver successfully in UAT.
+
+Please confirm whether the PROD onboarding is completed so we can proceed with the PROD deployment.
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
+
+
 
 Hi Team, our SB User Consumption Lightspeed pipeline is getting stuck in the snyk-detections task.
 
