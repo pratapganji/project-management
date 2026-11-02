@@ -1,6 +1,13 @@
 
 
 
+SELECT ID, CONSUMER_NAME, FID, TARGET_S3_PATH, IS_ACTIVE
+FROM A167969NURAREC.OM_NURAFLOW_S3_EXPORT_CONFIG;
+
+
+
+
+
 def check_s3_access_from_oracle(
     spark,
     requesting_fid,
