@@ -1,5 +1,114 @@
 
 
+Review and update only these files:
+
+scripts/s3_access_policy.py
+tests/test_s3_access_policy.py
+
+We are developing a standalone Oracle-based S3 access check.
+Do not integrate with caas.py yet.
+
+We already have this Oracle UAT table:
+
+A167969NURAREC.OM_NURAFLOW_S3_EXPORT_CONFIG
+
+Relevant columns:
+ID
+CONSUMER_NAME
+HIERARCHY_PATH
+FID
+TARGET_S3_PATH
+IS_ACTIVE
+
+Currently the table has only two records:
+
+Record 1:
+ID = 4
+CONSUMER_NAME = Workstation
+HIERARCHY_PATH = 2052a-Loans
+FID = lodt_olympus_fid
+TARGET_S3_PATH =
+s3a://nurarec-project-dev/olympus/nurarec/Workstation/{hierarchy_path}/{yyyy}/{mm}/{dd}
+IS_ACTIVE = Y
+
+Record 2:
+ID = 2
+CONSUMER_NAME = ROCK
+HIERARCHY_PATH = 2052a-TP
+FID = lodt_olympus_fid
+TARGET_S3_PATH =
+s3a://my-bucket/nura/export/
+IS_ACTIVE = Y
+
+IMPORTANT:
+Both configurations use the same FID.
+Therefore, validating FID alone is insufficient.
+
+Requirements:
+
+1. Keep the existing Spark JDBC Oracle connection approach.
+
+2. Update check_s3_access_from_oracle() to accept
+   config_id, requesting_fid, target_s3_path,
+   spark, jdbc_url and conn_properties.
+
+3. Query the existing Oracle table for the exact
+   configuration ID and FID, with IS_ACTIVE = 'Y'.
+
+4. Use the TARGET_S3_PATH from that exact matching
+   database record. Do not use other consumers'
+   paths as authorization.
+
+5. For WORKSTATION:
+   Resolve or validate the configured placeholders
+   {hierarchy_path}, {yyyy}, {mm}, {dd} against
+   the runtime destination.
+
+   The hierarchy_path must match the configuration's
+   HIERARCHY_PATH value.
+
+   Validate year/month/day values and reject missing,
+   extra, or arbitrary folder segments.
+
+6. For ROCK:
+   The path has no placeholders.
+   Compare the normalized runtime target directory
+   against the configured destination directory.
+
+7. Keep ENABLE_S3_PATH_ACCESS_CHECK:
+   Y = perform authorization
+   N = bypass authorization.
+
+8. When enabled, fail closed for missing configuration,
+   wrong FID, inactive configuration, invalid path,
+   Oracle errors and unexpected results.
+
+9. Preserve S3AccessDenied exception handling.
+
+10. Do not hardcode the sample FID or S3 paths into
+    the authorization function. Always read from Oracle.
+
+11. Add unit tests using these two sample configurations,
+    covering allowed and denied scenarios.
+
+12. Do not modify Venkat's caas.py, S3 publishing code,
+    or any existing production workflow.
+
+13. Keep our standalone Autosys testing approach.
+    The test should only check authorization and print
+    ACCESS_ALLOWED, ACCESS_DENIED, or ACCESS_CHECK_FAILED.
+    It must not upload or delete any S3 objects.
+
+Show the exact changes made.
+
+
+
+
+
+
+
+
+
 
 SELECT ID, CONSUMER_NAME, FID, TARGET_S3_PATH, IS_ACTIVE
 FROM A167969NURAREC.OM_NURAFLOW_S3_EXPORT_CONFIG;
