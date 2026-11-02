@@ -1,5 +1,22 @@
 
 
+Thanks, Ashraf, for the clarification.
+
+In the email, our CRM → Olympus AutoSys jobs are listed under Direct Edge Node, with expected proxies N11/N12. However, our application is running on VM servers.
+
+Could you please confirm whether these proxy mappings are applicable to our jobs, or if VM servers require a different setup?
+
+Also, could you point me to the correct team or contact who can help us validate the mappings for DEV, UAT, PROD, and COB?
+
+
+
+
+
+
+
+
+
+
 Request to confirm PROD onboarding for sb_olympus_fid – JDBC driver 3.0.20
 
 
