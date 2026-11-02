@@ -1,5 +1,30 @@
 
 
+Hi Team, our SB User Consumption Lightspeed pipeline is getting stuck in the snyk-detections task.
+
+The task has been running for over 40 minutes. The log reaches:
+
+Starting Lightspeed Snyk MCD scan
+Executing mcd scan....
+
+and there is no further progress.
+
+Other tasks including python-build, container-image-build, snyk-scan and sonar-scan have completed successfully.
+
+In the previous build, snyk-detections completed in around 30 seconds. Could you please check whether there is any issue/delay with the Snyk MCD service or Lightspeed detection task?
+
+App ID: 176352
+Pipeline: olympus-sb-user-consumption
+Build: 584-145a191-pr-98-feature-cvm-pg16424
+
+
+
+
+
+
+
+
+
 Hi Team,
 
 We have already migrated the build to Python 3.13 as recommended. The build logs confirm it is running with Python 3.13.
