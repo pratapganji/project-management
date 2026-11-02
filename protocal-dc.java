@@ -1,3 +1,81 @@
+
+
+CITIFIX
+- We have UI access
+- Swagger/API access
+- Code access
+- Database access / source tables
+- We can make code changes here
+
+        ↓
+
+OUR NEW INTEGRATION/API
+- Read updated CitiFix metadata
+- Build Message / Tag / Repeat Group hierarchy
+- Transform it into Data Catalogue payload format
+- Call existing Data Catalogue APIs
+
+        ↓
+
+DATA CATALOGUE
+- We have UI
+- Swagger/API documentation
+- Some Confluence documentation
+- We do NOT have Data Catalogue source-code access
+- We are NOT expecting Data Catalogue team/code changes
+
+
+
+
+1. Understand what Data Catalogue APIs require
+   ↓
+2. Decide how CitiFix Message / Tag / Repeat Group should appear there
+   ↓
+3. Identify exact source fields needed from CitiFix
+   ↓
+4. Give those required fields to Mahesh
+   ↓
+5. Mahesh prepares the CitiFix DB query / SP
+   ↓
+6. Our Java code executes/uses that query output
+   ↓
+7. Transform CitiFix data into Data Catalogue payload
+   ↓
+8. Call Data Catalogue API
+   ↓
+9. Verify in Data Catalogue UI
+
+
+
+
+CitiFix DB metadata
+        ↓
+query
+        ↓
+Java mapping/transformation
+        ↓
+Data Catalogue API payload
+        ↓
+existing Data Catalogue API
+
+
+
+One more important point: before Mahesh finalizes the query, we first need to settle what exact fields are required based on the Data Catalogue payload/design. That is why Rajat was asking us to compare a proper CitiFix sample and existing Data Catalogue representation first.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 [
 	{
 		"id": 1027,
