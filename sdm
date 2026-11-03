@@ -1,5 +1,28 @@
 
 
+Hi Mukund,
+
+As discussed during our Zoom call, I downloaded the ZIP again from the SDM File Export API in Production and verified the generated CSV. The double-quote values are coming correctly in the file.
+
+SDM File Export only generates and provides the ZIP file. The subsequent file upload/processing is handled by the downstream application/team.
+
+Since the generated Production file is correct, could you please check the downstream upload/processing flow and let us know your findings?
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
+
+
+
+
+
+
 Hi Team,
 
 Development is completed for the SDM File Export double-quote handling issue and the changes have been deployed to UAT.
