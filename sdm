@@ -2,17 +2,14 @@
 
 Hi Mukund,
 
-As discussed during our Zoom call, I downloaded the ZIP again from the SDM File Export API in Production and verified the generated CSV. The double-quote values are coming correctly in the file.
+As discussed over the Zoom call, the UAT record was created specifically for testing, whereas PROD is using the existing Oracle DB record.
 
-SDM File Export only generates and provides the ZIP file. The subsequent file upload/processing is handled by the downstream application/team.
+We revalidated the SDM File Export output in PROD, and the generated ZIP/CSV is reflecting the Oracle DB value correctly without adding additional double quotes.
 
-Since the generated Production file is correct, could you please check the downstream upload/processing flow and let us know your findings?
+The downstream upload/data update will need to be handled through the existing process as discussed.
 
 Thanks,
 Pratap
-
-
-
 
 
 
