@@ -1,14 +1,11 @@
 
 
-In scripts/s3_access_policy.py, add a standalone main() entry point at the bottom of the same file for testing through Autosys. Do not rewrite or modify the existing Oracle authorization and S3 path validation functions. Do not import or execute caas.py.
-
-Read these existing deployment environment variables: jdbc_url, jdbc_driver_path, username, fid_oracle_password. Use them to initialize SparkSession with the Oracle JDBC JAR, using the same pattern as scripts/generic_trigger_v1.py. Do not hardcode or log database passwords.
-
-Read test inputs S3_ACCESS_TEST_CONFIG_ID, S3_ACCESS_TEST_FID, and S3_ACCESS_TEST_PATH from environment variables. Validate the configuration ID is an integer. Call the existing check_s3_access_from_oracle(config_id=..., requesting_fid=..., target_s3_path=..., spark=..., jdbc_url=..., conn_properties=...). Never use fixed test approvals or mocked Oracle rows in this standalone runner.
-
-Honor the existing ENABLE_S3_PATH_ACCESS_CHECK flag: Y performs the Oracle validation; N bypasses the authorization check as designed, with a clear log message. For authorized results, print ACCESS_ALLOWED and return exit code 0. For S3AccessDenied, print ACCESS_DENIED and return exit code 3. For unexpected errors or missing runtime configuration, print ACCESS_CHECK_FAILED and return exit code 1. Always stop Spark in finally if initialized.
-
-Add if __name__ == '__main__': sys.exit(main()) at the bottom. Do not upload anything to S3, change any Oracle table, or modify Venkat's caas.py. Show the exact changes before applying them.
+Review the newly added standalone main() in scripts/s3_access_policy.py. Make only these corrections:
+1. Ensure import sys exists because the script calls sys.exit(main()).
+2. For unexpected errors, print ACCESS_CHECK_FAILED followed by the exception class name and a safe diagnostic message; never print credentials, JDBC connection properties, secrets, or password values.
+3. Check ENABLE_S3_PATH_ACCESS_CHECK before validating Oracle JDBC settings or creating Spark. When N, print ACCESS_CHECK_BYPASSED and exit 0. When Y, require all three test inputs and the existing Oracle JDBC environment variables, initialize Spark, then call check_s3_access_from_oracle().
+4. Preserve ACCESS_ALLOWED exit 0, ACCESS_DENIED exit 3, and ACCESS_CHECK_FAILED exit 1. Always stop Spark when initialized.
+Do not modify the database access query, authorization functions, test file, or caas.py. Show the changes.
 
 
 
