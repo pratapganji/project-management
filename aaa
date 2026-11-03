@@ -1,4 +1,21 @@
 
+Consumer as a Service: S3 access validation development is completed using the existing Oracle configuration table, including the Y/N bypass flag. Standalone Autosys testing is pending. Once validated, we will integrate it with Vali’s S3 upload code.
+
+SDM File Export – production deployment for the double-quote handling change was completed successfully. Post-deployment validation was done by downloading and verifying the generated ZIP/CSV in PROD, and the output is correct. I also connected with the downstream team and clarified that the remaining data upload/update is handled through their existing process.
+
+CRM → Olympus AutoSys Machine Mapping: Followed up with Ashraf Arif, but haven’t received the required VM hostname-to-proxy mapping details. Currently reviewing the available Confluence documentation to identify the correct mappings and relevant contacts for further clarification.
+
+Yesterday, we deployed the SB User Consumption CVM remediation changes to UAT and validated the application run successfully.
+
+Today, I assigned the Jira to QE for validation and sign-off. We are also following up with the JDBC team for PROD connectivity pre-validation before proceeding with the production deployment.
+
+
+
+
+
+
+
+
 As informed over Teams, we are planning to take the SDM File Export changes to Production tomorrow at 10:00 AM EST. All required approvals have been completed.
 
 We will update this thread once the production deployment is completed and validation is done.
