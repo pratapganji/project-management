@@ -1,4 +1,10 @@
 
+
+SDM File Export – started development for the new Party DTC Map export API. The controller, service interface, and service implementation structure are created based on the existing Sundry flow. The DB-specific entity, repository, query, and column mappings are pending final details from the Reference Data team.
+
+
+
+
 Venkat asked me to look into the NuraFlow S3 Export Configuration SQL, as his insert script was failing in uDeploy. I investigated and fixed multiple issues, including column entries and syntax errors in the Spark SQL query related to TO_CLOB concatenations and closing parentheses. After validating the changes, I successfully deployed to UAT and verified that the ROCK Summary configuration record was inserted into the database.
 
 
