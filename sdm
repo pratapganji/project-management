@@ -1,15 +1,39 @@
 
 
-Hi Mukund,
+We need to add a new export API in this existing SDM File Export application.
 
-As discussed over the Zoom call, the UAT record was created specifically for testing, whereas PROD is using the existing Oracle DB record.
+Use the existing Sundry export flow as the reference implementation.
 
-We revalidated the SDM File Export output in PROD, and the generated ZIP/CSV is reflecting the Oracle DB value correctly without adding additional double quotes.
+The new dataset is for DTC ID to GFCID mapping and will use the table OM_PARTY_DTC_MAP_DIM.
 
-The downstream upload/data update will need to be handled through the existing process as discussed.
+For now, create only the code structure. Do not invent database columns or SQL queries that are not available yet. Add TODO comments where exact column mappings/query details are required.
 
-Thanks,
-Pratap
+Follow the existing Sundry flow end-to-end and reuse the same existing shared utilities for:
+- ExportTypeDTO
+- CSV generation
+- streaming/full-load CSV generation
+- control file generation
+- ZIP creation
+- SDM logging
+- notifications
+
+Create the new flow with the same architecture as Sundry:
+1. Controller endpoint
+2. Service interface method
+3. Service implementation method
+4. Entity class
+5. Repository interface
+
+Use a provisional naming convention:
+- exportPartyDtcMap
+- PartyDtcMap
+- PartyDtcMapRepository
+
+Do not modify the existing Sundry, Source System, or Source System Coverage functionality.
+
+Do not create duplicate CSV/ZIP utility methods. Reuse the existing getCsv(), getCsvStream(), control-file and ZIP logic.
+
+Before making changes, show me the list of files you plan to create or modify.
 
 
 
