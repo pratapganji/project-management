@@ -1,5 +1,10 @@
 
 
+SDM File Export – started development for the new Party DTC Map export API. The controller, service interface, and service implementation structure are created based on the existing Sundry flow. The DB-specific entity, repository, query, and column mappings are pending final details from the Reference Data team.
+
+
+
+
 Regenerate only the exportPartyDtcMap() method.
 
 Do not use:
