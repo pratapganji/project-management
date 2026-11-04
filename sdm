@@ -1,39 +1,17 @@
 
 
 
-The plan is mostly correct, but make the following changes before implementation.
+Yes, apply these exact three-file scaffolding changes.
 
-For now we only need the API structure requested by the lead. The finalized Oracle column mappings and query details have not yet been provided.
+Do not make any additional changes outside these three files.
+Do not create entity/repository classes yet.
+Do not modify any shared CSV methods or existing export flows.
 
-Please do NOT modify these existing shared methods yet:
-- getCsv()
-- getCsvStream()
-- toStringArray()
-- writeToCsvStream()
+After applying the changes:
+1. Show me the complete diff for each of the three files.
+2. Run a Maven compile/build check.
+3. Do not make any automatic fixes if the build fails; show me the errors first.
 
-Do not add a PARTY_DTC_MAP branch to those methods yet, because they are shared by existing Sundry, Source System and Source System Coverage flows.
-
-Also do NOT create PartyDtcMap.java or PartyDtcMapRepository.java yet because the exact Oracle schema, primary key, column names and query are still pending. Do not guess them.
-
-For this step only:
-
-1. Modify SchemaBrowserController.java
-   - Add a provisional POST /exportPartyDtcMap endpoint.
-   - Follow the same request/load handling structure as exportSundry.
-   - Add a clear TODO that the endpoint name is provisional until confirmed.
-
-2. Modify SchemaBrowserService.java
-   - Add:
-     Resource exportPartyDtcMap(ExportTypeDTO exportTypeDTO);
-
-3. Modify SchemaBrowserServiceImpl.java
-   - Add the exportPartyDtcMap method structure following exportSundry.
-   - Do not call any new repository or DB query yet.
-   - Add TODO comments where repository/query/data generation will be integrated once the finalized details are provided.
-   - Keep the project compilable.
-   - Do not change any existing Sundry, Source System or Source System Coverage behavior.
-
-Before editing, show me the exact code changes you intend to make in these three files.
 
 
 
