@@ -1,5 +1,26 @@
 
 
+Apply the proposed Party DTC Map API scaffolding changes to the code now.
+
+Apply only the changes currently proposed in:
+- SchemaBrowserController.java
+- SchemaBrowserService.java
+- SchemaBrowserServiceImpl.java
+
+Do not create any entity or repository yet.
+Do not modify existing Sundry, Source System, Source System Coverage, getCsv(), getCsvStream(), or any shared CSV logic.
+
+Keep the database/query-related sections as TODO because the exact Party DTC Map schema, columns and query are still pending.
+
+After applying the changes, show me the complete diff for the three modified files.
+
+
+
+
+
+
+
+
 The current exportPartyDtcMap service implementation is only a placeholder.
 
 I want the service method structure to be implemented now using the existing exportSundry() method as the exact reference.
