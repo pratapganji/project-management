@@ -1,4 +1,22 @@
 
+
+SELECT trigger_name, status
+FROM all_triggers
+WHERE table_owner = 'A167969NURAREC'
+  AND table_name = 'OM_NURAFLOW_S3_EXPORT_CONFIG';
+
+
+
+SELECT column_name, identity_column, data_default
+FROM all_tab_columns
+WHERE owner = 'A167969NURAREC'
+  AND table_name = 'OM_NURAFLOW_S3_EXPORT_CONFIG'
+  AND column_name = 'ID';
+
+
+
+
+
 Consumer as a Service: S3 access validation development is completed using the existing Oracle configuration table, including the Y/N bypass flag. Standalone Autosys testing is pending. Once validated, we will integrate it with Vali’s S3 upload code.
 
 SDM File Export – production deployment for the double-quote handling change was completed successfully. Post-deployment validation was done by downloading and verifying the generated ZIP/CSV in PROD, and the output is correct. I also connected with the downstream team and clarified that the remaining data upload/update is handled through their existing process.
