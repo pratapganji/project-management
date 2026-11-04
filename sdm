@@ -1,5 +1,61 @@
 
 
+The current exportPartyDtcMap service implementation is only a placeholder.
+
+I want the service method structure to be implemented now using the existing exportSundry() method as the exact reference.
+
+Update only SchemaBrowserServiceImpl.exportPartyDtcMap().
+
+Requirements:
+
+1. Copy the complete processing structure of exportSundry(), including:
+   - export type handling
+   - FULL_LOAD handling
+   - WEEKLY / day-based handling
+   - SPECIFIC handling if Sundry supports it
+   - file naming structure
+   - record count handling
+   - CSV generation
+   - control file generation
+   - ZIP creation
+   - SDM log handling
+   - error handling
+   - notification handling where applicable
+
+2. Reuse the existing shared methods:
+   - getCsv()
+   - getCsvStream()
+   - processDimControlFile()
+   - existing ZIP utility/method
+   - existing SDM logging utilities
+
+3. Do NOT modify any existing shared method yet.
+
+4. The Party DTC Map entity/repository/query is not available yet.
+   Wherever exportSundry currently calls CatalogueSundryRepository to fetch data:
+   - add a clear TODO:
+     // TODO: Replace with PartyDtcMapRepository query once DB mapping is confirmed
+   - do not invent SQL, columns, entity fields, schema or repository methods.
+
+5. Remove the current UnsupportedOperationException only if the method can remain compilable.
+   If compilation requires the PartyDtcMap entity/repository, keep the data-fetch section isolated with a TODO and explain exactly what is still blocking compilation.
+
+6. Do not modify:
+   - exportSundry
+   - exportSourceSystem
+   - exportSourceSystemCoverage
+   - getCsv
+   - getCsvStream
+   - any existing repository/entity
+
+Before applying changes, show me the proposed exportPartyDtcMap() implementation side-by-side with exportSundry().
+
+
+
+
+
+
+
 
 Yes, apply these exact three-file scaffolding changes.
 
