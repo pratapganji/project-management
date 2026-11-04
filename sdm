@@ -1,39 +1,40 @@
 
 
-We need to add a new export API in this existing SDM File Export application.
 
-Use the existing Sundry export flow as the reference implementation.
+The plan is mostly correct, but make the following changes before implementation.
 
-The new dataset is for DTC ID to GFCID mapping and will use the table OM_PARTY_DTC_MAP_DIM.
+For now we only need the API structure requested by the lead. The finalized Oracle column mappings and query details have not yet been provided.
 
-For now, create only the code structure. Do not invent database columns or SQL queries that are not available yet. Add TODO comments where exact column mappings/query details are required.
+Please do NOT modify these existing shared methods yet:
+- getCsv()
+- getCsvStream()
+- toStringArray()
+- writeToCsvStream()
 
-Follow the existing Sundry flow end-to-end and reuse the same existing shared utilities for:
-- ExportTypeDTO
-- CSV generation
-- streaming/full-load CSV generation
-- control file generation
-- ZIP creation
-- SDM logging
-- notifications
+Do not add a PARTY_DTC_MAP branch to those methods yet, because they are shared by existing Sundry, Source System and Source System Coverage flows.
 
-Create the new flow with the same architecture as Sundry:
-1. Controller endpoint
-2. Service interface method
-3. Service implementation method
-4. Entity class
-5. Repository interface
+Also do NOT create PartyDtcMap.java or PartyDtcMapRepository.java yet because the exact Oracle schema, primary key, column names and query are still pending. Do not guess them.
 
-Use a provisional naming convention:
-- exportPartyDtcMap
-- PartyDtcMap
-- PartyDtcMapRepository
+For this step only:
 
-Do not modify the existing Sundry, Source System, or Source System Coverage functionality.
+1. Modify SchemaBrowserController.java
+   - Add a provisional POST /exportPartyDtcMap endpoint.
+   - Follow the same request/load handling structure as exportSundry.
+   - Add a clear TODO that the endpoint name is provisional until confirmed.
 
-Do not create duplicate CSV/ZIP utility methods. Reuse the existing getCsv(), getCsvStream(), control-file and ZIP logic.
+2. Modify SchemaBrowserService.java
+   - Add:
+     Resource exportPartyDtcMap(ExportTypeDTO exportTypeDTO);
 
-Before making changes, show me the list of files you plan to create or modify.
+3. Modify SchemaBrowserServiceImpl.java
+   - Add the exportPartyDtcMap method structure following exportSundry.
+   - Do not call any new repository or DB query yet.
+   - Add TODO comments where repository/query/data generation will be integrated once the finalized details are provided.
+   - Keep the project compilable.
+   - Do not change any existing Sundry, Source System or Source System Coverage behavior.
+
+Before editing, show me the exact code changes you intend to make in these three files.
+
 
 
 
