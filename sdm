@@ -1,5 +1,27 @@
 
 
+Regenerate only the exportPartyDtcMap() method.
+
+Do not use:
+- catalogueSundryRepository
+- CatalogueSundry
+- any Sundry repository method
+- sourceTable = "SUNDRY"
+
+This endpoint is for a new Party DTC Map dataset.
+
+Keep the same overall processing structure as exportSundry(), but wherever database records are fetched or converted to CSV, leave a TODO because the PartyDtcMap entity, repository, query and columns are not finalized yet.
+
+Do not modify any existing methods or shared CSV utilities.
+
+Show me the proposed method before applying it.
+
+
+
+
+
+
+
 Apply the proposed Party DTC Map API scaffolding changes to the code now.
 
 Apply only the changes currently proposed in:
