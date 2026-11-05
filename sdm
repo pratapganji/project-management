@@ -1,5 +1,13 @@
 
 
+
+SELECT OWNER, OBJECT_NAME, OBJECT_TYPE
+FROM ALL_OBJECTS
+WHERE OBJECT_NAME = 'OM_CATALOGUE_PARTY_DTC_MAP';
+
+
+
+
 We now have the confirmed database table structure for the new Party DTC Map export.
 
 Table:
