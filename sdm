@@ -1,5 +1,136 @@
 
 
+We now have the confirmed database table structure for the new Party DTC Map export.
+
+Table:
+OM_CATALOGUE_PARTY_DTC_MAP
+
+Confirmed Phase-1 business columns:
+- PARTY_DTC_MAP_ID_SK
+- DTC_ID
+- GFCID
+- PARTICIPANT_ACCOUNT_NAME
+- IS_CURRENT_FLAG
+- standard DWH audit columns including DWH_UPDATED_TIMESTAMP
+
+Use CatalogueSundry.java and CatalogueSundryRepository.java as the coding pattern.
+
+Create:
+
+1. PartyDtcMap.java
+2. PartyDtcMapRepository.java
+3. Inject PartyDtcMapRepository into SchemaBrowserServiceImpl
+4. Complete exportPartyDtcMap() using the same load handling pattern as exportSundry()
+
+The final SQL queries from Mahesh are still pending.
+
+For development/testing only, use the following TEMPORARY/DUMMY native queries.
+
+--------------------------------------------------
+1-DAY / SPECIFIC LOAD
+--------------------------------------------------
+
+@Query(
+    value = """
+        SELECT *
+        FROM A167969OMR.OM_CATALOGUE_PARTY_DTC_MAP
+        WHERE IS_CURRENT_FLAG = 'Y'
+          AND DWH_UPDATED_TIMESTAMP >= SYSDATE - :days
+        ORDER BY DTC_ID
+        """,
+    nativeQuery = true
+)
+Optional<List<PartyDtcMap>> findByCurrentFlagWithDays(
+    @Param("days") int days
+);
+
+For load=1 this will be called with:
+days = 1
+
+
+--------------------------------------------------
+7-DAY / WEEKLY LOAD
+--------------------------------------------------
+
+@Query(
+    value = """
+        SELECT *
+        FROM A167969OMR.OM_CATALOGUE_PARTY_DTC_MAP
+        WHERE IS_CURRENT_FLAG = 'Y'
+          AND DWH_UPDATED_TIMESTAMP >= SYSDATE - 7
+        ORDER BY DTC_ID
+        """,
+    nativeQuery = true
+)
+Optional<List<PartyDtcMap>> findCurrentLastSevenDays();
+
+
+--------------------------------------------------
+FULL LOAD
+--------------------------------------------------
+
+@Query(
+    value = """
+        SELECT *
+        FROM A167969OMR.OM_CATALOGUE_PARTY_DTC_MAP
+        WHERE IS_CURRENT_FLAG = 'Y'
+        ORDER BY DTC_ID
+        """,
+    nativeQuery = true
+)
+Stream<PartyDtcMap> streamAllCurrent();
+
+
+IMPORTANT:
+- These three SQL queries are TEMPORARY placeholders only.
+- Add TODO comments above each query:
+  // TODO: Replace temporary query with final query provided by Mahesh.
+- Do not copy the Sundry SQL/grouping logic into Party DTC Map.
+- Do not invent additional business columns or filtering conditions.
+- If the confirmed schema is different from A167969OMR, leave a TODO rather than guessing.
+- Do not modify any existing Sundry, Source System or Source System Coverage repository/query.
+
+Update exportPartyDtcMap() as follows:
+
+load=1
+  -> SPECIFIC
+  -> findByCurrentFlagWithDays(exportTypeDTO.getNoOfDays())
+
+load=7
+  -> WEEKLY
+  -> findCurrentLastSevenDays()
+
+no load
+  -> FULL_LOAD
+  -> streamAllCurrent()
+
+Reuse the existing Sundry processing pattern for:
+- CSV generation
+- streaming/full load
+- control file
+- ZIP
+- SDM logging
+- email notification
+
+Do not modify the existing working export flows.
+
+Before applying changes, show me:
+1. PartyDtcMap.java
+2. PartyDtcMapRepository.java
+3. Updated exportPartyDtcMap()
+4. Any shared CSV changes you believe are required
+
+
+
+
+
+
+
+
+
+
+
+
 SDM File Export – started development for the new Party DTC Map export API. The controller, service interface, and service implementation structure are created based on the existing Sundry flow. The DB-specific entity, repository, query, and column mappings are pending final details from the Reference Data team.
 
 
