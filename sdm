@@ -1,4 +1,39 @@
 
+
+
+Hi Team,
+
+We have completed the development of the new Party DTC Map File Export API, following the existing SDM File Export functionality.
+
+The API supports the following load types:
+
+* Full Load – No load parameter
+* 1-Day Load – load=1
+* 7-Day Load – load=7
+
+The API retrieves data from OM_CATALOGUE_PARTY_DTC_MAP, generates a CSV file along with the .csv.ready control file, and packages both into a ZIP.
+
+The implementation has been tested successfully in the local DEV environment.
+
+Requesting QE to validate the following:
+
+* All three load types (full, 1-day, and 7-day).
+* CSV file structure, data accuracy, and record counts.
+* Control file generation and ZIP contents.
+* Regression testing of existing Sundry, Source System, and Source System Coverage APIs.
+
+Please proceed with validation once the changes are available in UAT and share your observations and sign-off.
+
+I have assigned the Jira for QE validation.
+
+Thanks,
+Pratap
+
+
+
+
+
+
 mvn dependency:tree "-Dincludes=org.ow2.asm:asm,org.bouncycastle:bcprov-jdk18on,org.hibernate.validator:hibernate-validator,ch.qos.logback:logback-classic,org.apache.httpcomponents.client5:httpclient5"
 
 
