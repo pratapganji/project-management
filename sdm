@@ -1,4 +1,41 @@
 
+
+Story Name
+
+Develop Party DTC Map File Export API in SDM File Export Application
+
+Description
+
+Enhance the existing Citi Olympus SDM File Export application by introducing a new REST API to export Party DTC ID to GFCID mapping data from the Oracle table OM_CATALOGUE_PARTY_DTC_MAP.
+
+The new API will follow the existing Sundry, Source System, and Source System Coverage export patterns.
+
+The API should support full, 7-day, and 1-day data loads, generate a pipe-delimited CSV file along with a .csv.ready control file containing the record count, package both files into a ZIP, and return the ZIP as an HTTP response.
+
+The implementation will include the required controller, service, repository, entity mapping, export logging, and email notification integration without impacting existing export functionality.
+
+Acceptance Criteria
+
+1. A new Party DTC Map export REST API is implemented and accessible through Schema Browser.
+2. The API supports the following load types:
+    * load=1 — 1-day incremental load.
+    * load=7 — 7-day incremental load.
+    * No load parameter — Full load.
+3. The API retrieves Party DTC mapping records from OM_CATALOGUE_PARTY_DTC_MAP using the appropriate Oracle queries.
+4. A pipe-delimited CSV file is generated with the required column headers and mapping data.
+5. A .csv.ready control file is generated containing the exported record count.
+6. Both CSV and control files are packaged into a ZIP and returned as a downloadable HTTP response.
+7. Existing SDM export logging and email notification mechanisms are integrated for success and failure scenarios.
+8. Proper exception handling is implemented for database retrieval, file generation, and export failures.
+9. The implementation is validated in DEV and deployed to UAT for QE testing.
+10. Existing Sundry, Source System, and Source System Coverage APIs continue functioning without regression.
+11. QE validation and sign-off are completed before production deployment.
+
+
+
+
+
+
 SELECT *
 FROM C167969RPC.OM_CATALOGUE_PARTY_DTC_MAP
 WHERE IS_CURRENT_FLAG = 'Y'
