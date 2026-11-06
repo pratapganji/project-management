@@ -1,5 +1,12 @@
 
 
+
+RUN mkdir -p /data/1/gfolydal/data/outgoing/referencedata/static/exportpartydtcmap/ \
+    && chgrp -R 0 /data/1/gfolydal/data/outgoing/referencedata/static/exportpartydtcmap/ \
+    && chmod -R g+rwX /data/1/gfolydal/data/outgoing/referencedata/static/exportpartydtcmap/
+
+
+
 test -w /data/1/gfolydal/data/outgoing/referencedata/static/exportpartydtcmap && echo "WRITABLE" || echo "NOT WRITABLE"
 
 
