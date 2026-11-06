@@ -1,5 +1,8 @@
 
 
+test -w /data/1/gfolydal/data/outgoing/referencedata/static/exportpartydtcmap && echo "WRITABLE" || echo "NOT WRITABLE"
+
+
 ls -ld /data/1/gfolydal/data/outgoing/referencedata/static/exportpartydtcmap
 
 
