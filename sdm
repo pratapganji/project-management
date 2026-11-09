@@ -1,4 +1,8 @@
 
+We developed a new Party DTC Map File Export API following the existing Sundry API structure, supporting full load, 1-day, and 7-day incremental loads. We implemented the controller, service, repository, and CSV/ZIP export functionality. During UAT testing, we identified and fixed a directory permission issue in the Dockerfile. The changes have been deployed to UAT, and the Jira has been assigned to QE for validation and sign-off. We’re following up on the testing results.
+
+
+
 
 
 RUN mkdir -p /data/1/gfolydal/data/outgoing/referencedata/static/exportpartydtcmap/ \
