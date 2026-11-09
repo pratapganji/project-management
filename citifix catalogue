@@ -1,3 +1,30 @@
+
+Hi Andrii, we are working on a CitiFix → Data Catalog integration.
+
+The requirement is to take the latest CitiFix metadata and publish/update it in Data Catalog using the existing Data Catalog APIs. We are not making any changes to the Data Catalog application itself.
+
+The structure we are trying to represent is roughly:
+
+CITIFIX
+→ Message
+→ Repeat Groups + Main Body Tags
+→ Nested Repeat Groups, if any
+→ Tags
+
+We already have the CitiFix source information. Right now I am trying to understand which Data Catalog APIs and payloads should be used to create/update this hierarchy.
+
+Could you please help with a sample request/payload, preferably for an existing hierarchical dictionary such as CitiML, showing how a dictionary/collection, nested relationship, and attributes are created or updated?
+
+That will help us map the CitiFix data into the correct Data Catalog API structure.
+
+
+
+
+
+
+
+
+
 Absolutely. I would frame it as a **Requirement Understanding / Analysis and Clarifications** document rather than saying “I compared” informally.
 
 Here is a polished version you can share with your manager/team:
