@@ -1,5 +1,11 @@
 
 
+For CAAS, we deployed the S3 access validation code in UAT and added the required OneOps job properties through ORAAS scripts. We completed standalone testing through Autosys. The negative test returned ACCESS_DENIED as expected, and the positive test returned ACCESS_ALLOWED, with the Spark job completing successfully. We have also restored the original job script. Next, we will integrate the validated access-check method into the existing S3 upload flow.
+
+
+
+
+
 Review the newly added standalone main() in scripts/s3_access_policy.py. Make only these corrections:
 1. Ensure import sys exists because the script calls sys.exit(main()).
 2. For unexpected errors, print ACCESS_CHECK_FAILED followed by the exception class name and a safe diagnostic message; never print credentials, JDBC connection properties, secrets, or password values.
