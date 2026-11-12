@@ -1,4 +1,8 @@
 
+For the CRM → Olympus AutoSys job machine mapping issue, I reviewed the Olympus Confluence documentation and found our application VM hostnames listed under the API section. However, the corresponding proxy mappings are still unclear. We reached out to the creators of the Confluence page for clarification on the DEV, UAT, PROD, and COB proxy mappings, but haven’t received a response yet. We’re awaiting their clarification before proceeding with validation.
+
+
+
 
 Hi Vinoth,
 
