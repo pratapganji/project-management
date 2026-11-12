@@ -1,5 +1,27 @@
 
 
+Hi Vinoth,
+
+We received an AutoSys job host compliance notification regarding jobs running directly on application VM servers instead of the recommended proxy mappings.
+
+We identified 12 AutoSys jobs belonging to our CRM → Olympus API application that require review.
+
+While investigating, I found our application hostnames under the API section in the Confluence page “2.4 Master List of Olympus Proxy Servers,” which you recently updated.
+
+However, we couldn’t find the corresponding AutoSys proxy mappings for these VM hostnames.
+
+Could you please help us identify the correct AutoSys proxy mappings for DEV, UAT, PROD and COB, or direct us to the appropriate team/contact who can assist?
+
+We need to validate the changes in lower environments before proceeding with production.
+
+Thanks!
+
+
+
+
+
+
+
 Hi Team,
 
 We identified 12 AutoSys jobs related to our CRM → Olympus API application from the shared list.
