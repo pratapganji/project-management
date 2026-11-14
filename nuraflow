@@ -1,5 +1,25 @@
 
 
+SELECT
+    ID,
+    CONSUMER_NAME,
+    DATATYPE,
+    REPORT,
+    PRODUCT,
+    ENTITY,
+    HIERARCHY_PATH,
+    CALLBACK_FLAG
+FROM A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+WHERE CONSUMER_NAME = 'ROCK'
+  AND HIERARCHY_PATH = 'FRY15~STWF~Contracts'
+ORDER BY DATATYPE;
+
+
+
+
+
+
+
 Check whether the FID/service account used by OneRec is configured in CCP for COB.
 Compare the COB setup with the working PROD setup.
 Verify whether the application can retrieve the required passwords, particularly the database/JDBC password and Workstation authentication credentials.
