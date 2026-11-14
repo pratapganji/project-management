@@ -1,47 +1,43 @@
 
-Open:
-common_oraas/Nurarec/DML/Rock/insert_rock_report_onboarding.sql
+Do not run the previous command yet.
 
-We are onboarding FRY15-STWF-Contracts into
-A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD.
+The approach of splitting the SQL_PAYLOAD into
+850-character TO_CLOB chunks is correct.
 
-The file contains three INSERT statements:
-1. Summary
-2. Attribute
-3. Attribute_Summary
+Before modifying the file:
 
-DEV deployment encountered these SQL*Plus errors:
-SP2-0341: line overflow during variable substitution
-SP2-0027: Input is too long
+1. Make sure the command works in my Windows terminal.
+   Do not use Bash heredoc syntax in PowerShell.
 
-TASK:
-Fix the oversized SQL_PAYLOAD literals in all three
-INSERT statements.
+2. Preserve the original SQL file using Git.
 
-REQUIREMENTS:
-1. Preserve the complete original SQL query for each datatype.
-2. Do not change any query logic, tables, joins, filters,
-   parameters, aliases, or column names.
-3. Split long SQL_PAYLOAD literals into smaller
-   TO_CLOB(q'~...~') expressions joined using ||.
-4. Keep each physical line and literal chunk under
-   1000 characters.
-5. Preserve the exact concatenated JSON content.
-6. Do not introduce literal line breaks inside JSON strings.
-7. Preserve all JSON properties, including dataSource,
-   sqlQuery, environment, databaseFetchSize, s3path,
-   fileName, callBackUrl and catalog wherever present.
-8. Keep all three INSERT statements and their datatype values.
-9. Do not change FID, report, product, entity,
-   hierarchy_path, datasource_url or callback_flag.
-10. Keep one COMMIT at the end.
-11. Do not execute the SQL.
-12. Verify the final SQL syntax, the CLOB concatenation,
-    and that all three reconstructed payloads are valid JSON.
-13. Do not shorten, simplify, or regenerate the existing SQL.
+3. Confirm exactly 3 SQL_PAYLOAD expressions exist:
+   Summary, Attribute, Attribute_Summary.
 
-Make only the necessary formatting changes to fix the
-SQL*Plus oversized-line errors.
+4. Split each payload into TO_CLOB chunks connected by ||.
+
+5. Preserve the original JSON and SQL queries exactly.
+
+6. Verify that concatenating the new chunks produces
+   exactly the same payload as before.
+
+7. Ensure every physical SQL line is under 1000 bytes.
+
+8. Stop with an error if the script cannot identify
+   exactly 3 payloads or validation fails.
+
+9. Do not modify report metadata or other columns.
+
+10. Do not execute any Oracle SQL.
+
+11. Show the final Git diff and validation results.
+
+After these checks, request permission to modify
+the file.
+
+
+
+
 
 
 
