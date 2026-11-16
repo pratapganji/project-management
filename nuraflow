@@ -1,4 +1,21 @@
 
+SELECT *
+FROM A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
+WHERE CONSUMER_NAME = 'ROCK'
+AND HIERARCHY_PATH IN (
+    'FRY15~STWF~Contracts',
+    'FRY15~Securities~Trades',
+    'FRY15~Securities~Positions',
+    'FRY15~Reference_Data~RefData',
+    'FRY15~Overdraft~Contracts'
+)
+ORDER BY HIERARCHY_PATH, DATATYPE;
+
+
+
+
+
+
 Do not run the previous command yet.
 
 The approach of splitting the SQL_PAYLOAD into
