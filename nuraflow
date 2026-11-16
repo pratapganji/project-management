@@ -1,4 +1,18 @@
 
+WHERE CONSUMER_NAME = 'ROCK'
+AND DATATYPE = 'Attribute_Summary'
+AND HIERARCHY_PATH IN (
+    'FRY15~STWF~Contracts',
+    'FRY15~Securities~Trades',
+    'FRY15~Securities~Positions',
+    'FRY15~Reference_Data~RefData',
+    'FRY15~Overdraft~Contracts'
+)
+AND NOT JSON_EXISTS(SQL_PAYLOAD, '$.sqlQuery');
+
+
+
+
 SELECT *
 FROM A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD
 WHERE CONSUMER_NAME = 'ROCK'
