@@ -1,4 +1,24 @@
 
+SET DEFINE OFF
+SET SERVEROUTPUT ON
+SET SQLBLANKLINES ON
+WHENEVER SQLERROR EXIT SQL.SQLCODE ROLLBACK
+
+PROMPT Inserting FRY15 ROCK report configurations
+
+DECLARE
+    vMyClob_attribute CLOB;
+    vMyClob_summary CLOB;
+    vMyClob_attribute_summary CLOB;
+    v_environment VARCHAR2(50);
+    v_starburst_url VARCHAR2(2000);
+    v_starburst_env VARCHAR2(10);
+BEGIN
+
+
+
+
+
 SELECT DISTINCT
     CONSUMER_NAME,
     CALLBACK_FLAG,
