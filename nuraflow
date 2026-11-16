@@ -1,4 +1,152 @@
 
+FOR r IN (
+    SELECT
+        p.hierarchy_path,
+        REGEXP_SUBSTR(p.hierarchy_path, '[^~]+', 1, 1) AS report_name,
+        REGEXP_SUBSTR(p.hierarchy_path, '[^~]+', 1, 2) AS product_name,
+        REGEXP_SUBSTR(p.hierarchy_path, '[^~]+', 1, 3) AS entity_name,
+        t.datatype
+    FROM (
+        SELECT 'FRY14Q~Loans~EPR' hierarchy_path FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~MarketData~CreditRiskFinancials' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~MarketRisk~CCAR' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~OTC~Contracts' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~OperationalRisk~CCARReport' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~Other~SpecializedServices' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~Others~Dealogic' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~Others~PrimeBrokerage' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~Others~SecurityPledging' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~Overdraft' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~ReferenceData~AMC' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~ReferenceData~Customer' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~ReferenceData~DSMT' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~ReferenceData~SMC' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~Risk_Retail~Retail_Credit_Risk' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~Securities~Positions' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~Securities~Trade' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~TP' FROM dual
+        UNION ALL
+        SELECT 'FRY14Q~WholesaleLoans~CreditExposure' FROM dual
+        UNION ALL
+        SELECT 'FRY15~EUI' FROM dual
+        UNION ALL
+        SELECT 'FRY15~Overdraft~Contracts' FROM dual
+        UNION ALL
+        SELECT 'FRY15~Reference_Data~RefData' FROM dual
+        UNION ALL
+        SELECT 'FRY15~Securities~Positions' FROM dual
+        UNION ALL
+        SELECT 'FRY15~Securities~Trades' FROM dual
+        UNION ALL
+        SELECT 'FRY15~STWF~Contracts' FROM dual
+    ) p
+    CROSS JOIN (
+        SELECT 'Attribute' datatype FROM dual
+        UNION ALL
+        SELECT 'Summary' FROM dual
+        UNION ALL
+        SELECT 'Attribute_Summary' FROM dual
+    ) t
+)
+LOOP
+
+    CASE r.datatype
+        WHEN 'Attribute' THEN
+            v_payload := vMyClob_attribute;
+        WHEN 'Summary' THEN
+            v_payload := vMyClob_summary;
+        WHEN 'Attribute_Summary' THEN
+            v_payload := vMyClob_attribute_summary;
+    END CASE;
+
+    INSERT INTO A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD (
+        CONSUMER_NAME,
+        FID,
+        DATATYPE,
+        REPORT,
+        PRODUCT,
+        ENTITY,
+        SQL_PAYLOAD,
+        HIERARCHY_PATH,
+        DATASOURCE_URL,
+        DWH_CREATED_BY,
+        DWH_CREATED_TIMESTAMP,
+        DWH_UPDATED_BY,
+        DWH_UPDATED_TIMESTAMP,
+        DWH_UPDATED_REASON,
+        REPORT_DISABLED,
+        PLACEHOLDER,
+        FILE_PROPERTY_JSON,
+        CALLBACK_FLAG
+    )
+    SELECT
+        'ROCK',
+        'ROCKETLUSER_FID',
+        r.datatype,
+        r.report_name,
+        r.product_name,
+        r.entity_name,
+        v_payload,
+        r.hierarchy_path,
+        TO_CLOB(v_starburst_url),
+        'A167969NURAREC',
+        SYSTIMESTAMP,
+        NULL,
+        NULL,
+        NULL,
+        'N',
+        NULL,
+        NULL,
+        'N'
+    FROM dual
+    WHERE NOT EXISTS (
+        SELECT 1
+        FROM A167969NURAREC.OM_NURAFLOW_CONFIG_PAYLOAD c
+        WHERE c.CONSUMER_NAME = 'ROCK'
+          AND c.FID = 'ROCKETLUSER_FID'
+          AND c.DATATYPE = r.datatype
+          AND c.HIERARCHY_PATH = r.hierarchy_path
+    );
+
+    v_inserted := v_inserted + SQL%ROWCOUNT;
+
+END LOOP;
+
+DBMS_OUTPUT.PUT_LINE(
+    'ROCK associated records inserted row count: '
+    || v_inserted
+);
+
+COMMIT;
+
+END;
+/
+
+
+
+
+
+
+
+
+
 SET DEFINE OFF
 SET SERVEROUTPUT ON
 SET SQLBLANKLINES ON
