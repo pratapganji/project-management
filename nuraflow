@@ -1,5 +1,14 @@
 
 
+For ROCK FRY15 onboarding, we searched for the existing EOD AutoSys jobs but couldn’t find the required job details. I also reached out to Mukesh, but haven’t received a response yet, so the AutoSys JIL configuration and deployment are still pending.
+
+Meanwhile, I prepared the Oracle ORAAS scripts for PROD and COB to onboard the new FRY15 report trigger jobs with the required environment properties. I have also raised PR #166 (C167969Y-9850) with the OneOps configuration changes for review.
+
+
+
+
+
+
 SET DEFINE OFF
 WHENEVER SQLERROR EXIT SQL.SQLCODE ROLLBACK
 
