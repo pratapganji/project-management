@@ -1,5 +1,13 @@
 
 
+Hi Mahesh, thanks for sharing the updated queries. We are using queries 2, 3 and 4 for the 7-day, 1-day and full-load exports. We are not using the first query, as individual record retrieval is not required for the existing file export flow.
+
+Could you please populate some test data in UAT with STATUS = 'COMPLETE', IS_CURRENT_FLAG = 'Y' and appropriate DWH_UPDATED_TIMESTAMP values to validate all three load scenarios?
+
+
+
+
+
 SELECT STATUS, IS_CURRENT_FLAG, COUNT(*) AS RECORD_COUNT
 FROM C167969RPC.OM_CATALOGUE_PARTY_DTC_MAP
 GROUP BY STATUS, IS_CURRENT_FLAG;
