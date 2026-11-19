@@ -6,9 +6,13 @@ Issue 1 – Direct Memory Failure:
 The first deployment failed during JDBC data processing with a Java direct buffer memory error. We updated the required memory configuration and retried the deployment.
 
 Issue 2 – Image Scanning Policy Failure:
-The next deployment was blocked by the VSAaS image scanning gate because the installed JDK/JRE version had a newly reported CVE. We remediated the JDK/JRE policy issue and redeployed.
+The next deployment was blocked by the VSAaS image scanning gate because of a JDK/JRE CVM finding. We remediated the JDK/JRE policy issue and redeployed successfully.
 
-After resolving both issues, the application was successfully deployed in PROD.
+CVM Remediation Completed:
+With this deployment, we have resolved both the Java CVM issues from the JDBC/JDK side and the Python dependency CVM issues identified earlier.
+
+The application is now successfully deployed in PROD.
+
 
 
 
