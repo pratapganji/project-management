@@ -1,5 +1,26 @@
 
 
+Application / Report
+Incident number
+Issue description
+Root cause analysis (RCA)
+Fix / Resolution
+Current status
+Owner
+Dependency
+Next action
+Target closure date
+Last updated date
+Daily DSU update
+
+
+
+
+
+
+
+
+
 SDM File Export – started development for the new Party DTC Map export API. The controller, service interface, and service implementation structure are created based on the existing Sundry flow. The DB-specific entity, repository, query, and column mappings are pending final details from the Reference Data team.
 
 
