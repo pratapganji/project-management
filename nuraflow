@@ -1,4 +1,115 @@
 
+insert_job: 167969_OM_ONEREC_FRY15_EUI_TRIGR   job_type: CMD
+command: /bin/ksh -c "sleep 2700 && /data/1/gfolycmn/bin/common/current/scripts/olympus_jobLauncher.ksh instance_unique_name=${AUTO_JOB_NAME}"
+machine: V167969_OM_CDH_PROXY_N07
+owner: gfolygsm
+permission:
+date_conditions: 0
+condition: s(167969_OM_ONEREC_EOD_LOGGING_FRY15_OTHERS_EUI,00.15)
+description: "FRY15 EUI Trigger V2"
+std_out_file: "/data/1/gfolygsm/logs/onerec/${AUTO_JOB_NAME}_`date +%Y%m%d_%H%M%S`.log"
+std_err_file: "/data/1/gfolygsm/logs/onerec/${AUTO_JOB_NAME}_`date +%Y%m%d_%H%M%S`.err"
+alarm_if_fail: 1
+profile: "/data/1/gfolycmn/bin/common/current/scripts/spark_batchProfile_small.ksh"
+alarm_if_terminated: 1
+timezone: US/Eastern
+success_codes: 0
+
+
+insert_job: 167969_OM_ONEREC_FRY15_SECURITIES_POSITIONS_TRIGR   job_type: CMD
+command: /bin/ksh -c "sleep 2700 && /data/1/gfolycmn/bin/common/current/scripts/olympus_jobLauncher.ksh instance_unique_name=${AUTO_JOB_NAME}"
+machine: V167969_OM_CDH_PROXY_N07
+owner: gfolygsm
+permission:
+date_conditions: 0
+condition: s(167969_OM_ONEREC_EOD_LOGGING_FRY15_SEC_POSITIONS,00.15)
+description: "FRY15 Securities Positions Trigger V2"
+std_out_file: "/data/1/gfolygsm/logs/onerec/${AUTO_JOB_NAME}_`date +%Y%m%d_%H%M%S`.log"
+std_err_file: "/data/1/gfolygsm/logs/onerec/${AUTO_JOB_NAME}_`date +%Y%m%d_%H%M%S`.err"
+alarm_if_fail: 1
+profile: "/data/1/gfolycmn/bin/common/current/scripts/spark_batchProfile_small.ksh"
+alarm_if_terminated: 1
+timezone: US/Eastern
+success_codes: 0
+
+
+insert_job: 167969_OM_ONEREC_FRY15_SECURITIES_TRADES_TRIGR   job_type: CMD
+command: /bin/ksh -c "sleep 2700 && /data/1/gfolycmn/bin/common/current/scripts/olympus_jobLauncher.ksh instance_unique_name=${AUTO_JOB_NAME}"
+machine: V167969_OM_CDH_PROXY_N07
+owner: gfolygsm
+permission:
+date_conditions: 0
+condition: s(167969_OM_ONEREC_EOD_LOGGING_FRY15_SEC_TRADES,00.15)
+description: "FRY15 Securities Trades Trigger V2"
+std_out_file: "/data/1/gfolygsm/logs/onerec/${AUTO_JOB_NAME}_`date +%Y%m%d_%H%M%S`.log"
+std_err_file: "/data/1/gfolygsm/logs/onerec/${AUTO_JOB_NAME}_`date +%Y%m%d_%H%M%S`.err"
+alarm_if_fail: 1
+profile: "/data/1/gfolycmn/bin/common/current/scripts/spark_batchProfile_small.ksh"
+alarm_if_terminated: 1
+timezone: US/Eastern
+success_codes: 0
+
+
+insert_job: 167969_OM_ONEREC_FRY15_STWF_CONTRACTS_TRIGR   job_type: CMD
+command: /bin/ksh -c "sleep 2700 && /data/1/gfolycmn/bin/common/current/scripts/olympus_jobLauncher.ksh instance_unique_name=${AUTO_JOB_NAME}"
+machine: V167969_OM_CDH_PROXY_N07
+owner: gfolygsm
+permission:
+date_conditions: 0
+condition: s(167969_OM_ONEREC_EOD_LOGGING_FRY15_STWF_CONTRACTS,00.15)
+description: "FRY15 STWF Contracts Trigger V2"
+std_out_file: "/data/1/gfolygsm/logs/onerec/${AUTO_JOB_NAME}_`date +%Y%m%d_%H%M%S`.log"
+std_err_file: "/data/1/gfolygsm/logs/onerec/${AUTO_JOB_NAME}_`date +%Y%m%d_%H%M%S`.err"
+alarm_if_fail: 1
+profile: "/data/1/gfolycmn/bin/common/current/scripts/spark_batchProfile_small.ksh"
+alarm_if_terminated: 1
+timezone: US/Eastern
+success_codes: 0
+
+
+insert_job: 167969_OM_ONEREC_FRY15_REFDATA_TRIGR   job_type: CMD
+command: /bin/ksh -c "sleep 2700 && /data/1/gfolycmn/bin/common/current/scripts/olympus_jobLauncher.ksh instance_unique_name=${AUTO_JOB_NAME}"
+machine: V167969_OM_CDH_PROXY_N07
+owner: gfolygsm
+permission:
+date_conditions: 0
+condition: s(167969_OM_ONEREC_EOD_LOGGING_FRY15_REFDATA,00.15)
+description: "FRY15 Reference Data Trigger V2"
+std_out_file: "/data/1/gfolygsm/logs/onerec/${AUTO_JOB_NAME}_`date +%Y%m%d_%H%M%S`.log"
+std_err_file: "/data/1/gfolygsm/logs/onerec/${AUTO_JOB_NAME}_`date +%Y%m%d_%H%M%S`.err"
+alarm_if_fail: 1
+profile: "/data/1/gfolycmn/bin/common/current/scripts/spark_batchProfile_small.ksh"
+alarm_if_terminated: 1
+timezone: US/Eastern
+success_codes: 0
+
+
+insert_job: 167969_OM_ONEREC_FRY15_OVERDRAFT_CONTRACTS_TRIGR   job_type: CMD
+command: /bin/ksh -c "sleep 2700 && /data/1/gfolycmn/bin/common/current/scripts/olympus_jobLauncher.ksh instance_unique_name=${AUTO_JOB_NAME}"
+machine: V167969_OM_CDH_PROXY_N07
+owner: gfolygsm
+permission:
+date_conditions: 0
+condition: s(167969_OM_ONEREC_EOD_LOGGING_FRY15_OD_CONTRACTS,00.15)
+description: "FRY15 Overdraft Contracts Trigger V2"
+std_out_file: "/data/1/gfolygsm/logs/onerec/${AUTO_JOB_NAME}_`date +%Y%m%d_%H%M%S`.log"
+std_err_file: "/data/1/gfolygsm/logs/onerec/${AUTO_JOB_NAME}_`date +%Y%m%d_%H%M%S`.err"
+alarm_if_fail: 1
+profile: "/data/1/gfolycmn/bin/common/current/scripts/spark_batchProfile_small.ksh"
+alarm_if_terminated: 1
+timezone: US/Eastern
+success_codes: 0
+
+
+
+
+
+
+
+
+
+
+
 
 For ROCK FRY15 onboarding, we searched for the existing EOD AutoSys jobs but couldn’t find the required job details. I also reached out to Mukesh, but haven’t received a response yet, so the AutoSys JIL configuration and deployment are still pending.
 
