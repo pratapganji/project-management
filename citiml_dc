@@ -1,3 +1,33 @@
+
+{
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 100
+  },
+  "statuses": [
+    "ACTIVE"
+  ],
+  "symlinkSearchAndParams": [
+    {
+      "business": "ISG",
+      "provider": "Olympus",
+      "dictionary": "CitiMLTest",
+      "concept": "CITIMLNOTIFICATIONBUNDLEDETAILS",
+      "attribute": "CITIMLNOTIFICATIONBUNDLEDETAILS",
+      "searchSide": "BOTH"
+    }
+  ]
+}
+
+
+
+
+
+
+
+
+
+
 CITIML TO DATA CATALOG INTEGRATION – POC
 
 1. REQUIREMENT
