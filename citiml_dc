@@ -1,3 +1,100 @@
+
+{
+  "attributesSymlinks": [
+    {
+      "attributesFrom": [
+        {
+          "paramName": "citimlTradeNotification",
+          "attributeLocator": {
+            "business": "ISG",
+            "provider": "Olympus",
+            "dictionary": "CitiMLTest",
+            "concept": "CITIMLTRADENOTIFICATION",
+            "attribute": "CITIMLTRADENOTIFICATION"
+          }
+        }
+      ],
+      "attributesTo": [
+        {
+          "paramName": "citimlNotificationBundleDetails",
+          "attributeLocator": {
+            "business": "ISG",
+            "provider": "Olympus",
+            "dictionary": "CitiMLTest",
+            "concept": "CITIMLNOTIFICATIONBUNDLEDETAILS",
+            "attribute": "CITIMLNOTIFICATIONBUNDLEDETAILS"
+          }
+        }
+      ],
+      "relation": {
+        "type": "LINEAGE",
+        "cardinality": "ANY"
+      },
+      "lineageReason": {
+        "locator": {
+          "portableIdentifier": "33c1090f-9861-41cf-b43b-d51bfecf0d0b"
+        },
+        "comment": "CitiML XPath parent-child relationship POC"
+      },
+      "owner": "YOUR_SOEID"
+    },
+    {
+      "attributesFrom": [
+        {
+          "paramName": "citimlNotificationBundleDetails",
+          "attributeLocator": {
+            "business": "ISG",
+            "provider": "Olympus",
+            "dictionary": "CitiMLTest",
+            "concept": "CITIMLNOTIFICATIONBUNDLEDETAILS",
+            "attribute": "CITIMLNOTIFICATIONBUNDLEDETAILS"
+          }
+        }
+      ],
+      "attributesTo": [
+        {
+          "paramName": "citimlEvents",
+          "attributeLocator": {
+            "business": "ISG",
+            "provider": "Olympus",
+            "dictionary": "CitiMLTest",
+            "concept": "CITIMLEVENTS",
+            "attribute": "CITIMLEVENTS"
+          }
+        }
+      ],
+      "relation": {
+        "type": "LINEAGE",
+        "cardinality": "ANY"
+      },
+      "lineageReason": {
+        "locator": {
+          "portableIdentifier": "33c1090f-9861-41cf-b43b-d51bfecf0d0b"
+        },
+        "comment": "CitiML XPath parent-child relationship POC"
+      },
+      "owner": "YOUR_SOEID"
+    }
+  ]
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 {
   "dictionary": {
     "releaseVersion": "v1",
