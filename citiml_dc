@@ -1,4 +1,32 @@
 
+https://qa.apac.isg.icgservices.citigroup.net/
+isg/internal/data-highway/system-info-api/v1/graph/lineage
+
+{
+  "request": {
+    "maxHops": 10,
+    "startingNodes": [
+      {
+        "identifier": {
+          "type": "dataCatalogLocator",
+          "value": {
+            "business": "ISG",
+            "provider": "Olympus",
+            "dictionary": "CitiMLTest",
+            "concept": "CITIMLNOTIFICATIONBUNDLEDETAILS",
+            "attribute": "CITIMLNOTIFICATIONBUNDLEDETAILS"
+          }
+        }
+      }
+    ]
+  }
+}
+
+
+
+
+
+
 {
   "pageable": {
     "pageNumber": 0,
