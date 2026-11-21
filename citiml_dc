@@ -1,4 +1,208 @@
 
+CitiML  |  Data Catalog lineage proof of concept
+CitiML XPath hierarchy – POC
+Objective: represent parent-child relationships between three CitiML XPath levels in Data Catalog while keeping the existing flat collection model.
+UAT2  |  Business: ISG  |  Provider: Olympus  |  Test dictionary: CitiMLTest  |  21 Nov 2026
+Test hierarchy: TradeNotification → NotificationBundleDetails → Events. Each collection contains a same-name String attribute used as a linkage point. No source data or existing CITIML dictionary was modified.
+1. Create test dictionary
+POST /dictionary-api/v1/ISG/Olympus/CitiMLTest?env=PROD
+https://qa.apac.isg.icgservices.citigroup.net/isg/internal/data-highway/dictionary-api/v1/ISG/Olympus/CitiMLTest?env=PROD
+SoapUI REST request; JSON body; headers: client_id, client_secret (approved credentials), Content-Type: application/json. Use the same UAT2 host and env=PROD query for subsequent calls.
+Payload
+{"dictionary": {
+ "releaseVersion": "v1", "logicalName": "CitiMLTest",
+ "physicalName": "CitiMLTest", "dictionaryType": "PHYSICAL",
+ "description": "CitiML XPath hierarchy POC", "displayName": "CitiMLTest",
+ "concepts": {
+   "CITIMLTRADENOTIFICATION": {
+     "physicalName": "CITIMLTRADENOTIFICATION",
+     "description": "CitiML Trade Notification",
+     "attributes": {"CITIMLTRADENOTIFICATION": {
+       "physicalName": "CITIMLTRADENOTIFICATION", "dataType": "String",
+       "description": "Self attribute for linkage purpose CITIMLTRADENOTIFICATION"}}},
+   "CITIMLNOTIFICATIONBUNDLEDETAILS": {
+     "physicalName": "CITIMLNOTIFICATIONBUNDLEDETAILS",
+     "description": "CitiML Notification Bundle Details",
+     "attributes": {"CITIMLNOTIFICATIONBUNDLEDETAILS": {
+       "physicalName": "CITIMLNOTIFICATIONBUNDLEDETAILS", "dataType": "String",
+       "description": "Self attribute for linkage purpose CITIMLNOTIFICATIONBUNDLEDETAILS"}}},
+   "CITIMLEVENTS": {
+     "physicalName": "CITIMLEVENTS",
+     "description": "CitiML Events",
+     "attributes": {"CITIMLEVENTS": {
+       "physicalName": "CITIMLEVENTS", "dataType": "String",
+       "description": "Self attribute for linkage purpose CITIMLEVENTS"}}}
+ }
+}}
+Response
+{"version": 1}
+
+SoapUI evidence – dictionary POST returned version 1.
+
+2. Verify dictionary and select lineage reason
+GET /dictionary-api/v1/ISG/Olympus/CitiMLTest/current?env=PROD
+https://qa.apac.isg.icgservices.citigroup.net/isg/internal/data-highway/dictionary-api/v1/ISG/Olympus/CitiMLTest/current?env=PROD
+Request body: none. Before creation the dictionary was not found; after creation the current version was returned.
+Response: version 1, releaseVersion v1, documentSource DATA_CATALOG, dictionaryType PHYSICAL, with the three concepts and their self attributes.
+GET /system-info-api/v1/lineage-reason-type/all?env=PROD
+https://qa.apac.isg.icgservices.citigroup.net/isg/internal/data-highway/system-info-api/v1/lineage-reason-type/all?env=PROD
+Request body: none. Use the active reason “Other” for the POC; this reason requires a comment.
+Reason portableIdentifier: 33c1090f-9861-41cf-b43b-d51bfecf0d0b
+Comment: CitiML XPath parent-child relationship POC
+
+
+SoapUI response excerpts – dictionary details (left) and lineage reason reference list (right).
+Dictionary Swagger: Dictionary Apis → POST /{business}/{provider}/{dictionary} and GET /{business}/{provider}/{dictionary}/{version}. System Info Swagger is used for lineage reference and read/search APIs.
+
+3. Create parent-child relationship 1
+POST /config-api/v1/attributes-symlinks/create?env=PROD
+https://qa.apac.isg.icgservices.citigroup.net/isg/internal/data-highway/config-api/v1/attributes-symlinks/create?env=PROD
+Source: CITIMLTRADENOTIFICATION  →  Target: CITIMLNOTIFICATIONBUNDLEDETAILS
+Same attribute-to-attribute create API as Rupesh’s POC. Here the source and target are in the same test dictionary, representing the XPath hierarchy rather than a cross-dictionary mapping.
+Payload – successful relationship item (standalone reference)
+{"attributesSymlinks": [
+ {"attributesFrom": [{
+   "paramName": "citimlTradeNotification",
+   "attributeLocator": {
+     "business": "ISG", "provider": "Olympus", "dictionary": "CitiMLTest",
+     "concept": "CITIMLTRADENOTIFICATION",
+     "attribute": "CITIMLTRADENOTIFICATION"
+   }
+ }],
+ "attributesTo": [{
+   "paramName": "citimlNotificationBundleDetails",
+   "attributeLocator": {
+     "business": "ISG", "provider": "Olympus", "dictionary": "CitiMLTest",
+     "concept": "CITIMLNOTIFICATIONBUNDLEDETAILS",
+     "attribute": "CITIMLNOTIFICATIONBUNDLEDETAILS"
+   }
+ }],
+ "relation": {"type": "LINEAGE", "cardinality": "ANY"},
+ "transformationLogic": {"type": "DIRECT", "description": "", "definition": ""},
+ "lineageReason": {
+   "locator": {"portableIdentifier": "33c1090f-9861-41cf-b43b-d51bfecf0d0b"},
+   "comment": "CitiML XPath parent-child relationship POC"
+ },
+ "owner": "PG16424"}
+]}
+Response / evidence
+In the corrected two-item request, one item succeeded and one failed. The first relationship was subsequently retrieved with this identifier:
+e7e0f8b3-6eac-47f5-9482-e5c8ac36a61e
+
+SoapUI partial result: totalCount 2, successCount 1, failedCount 1. The first attempt had failed because transformation information was incomplete.
+
+4. Create parent-child relationship 2
+POST /config-api/v1/attributes-symlinks/create?env=PROD
+https://qa.apac.isg.icgservices.citigroup.net/isg/internal/data-highway/config-api/v1/attributes-symlinks/create?env=PROD
+Source: CITIMLNOTIFICATIONBUNDLEDETAILS  →  Target: CITIMLEVENTS. The failed item was retried separately.
+Payload
+{"attributesSymlinks": [
+ {"attributesFrom": [{
+   "paramName": "citimlNotificationBundleDetails",
+   "attributeLocator": {
+     "business": "ISG", "provider": "Olympus", "dictionary": "CitiMLTest",
+     "concept": "CITIMLNOTIFICATIONBUNDLEDETAILS",
+     "attribute": "CITIMLNOTIFICATIONBUNDLEDETAILS"
+   }
+ }],
+ "attributesTo": [{
+   "paramName": "citimlEvents",
+   "attributeLocator": {
+     "business": "ISG", "provider": "Olympus", "dictionary": "CitiMLTest",
+     "concept": "CITIMLEVENTS",
+     "attribute": "CITIMLEVENTS"
+   }
+ }],
+ "relation": {"type": "LINEAGE", "cardinality": "ANY"},
+ "transformationLogic": {"type": "DIRECT", "description": "", "definition": ""},
+ "lineageReason": {
+   "locator": {"portableIdentifier": "33c1090f-9861-41cf-b43b-d51bfecf0d0b"},
+   "comment": "CitiML XPath parent-child relationship POC"
+ },
+ "owner": "PG16424"}
+]}
+Response
+{"totalCount": 1, "successCount": 1, "skippedCount": 0,
+"failedCount": 0, "successItems": [{"portableIdentifier":
+  "4642ffbe-b883-4935-984a-3b6ec93ab9a5"}]}
+
+SoapUI evidence – second relationship created successfully. No need to recreate these links.
+
+5. Search and verify both relationships
+POST /system-info-api/v1/attributes-symlinks/search?env=PROD
+https://qa.apac.isg.icgservices.citigroup.net/isg/internal/data-highway/system-info-api/v1/attributes-symlinks/search?env=PROD
+Payload – dictionary-wide search that worked
+{
+ "pageable": {"pageNumber": 0, "pageSize": 100},
+ "symlinkSearchOrParams": [{
+   "business": "ISG", "provider": "Olympus",
+   "dictionary": "CitiMLTest", "searchSide": "FROM"
+ }]
+}
+Response – verified fields
+1. CITIMLTRADENOTIFICATION → CITIMLNOTIFICATIONBUNDLEDETAILS
+e7e0f8b3-6eac-47f5-9482-e5c8ac36a61e
+2. CITIMLNOTIFICATIONBUNDLEDETAILS → CITIMLEVENTS
+4642ffbe-b883-4935-984a-3b6ec93ab9a5
+Both: status ACTIVE, relation LINEAGE, cardinality ANY, transformation DIRECT, version 1, isOrphan false. The labels are Lineage Parent and Lineage Child.
+
+SoapUI evidence – dictionary-level search returned both stored relationships.
+The initial filtered search returned an empty list. Searching by the first portableIdentifier worked, then the dictionary-wide request above returned both records.
+
+6. Verify lineage graph
+POST /system-info-api/v1/graph/lineage?env=PROD&direction=both
+https://qa.apac.isg.icgservices.citigroup.net/isg/internal/data-highway/system-info-api/v1/graph/lineage?env=PROD&direction=both
+Payload – start from the middle attribute
+{
+ "request": {"maxHops": 10, "startingNodes": [{
+   "identifier": {"type": "dataCatalogLocator", "value": {
+     "business": "ISG", "provider": "Olympus", "dictionary": "CitiMLTest",
+     "concept": "CITIMLNOTIFICATIONBUNDLEDETAILS",
+     "attribute": "CITIMLNOTIFICATIONBUNDLEDETAILS"
+   }}
+ }]}
+}
+Response – confirmed graph
+3 DataModelAttribute nodes, 2 Transformation nodes (the two symlink IDs), and 4 LINEAGE edges. No orphaned nodes.
+TradeNotification → DIRECT → NotificationBundleDetails → DIRECT → Events
+
+SoapUI graph response – starting node and connected attribute nodes.
+
+Saved graph response excerpt – the four directed edges (LINEAGE).
+
+7. MetaManager validation and conclusion
+MetaManager (UAT2) – Attribute-to-Attribute tab
+https://metamanager.dc-uat2.nam.nsroot.net/admin-tool/relations?env=prod
+Navigate: ISG → Olympus → CitiMLTest → expand the concept → select the blue self attribute. The Bundle Details and Events attributes show their incoming active relations.
+
+MetaManager: NotificationBundleDetails incoming relationship, ACTIVE.
+
+MetaManager: Events incoming relationship, ACTIVE.
+Reference pages
+Catalog Browser: https://catalog.dc-uat2.nam.nsroot.net/browse/ISG/Olympus/dictionary/CitiMLTest/current?buscat=DC_LOB&env=prod
+Swagger (UAT2): https://swagger.saas.dc-uat2.nam.nsroot.net/swagger-ui/index.html?urls.primaryName=System+Info+Apis#/
+Select Dictionary Apis for dictionary operations; System Info Apis for search, reasons and graph. The write endpoint is config-api; its Swagger definition was not confirmed.
+Conclusion
+POC successful: created a test dictionary with three flat concepts and two ACTIVE attribute-to-attribute LINEAGE symlinks. Search, graph API and MetaManager confirmed the intended hierarchy. The Catalog Browser graphical view remains pending because its UI returned a service error. This demonstrates the metadata representation, not physical nesting or actual data movement.
+Internal  •  UAT2  |  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 https://qa.apac.isg.icgservices.citigroup.net/
 isg/internal/data-highway/system-info-api/v1/graph/lineage
 
