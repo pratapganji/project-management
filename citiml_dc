@@ -4,6 +4,25 @@
     "pageNumber": 0,
     "pageSize": 100
   },
+  "symlinkSearchOrParams": [
+    {
+      "business": "ISG",
+      "provider": "Olympus",
+      "dictionary": "CitiMLTest",
+      "searchSide": "FROM"
+    }
+  ]
+}
+
+
+
+
+
+{
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 100
+  },
   "portableIdentifiers": [
     "e7e0f8b3-6eac-47f5-9482-e5c8ac36a61e"
   ]
