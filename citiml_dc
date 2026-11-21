@@ -1,4 +1,28 @@
 
+Hi Rajat,
+
+As discussed, I have completed the POC for establishing CitiML XPath parent-child relationships in Data Catalog.
+
+* Created a test dictionary with three collections and their corresponding attributes.
+* Established two parent-child relationships using attribute-to-attribute lineage APIs.
+* Successfully validated the relationships using the search API, lineage graph API and MetaManager.
+
+Please find attached the POC document with API endpoints, request payloads, responses and validation screenshots.
+
+The graphical validation in Data Catalog UI is pending due to a service connectivity issue.
+
+Please review and let me know your feedback.
+
+Thanks,
+Pratap
+
+
+
+
+
+
+
+
 CitiML  |  Data Catalog lineage proof of concept
 CitiML XPath hierarchy – POC
 Objective: represent parent-child relationships between three CitiML XPath levels in Data Catalog while keeping the existing flat collection model.
