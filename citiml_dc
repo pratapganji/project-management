@@ -1,2244 +1,265 @@
+CITIML TO DATA CATALOG INTEGRATION – POC
+
+1. REQUIREMENT
+
+Rajat asked us to take three nodes from a CitiML
+XPath, publish them to Data Catalog and create
+parent-child relationships.
 
 
-============================================================
-CITIML TO DATA CATALOG INTEGRATION
-MASTER REFERENCE DOCUMENT
-Last updated: November 21, 2026
-============================================================
+2. BASIC UNDERSTANDING
 
-1. PROJECT OVERVIEW
-============================================================
+Dictionary : Container holding collections.
+Concept    : Collection inside a dictionary.
+Attribute  : Field inside a collection.
+Node       : Individual element in CitiML XPath.
+Symlink    : Relationship between metadata objects.
+Lineage    : Connection between source and target.
 
-Project: CitiML to Data Catalog Integration
-Team: Olympus
-Lead: Rajat
-Business: ISG
-Provider: Olympus
-
-This activity is specifically for CitiML integration with
-Data Catalog.
-
-This is not the CitiFIX integration activity or the NuraRec
-integration activity.
-
-The objective is to publish CitiML metadata into Data Catalog
-and preserve the hierarchical relationships between CitiML
-XPath nodes.
-
-Currently, our POC is focused on:
-
-1. Taking a sample CitiML XPath.
-2. Identifying individual nodes.
-3. Registering those nodes in Data Catalog.
-4. Creating parent-child relationships between nodes.
-5. Verifying the registered metadata and relationships.
-
-No application development is required for the current
-manual POC.
+MetaManager : UI to manage and verify metadata.
+Swagger     : API documentation.
+SoapUI      : Tool to execute REST API requests.
+Data Catalog: Platform storing the metadata.
 
 
-============================================================
-2. BACKGROUND AND EXISTING IMPLEMENTATION
-============================================================
+3. FLAT STRUCTURE VS HIERARCHY
 
-Yogendra previously worked on publishing partial CitiML
-metadata into Data Catalog.
+Original CitiML hierarchy:
 
-The existing approach involved:
-
-XSD
-  -> XPath extraction
-  -> XPath normalization
-  -> Individual node extraction
-  -> Dictionary JSON preparation
-  -> Publishing concepts and attributes
-  -> Creating relationships through Data Catalog APIs
-
-Some CitiML metadata has already been published under:
-
-ISG > Olympus > CITIML
-
-The existing implementation uses flat collections and
-attribute-to-attribute relationships.
-
-Rajat's discussion:
-
-If XPath information is already available in our database,
-we may not need to start from XSD files again.
-
-Instead, we may be able to consume the existing XPaths,
-extract the nodes and relationships, and publish them
-directly to Data Catalog.
-
-For the current POC, Rajat requested manually selecting
-two or three nodes and validating relationship creation.
-
-The full automation approach will be decided later.
-
-
-============================================================
-3. BASIC TECHNICAL TERMINOLOGY
-============================================================
-
-CitiML:
-A structured representation of financial transaction
-information using XML elements.
-
-XML:
-A format for representing structured information.
-
-XSD:
-XML Schema Definition. Defines the structure, elements,
-data types and rules of an XML document.
-
-XPath:
-A path that identifies the location of an element inside
-an XML hierarchy.
-
-Node:
-An individual element within the XML/XPath structure.
-
-Dictionary:
-A container representing a data model in Data Catalog.
-
-Example:
-CITIML
-CitiMLTest
-
-Concept:
-A collection inside a Data Catalog dictionary.
-
-Concept in the API corresponds to Collection in the
-MetaManager UI.
-
-Attribute:
-A field inside a concept or collection.
-
-Self Attribute:
-An attribute created with the same name as its concept,
-used as an anchor for creating relationships.
-
-Relationship:
-A metadata connection between two registered objects.
-
-Symlink:
-A symbolic metadata link between Data Catalog objects.
-
-Attribute Symlink:
-A relationship connecting one or more attributes to
-other attributes.
-
-Lineage:
-Information describing how data originates, flows,
-or is derived from another data element.
-
-In our current POC, the LINEAGE relationship type is
-being used to represent XML parent-child connections.
-
-This is a hierarchy representation workaround.
-It does not mean that actual transaction data is
-being transferred between these XML nodes.
-
-Portable Identifier:
-A unique identifier assigned by Data Catalog to a
-metadata object, relationship or reference record.
-
-Cardinality:
-Describes how objects can participate in a relationship.
-
-Our POC uses:
-ANY
-
-Transformation Logic:
-Describes the relationship or transformation between
-source and target attributes.
-
-Our POC uses:
-DIRECT
-
-No actual data transformation is performed by our POC.
-
-
-============================================================
-4. WHAT IS FLAT STRUCTURE?
-============================================================
-
-Original CitiML XPath:
-
-citimlTradeNotification/
-citimlNotificationBundleDetails/
-citimlEvents/
-citimlEvent/
-nonpublicExecutionReport/
-ns1:termination/
-ns1:effectiveDate
-
-Original hierarchical structure:
-
-citimlTradeNotification
-    |
-    +-- citimlNotificationBundleDetails
-            |
-            +-- citimlEvents
-                    |
-                    +-- citimlEvent
-                            |
-                            +-- nonpublicExecutionReport
-                                    |
-                                    +-- termination
-                                            |
-                                            +-- effectiveDate
-
-Each child element is nested inside its parent.
+TradeNotification
+    └── NotificationBundleDetails
+          └── Events
 
 Current flat Data Catalog structure:
 
+CitiMLTest
+    ├── TradeNotification
+    ├── NotificationBundleDetails
+    └── Events
+
+All three collections exist at the same level.
+
+To represent the original hierarchy, we create
+parent-child relationships between their attributes.
+
+
+4. OUR POC ENVIRONMENT
+
+Environment: UAT2
+Business: ISG
+Provider: Olympus
 Dictionary: CitiMLTest
 
-    Collection: CITIMLTRADENOTIFICATION
-    Collection: CITIMLNOTIFICATIONBUNDLEDETAILS
-    Collection: CITIMLEVENTS
-
-All collections are registered at the same level under
-the dictionary.
-
-They are not physically nested inside each other.
-
-Without explicit relationships, the flat structure
-does not show which collection is the parent or child.
-
-Our current workaround:
-
-Create flat collections.
-Create self attributes under each collection.
-Create attribute-to-attribute lineage relationships.
-
-For example:
-
-CITIMLTRADENOTIFICATION
-    |
-    | LINEAGE
-    v
-CITIMLNOTIFICATIONBUNDLEDETAILS
-    |
-    | LINEAGE
-    v
-CITIMLEVENTS
-
-The collections remain flat, but their relationships
-describe the original hierarchy.
-
-Important:
-
-The Dictionary API Swagger description mentions that
-concepts can be nested.
-
-However, native hierarchical support for our specific
-CitiML implementation requires confirmation from Rajat
-and the Data Catalog team.
-
-Do not assume native hierarchy is ready for our use
-case until the team confirms it.
-
-
-============================================================
-5. DATA CATALOG COMPONENTS
-============================================================
-
-DATA CATALOG:
-
-The central metadata platform where dictionaries,
-collections, attributes and relationships are registered.
-
-DATА HIGHWAY:
-
-The API service layer used to interact with Data Catalog.
-
-METAMANAGER:
-
-The administrative UI for managing and viewing
-Data Catalog metadata and relationships.
-
-MetaManager can be used to:
-
-- View dictionaries.
-- Browse collections.
-- Browse attributes.
-- View existing relationships.
-- Manage relationships.
-- Check relation status.
-
-DATA CATALOG BROWSER:
-
-The user-facing UI for discovering and navigating
-published metadata and lineage information.
-
-SWAGGER:
-
-API documentation and testing interface.
-
-It describes:
-
-- Available API endpoints.
-- HTTP methods.
-- Request parameters.
-- Request JSON structure.
-- Response JSON structure.
-- Authentication requirements.
-
-Swagger is not the Data Catalog database.
-It is documentation and an interface for calling APIs.
-
-SOAPUI:
-
-A tool for making and testing API requests manually.
-
-Although the application is named SoapUI, it can also
-call REST APIs with JSON.
-
-Our POC uses REST APIs, not SOAP/XML web services.
-
-NOTEPAD++:
-
-Used to inspect, prepare and format JSON payloads and
-API responses.
-
-
-============================================================
-6. ENVIRONMENTS AND BASE URLS
-============================================================
-
-Physical UAT2 API host:
+SoapUI Endpoint:
 
 https://qa.apac.isg.icgservices.citigroup.net
 
-Physical UAT API host:
-
-https://uat.isg.icgservices.citigroup.net
-
-Physical PROD API host:
-
-https://isg.icgservices.citigroup.net
-
-Common API resource prefix:
+Common API prefix:
 
 /isg/internal/data-highway
 
-Current POC configuration:
-
-Physical environment: UAT2
-Query parameter: env=PROD
-
-Important:
-
-The env=PROD parameter used in our POC is separate
-from the physical API hostname.
-
-We used the UAT2 QA/APAC hostname with env=PROD,
-following the existing testing approach.
-
-Do not change the hostname to the actual physical PROD
-host for POC testing.
-
-Do not perform production writes without approval.
-
-
-============================================================
-7. IMPORTANT UI AND DOCUMENTATION URLS
-============================================================
-
-7.1 MetaManager UAT2 Relations Page
-
-https://metamanager.dc-uat2.nam.nsroot.net/admin-tool/relations?env=prod
-
-Status:
-Accessible and verified.
-
-Navigation:
-
-Admin Tool
-  -> Relations
-  -> Attribute-to-Attribute
-  -> ISG
-  -> Olympus
-  -> CitiMLTest
-
-
-7.2 Data Catalog Browser UAT2
-
-https://catalog.dc-uat2.nam.nsroot.net/browse/ISG/Olympus/dictionary/CitiMLTest/current?buscat=DC_LOB&env=prod
-
-Purpose:
-
-View the dictionary and validate metadata navigation
-and graphical lineage.
-
-Current status:
-
-Not accessible due to HTTP 503 backend connectivity
-issue during POC validation.
-
-
-7.3 UAT Swagger Home
-
-https://swagger.saas.dc-uat.nam.nsroot.net/swagger-ui/index.html
-
-
-7.4 System Info APIs Swagger - UAT
-
-https://swagger.saas.dc-uat.nam.nsroot.net/swagger-ui/index.html?urls.primaryName=System%20Info%20Apis#/
-
-API name:
-
-data-highway-system-info-api
-
-Base resource:
-
-/isg/internal/data-highway/system-info-api/v1
-
-
-7.5 Dictionary APIs Swagger - screenshot reference
-
-https://swagger.saas.dc.nam.nsroot.net/swagger-ui/index.html?urls.primaryName=Dictionary+Apis#/
-
-API name:
-
-data-highway-dictionary-api
-
-Base resource:
-
-/isg/internal/data-highway/dictionary-api/v1
-
-Important:
-
-This screenshot showed the physical PROD server.
-
-Use it for documentation/reference only.
-For testing, select the approved UAT/UAT2 environment.
-
-
-7.6 Configuration APIs Swagger
-
-Open the UAT Swagger home:
-
-https://swagger.saas.dc-uat.nam.nsroot.net/swagger-ui/index.html
-
-At the top right:
-
-Select a definition
-
-Look for Config APIs or Configuration APIs.
-
-Exact dropdown label and direct Swagger definition URL
-still need to be confirmed.
-
-Expected service resource:
-
-/isg/internal/data-highway/config-api/v1
-
-Search for:
-
-/attributes-symlinks/create
-
-
-7.7 Data Catalog Information Model document
-
-Reference link displayed in Dictionary Swagger:
-
-https://isg.icgservices.citigroup.net/isg/internal/examples-api/v1/doc/Data_Catalog_Information_Model.pdf
-
-
-7.8 Data Catalog API Tutorial
-
-Reference link displayed in Dictionary Swagger:
-
-https://isg.icgservices.citigroup.net/isg/internal/examples-api/v1/doc/DHCatalogAPI_Tutorial_full.docx
-
-These documents provide further details on the Data
-Catalog model and API usage.
-
-
-============================================================
-8. THREE API GROUPS USED IN OUR POC
-============================================================
-
-A. DICTIONARY APIs
-
-Purpose:
-
-Create and retrieve dictionaries, concepts and
-attributes.
-
-Base:
-
-/dictionary-api/v1
-
-Endpoints used:
-
-GET /{business}/{provider}/{dictionary}/{version}
-
-POST /{business}/{provider}/{dictionary}
-
-
-B. SYSTEM INFO APIs
-
-Purpose:
-
-Retrieve reference information, lineage reasons,
-relationship records and other metadata.
-
-Base:
-
-/system-info-api/v1
-
-Endpoint used:
-
-GET /lineage-reason-type/all
-
-Other relevant read/query endpoints:
-
-POST /attributes-symlinks/search
-
-POST /graph/lineage
-
-
-C. CONFIGURATION APIs
-
-Purpose:
-
-Create and manage relationships.
-
-Base:
-
-/config-api/v1
-
-Endpoint used:
-
-POST /attributes-symlinks/create
-
-Other relevant endpoint:
-
-POST /attributes-symlinks/delete
-
-Deletion is not required for the current POC.
-
-
-============================================================
-9. HOW TO FIND OUR APIs IN SWAGGER
-============================================================
-
-Dictionary APIs:
-
-Select Dictionary Apis from the Swagger dropdown.
-
-Look for:
-
-GET  /{business}/{provider}/{dictionary}
-
-POST /{business}/{provider}/{dictionary}
-
-PUT  /{business}/{provider}/{dictionary}
-
-GET  /{business}/{provider}/{dictionary}/{version}
-
-In the screenshot, the POST dictionary endpoint is
-the eighth endpoint from the top.
-
-It is the green POST row between the blue GET and
-orange PUT dictionary endpoints.
-
-Expand the endpoint to inspect parameters and schemas.
-
-For creation, the path parameters are:
-
-business = ISG
-provider = Olympus
-dictionary = CitiMLTest
-
-For retrieving the current version:
-
-version = current
-
-
-System Info APIs:
-
-Select System Info Apis.
-
-Press Ctrl+F and search:
-
-lineage-reason-type/all
-
-This is the endpoint used to retrieve lineage reasons.
-
-The attributes-symlinks/create endpoint will not be
-found in this API definition.
-
-
-Configuration APIs:
-
-Select the Config/Configuration APIs definition.
-
-Press Ctrl+F and search:
-
-attributes-symlinks/create
-
-This is the relationship creation API.
-
-Do not click Execute in Swagger while simply reviewing
-documentation, especially on a production server.
-
-
-============================================================
-10. SOAPUI CONFIGURATION
-============================================================
-
-Tool: SoapUI
-
-Create a REST Project or REST Request.
-
-For each request, configure:
-
-Method:
-GET or POST as required.
-
-Endpoint:
-
-https://qa.apac.isg.icgservices.citigroup.net
-
-Resource:
-
-The API-specific resource path.
-
-Query Parameter:
-
-Name: env
-Value: PROD
-Style: QUERY
-Level: RESOURCE
+Query parameter:
+env=PROD
 
 Headers:
-
-client_id: <APPROVED_CLIENT_ID>
-
-client_secret: <APPROVED_CLIENT_SECRET>
-
+client_id: <approved client ID>
+client_secret: <approved client secret>
 Content-Type: application/json
 
-For POST requests:
 
-Media Type: application/json
+5. STEP 1 – CREATE DICTIONARY AND NODES
 
-Paste the required JSON in the request body.
+API: Dictionary API
 
-Click the green Run/Submit button to execute the
-request only when the intended operation is approved.
+Method: POST
 
-The right-hand side displays the API response.
-
-Important:
-
-The actual request credentials must be obtained from
-the approved internal credential source.
-
-Do not include client secrets in screenshots,
-documentation, emails or source code.
-
-Also, SoapUI may retain a previous response when the
-request method or resource path is edited without
-executing it again.
-
-Always verify that the response belongs to the
-latest executed request.
-
-
-============================================================
-11. STEP 1 - INSPECT EXISTING CITIML DICTIONARY
-============================================================
-
-Purpose:
-
-Understand how the existing CitiML metadata was
-published by the previous implementation.
-
-Method:
-
-GET
-
-Full URL:
-
-https://qa.apac.isg.icgservices.citigroup.net/isg/internal/data-highway/dictionary-api/v1/ISG/Olympus/CITIML/current?env=PROD
-
-SoapUI Resource:
-
-/isg/internal/data-highway/dictionary-api/v1/ISG/Olympus/CITIML/current
-
-Request body:
-
-Not required.
-
-Response observations:
-
-- Dictionary exists.
-- Dictionary type: PHYSICAL.
-- Version observed: 7.
-- Contains a large number of concepts.
-- Concepts contain attributes.
-- Several concepts have self attributes with the
-  same name as the concept.
-
-Example:
-
-Concept: TENORPERIOD
-Attribute: TENORPERIOD
-
-Description:
-
-Self attribute for linkage purpose TENORPERIOD
-
-This confirmed the existing flat collection and
-self-attribute implementation.
-
-An initial provider spelling mistake returned:
-
-PROVIDER.NOT.FOUND
-
-After correcting the provider to Olympus, the
-dictionary retrieval succeeded.
-
-Do not modify the existing CITIML dictionary as
-part of this POC.
-
-
-============================================================
-12. STEP 2 - CHECK WHETHER TEST DICTIONARY EXISTS
-============================================================
-
-Method:
-
-GET
-
-Full URL:
-
-https://qa.apac.isg.icgservices.citigroup.net/isg/internal/data-highway/dictionary-api/v1/ISG/Olympus/CitiMLTest/current?env=PROD
-
-Response initially received:
-
-DICTIONARY.NOT.FOUND
-
-Type:
-
-DICTIONARY_ERROR
-
-Code:
-
-2000
-
-Meaning:
-
-The specific test dictionary did not exist before
-our creation request.
-
-This confirmed that a new test dictionary could be
-created without modifying the existing CITIML
-dictionary.
-
-
-============================================================
-13. STEP 3 - CHOOSE THREE CITIML XPATH NODES
-============================================================
-
-Example XPath shared by Rupesh:
-
-citimlTradeNotification/citimlNotificationBundleDetails/citimlEvents/citimlEvent/nonpublicExecutionReport/ns1:termination/ns1:effectiveDate
-
-Another example:
-
-citimlTradeNotification/citimlNotificationBundleDetails/citimlPostEventTrades/citimlPostEventTrade/citimlTradeExtensionData/b2bType
-
-For the POC we selected only the first three nodes:
-
-1. citimlTradeNotification
-2. citimlNotificationBundleDetails
-3. citimlEvents
-
-Converted to Data Catalog physical names:
-
-CITIMLTRADENOTIFICATION
-CITIMLNOTIFICATIONBUNDLEDETAILS
-CITIMLEVENTS
-
-Expected relationships:
-
-Parent: CITIMLTRADENOTIFICATION
-Child: CITIMLNOTIFICATIONBUNDLEDETAILS
-
-Parent: CITIMLNOTIFICATIONBUNDLEDETAILS
-Child: CITIMLEVENTS
-
-
-============================================================
-14. STEP 4 - CREATE TEST DICTIONARY AND NODES
-============================================================
-
-API group:
-
-Dictionary APIs
-
-Method:
-
-POST
-
-Full URL:
-
-https://qa.apac.isg.icgservices.citigroup.net/isg/internal/data-highway/dictionary-api/v1/ISG/Olympus/CitiMLTest?env=PROD
-
-SoapUI Resource:
-
+Resource:
 /isg/internal/data-highway/dictionary-api/v1/ISG/Olympus/CitiMLTest
 
-Media Type:
+We created:
 
-application/json
+Dictionary: CitiMLTest
 
-Request JSON:
+Concepts:
+- CITIMLTRADENOTIFICATION
+- CITIMLNOTIFICATIONBUNDLEDETAILS
+- CITIMLEVENTS
 
-{
-  "dictionary": {
-    "releaseVersion": "v1",
-    "logicalName": "CitiMLTest",
-    "physicalName": "CitiMLTest",
-    "dictionaryType": "PHYSICAL",
-    "description": "CitiML XPath hierarchy POC",
-    "displayName": "CitiMLTest",
-    "concepts": {
-      "CITIMLTRADENOTIFICATION": {
-        "physicalName": "CITIMLTRADENOTIFICATION",
-        "description": "CitiML Trade Notification",
-        "attributes": {
-          "CITIMLTRADENOTIFICATION": {
-            "physicalName": "CITIMLTRADENOTIFICATION",
-            "dataType": "String",
-            "description": "Self attribute for linkage purpose CITIMLTRADENOTIFICATION"
-          }
-        }
-      },
-      "CITIMLNOTIFICATIONBUNDLEDETAILS": {
-        "physicalName": "CITIMLNOTIFICATIONBUNDLEDETAILS",
-        "description": "CitiML Notification Bundle Details",
-        "attributes": {
-          "CITIMLNOTIFICATIONBUNDLEDETAILS": {
-            "physicalName": "CITIMLNOTIFICATIONBUNDLEDETAILS",
-            "dataType": "String",
-            "description": "Self attribute for linkage purpose CITIMLNOTIFICATIONBUNDLEDETAILS"
-          }
-        }
-      },
-      "CITIMLEVENTS": {
-        "physicalName": "CITIMLEVENTS",
-        "description": "CitiML Events",
-        "attributes": {
-          "CITIMLEVENTS": {
-            "physicalName": "CITIMLEVENTS",
-            "dataType": "String",
-            "description": "Self attribute for linkage purpose CITIMLEVENTS"
-          }
-        }
-      }
-    }
-  }
-}
+Inside each concept, we created one String attribute
+with the same name as the concept.
 
-Successful response:
+These are called self attributes.
 
-{
-  "version": 1
-}
+Why?
+Because our relationship API connects attributes.
 
-What we created:
+Response:
+{"version": 1}
 
-1 dictionary
-3 concepts/collections
-3 self attributes
-
-What we did not create in this request:
-
-Parent-child relationships.
-
-Dictionary creation and relationship creation are
-separate API operations.
-
-IMPORTANT:
-
-This request has already been executed successfully.
-
-Do not blindly rerun dictionary POST requests.
-Dictionary publication can replace existing dictionary
-content or create another version.
-
-Never submit a partial dictionary payload to the
-existing CITIML dictionary without understanding
-the update behavior.
+Result: Dictionary created successfully.
 
 
-============================================================
-15. STEP 5 - VERIFY DICTIONARY CREATION
-============================================================
+6. STEP 2 – VERIFY DICTIONARY
 
-Method:
+API: Dictionary API
 
-GET
+Method: GET
 
-Full URL:
+Resource:
+/isg/internal/data-highway/dictionary-api/v1/ISG/Olympus/CitiMLTest/current
 
-https://qa.apac.isg.icgservices.citigroup.net/isg/internal/data-highway/dictionary-api/v1/ISG/Olympus/CitiMLTest/current?env=PROD
-
-Successful response contained:
-
-version: 1
-releaseVersion: v1
-providedKey: ISG.Olympus.CitiMLTest
-documentSource: DATA_CATALOG
-logicalName: CitiMLTest
-physicalName: CitiMLTest
-dictionaryType: PHYSICAL
-description: CitiML XPath hierarchy POC
-
-It also returned all three concepts and attributes.
-
-Data Catalog populated additional metadata such as:
-
-- providedKey
-- portableIdentifier
-- dataTypeDefinition
-- isNullable
-
-This confirmed dictionary creation was successful.
-
-Current dictionary structure:
-
-CitiMLTest
-    |
-    +-- CITIMLTRADENOTIFICATION
-    |       |
-    |       +-- CITIMLTRADENOTIFICATION
-    |
-    +-- CITIMLNOTIFICATIONBUNDLEDETAILS
-    |       |
-    |       +-- CITIMLNOTIFICATIONBUNDLEDETAILS
-    |
-    +-- CITIMLEVENTS
-            |
-            +-- CITIMLEVENTS
-
-First level: Dictionary
-Second level: Concepts/Collections
-Third level: Self attributes
+Result:
+Verified all three concepts and attributes.
 
 
-============================================================
-16. STEP 6 - RETRIEVE LINEAGE REASON TYPES
-============================================================
+7. STEP 3 – GET LINEAGE REASON
 
-API group:
+API: System Info API
 
-System Info APIs
+Method: GET
 
-Method:
-
-GET
-
-Full URL:
-
-https://qa.apac.isg.icgservices.citigroup.net/isg/internal/data-highway/system-info-api/v1/lineage-reason-type/all?env=PROD
-
-SoapUI Resource:
-
+Resource:
 /isg/internal/data-highway/system-info-api/v1/lineage-reason-type/all
 
-Purpose:
-
-Retrieve available reasons for creating or updating
-lineage relationships.
-
-Response contains:
-
-reasonTypes
-locator.portableIdentifier
-currentVersion
-status
-description
-created
-updated
-
-Examples of available reasons:
-
-- Initial CDE Governance for an endpoint
-- Data tracing review
-- Technology Project
-- Correction of previous lineage
-- Other
-- System Retirement
-
-Some test entries were marked DELETED.
+Why?
+The lineage creation request requires a reason.
 
 We selected:
 
-Description: Other
+Reason: Other
+Comment: CitiML XPath parent-child relationship POC
 
-Status: ACTIVE
-
-Portable Identifier:
-
+Reason ID:
 33c1090f-9861-41cf-b43b-d51bfecf0d0b
 
-Comment used:
 
-CitiML XPath parent-child relationship POC
+8. STEP 4 – CREATE RELATIONSHIPS
 
-Reason types are used to explain why a relationship
-is being created or changed.
+API: Configuration API
 
-This API does not create relationships.
+Method: POST
 
-It only retrieves the allowed reference information.
-
-The Other reason requires a comment according to
-the API guidance used for this POC.
-
-Reason identifiers should be retrieved and verified
-in the intended environment before future usage.
-
-
-============================================================
-17. STEP 7 - CREATE PARENT-CHILD RELATIONSHIPS
-============================================================
-
-API group:
-
-Configuration APIs
-
-Method:
-
-POST
-
-Full URL:
-
-https://qa.apac.isg.icgservices.citigroup.net/isg/internal/data-highway/config-api/v1/attributes-symlinks/create?env=PROD
-
-SoapUI Resource:
-
+Resource:
 /isg/internal/data-highway/config-api/v1/attributes-symlinks/create
-
-Media Type:
-
-application/json
-
-Purpose:
-
-Create symbolic metadata relationships between
-registered attributes.
-
-Relation type:
-
-LINEAGE
-
-Cardinality:
-
-ANY
-
-Transformation logic:
-
-DIRECT
-
-Reason:
-
-Other
 
 We created two relationships:
 
-Relationship 1:
+TradeNotification
+        ↓
+NotificationBundleDetails
+        ↓
+Events
 
-CITIMLTRADENOTIFICATION
-    -> CITIMLNOTIFICATIONBUNDLEDETAILS
+Important request fields:
 
-Relationship 2:
+attributesFrom      : Parent attribute
+attributesTo        : Child attribute
+relation.type       : LINEAGE
+relation.cardinality: ANY
+transformationLogic : DIRECT
+lineageReason       : Other
+owner               : Approved SOEID
 
-CITIMLNOTIFICATIONBUNDLEDETAILS
-    -> CITIMLEVENTS
+Initially, we received an error because
+transformationLogic was missing.
 
+After adding DIRECT transformation logic,
+both relationships were created successfully.
 
-============================================================
-18. COMPLETE RELATIONSHIP REQUEST JSON
-============================================================
+We used LINEAGE to represent the XML hierarchy.
+No actual transaction data was transferred.
 
-The following is a consolidated reference payload
-containing the two corrected relationship requests.
 
-Replace YOUR_SOEID with the approved owner SOEID.
-
-This is for documentation and future reference.
-Both POC relationships have already been created.
-Do not execute again unnecessarily.
-
-{
-  "attributesSymlinks": [
-    {
-      "attributesFrom": [
-        {
-          "paramName": "citimlTradeNotification",
-          "attributeLocator": {
-            "business": "ISG",
-            "provider": "Olympus",
-            "dictionary": "CitiMLTest",
-            "concept": "CITIMLTRADENOTIFICATION",
-            "attribute": "CITIMLTRADENOTIFICATION"
-          }
-        }
-      ],
-      "attributesTo": [
-        {
-          "paramName": "citimlNotificationBundleDetails",
-          "attributeLocator": {
-            "business": "ISG",
-            "provider": "Olympus",
-            "dictionary": "CitiMLTest",
-            "concept": "CITIMLNOTIFICATIONBUNDLEDETAILS",
-            "attribute": "CITIMLNOTIFICATIONBUNDLEDETAILS"
-          }
-        }
-      ],
-      "relation": {
-        "type": "LINEAGE",
-        "cardinality": "ANY"
-      },
-      "transformationLogic": {
-        "type": "DIRECT",
-        "description": "",
-        "definition": ""
-      },
-      "lineageReason": {
-        "locator": {
-          "portableIdentifier": "33c1090f-9861-41cf-b43b-d51bfecf0d0b"
-        },
-        "comment": "CitiML XPath parent-child relationship POC"
-      },
-      "owner": "YOUR_SOEID"
-    },
-    {
-      "attributesFrom": [
-        {
-          "paramName": "citimlNotificationBundleDetails",
-          "attributeLocator": {
-            "business": "ISG",
-            "provider": "Olympus",
-            "dictionary": "CitiMLTest",
-            "concept": "CITIMLNOTIFICATIONBUNDLEDETAILS",
-            "attribute": "CITIMLNOTIFICATIONBUNDLEDETAILS"
-          }
-        }
-      ],
-      "attributesTo": [
-        {
-          "paramName": "citimlEvents",
-          "attributeLocator": {
-            "business": "ISG",
-            "provider": "Olympus",
-            "dictionary": "CitiMLTest",
-            "concept": "CITIMLEVENTS",
-            "attribute": "CITIMLEVENTS"
-          }
-        }
-      ],
-      "relation": {
-        "type": "LINEAGE",
-        "cardinality": "ANY"
-      },
-      "transformationLogic": {
-        "type": "DIRECT",
-        "description": "",
-        "definition": ""
-      },
-      "lineageReason": {
-        "locator": {
-          "portableIdentifier": "33c1090f-9861-41cf-b43b-d51bfecf0d0b"
-        },
-        "comment": "CitiML XPath parent-child relationship POC"
-      },
-      "owner": "YOUR_SOEID"
-    }
-  ]
-}
-
-
-============================================================
-19. RELATIONSHIP JSON FIELD EXPLANATION
-============================================================
-
-attributesSymlinks:
-
-Array containing relationship requests.
-
-attributesFrom:
-
-Source attribute or parent.
-
-attributesTo:
-
-Target attribute or child.
-
-paramName:
-
-A parameter name representing the participating
-attribute.
-
-attributeLocator:
-
-Identifies the exact attribute in Data Catalog.
-
-Locator structure:
-
-Business
-  -> Provider
-  -> Dictionary
-  -> Concept
-  -> Attribute
-
-relation.type:
-
-Type of relationship.
-
-Our value:
-LINEAGE
-
-relation.cardinality:
-
-Relationship cardinality.
-
-Our value:
-ANY
-
-transformationLogic.type:
-
-Specifies transformation relationship type.
-
-Our value:
-DIRECT
-
-Other transformation types mentioned in the API guide:
-
-DERIVED
-CALCULATED
-
-DIRECT is suitable for our single-source,
-single-target POC links.
-
-lineageReason.locator.portableIdentifier:
-
-Identifier of the selected lineage reason.
-
-lineageReason.comment:
-
-Explanation of why we are creating the relationship.
-
-owner:
-
-Approved SOEID responsible for the relationship.
-
-
-============================================================
-20. ERRORS ENCOUNTERED AND RESOLUTIONS
-============================================================
-
-First attempt:
-
-Submitted both relationships without
-transformationLogic.
-
-Response:
-
-{
-  "totalCount": 2,
-  "successCount": 0,
-  "skippedCount": 0,
-  "failedCount": 2
-}
-
-Error:
-
-Transformation logic is required for LINEAGE relations
-
-Resolution:
-
-Added the transformationLogic object:
-
-{
-  "type": "DIRECT",
-  "description": "",
-  "definition": ""
-}
-
-Also replaced the placeholder owner SOEID with the
-appropriate owner.
-
-
-Second attempt:
-
-Transformation logic was added to the first
-relationship, but it was still missing in the
-second relationship.
-
-Response:
-
-{
-  "totalCount": 2,
-  "successCount": 1,
-  "skippedCount": 0,
-  "failedCount": 1
-}
-
-First relationship was successfully created:
-
-CITIMLTRADENOTIFICATION
-    -> CITIMLNOTIFICATIONBUNDLEDETAILS
-
-Successful relationship ID:
-
-e7e0f8b3-6eac-47f5-9482-e5c8ac36a61e
-
-Second relationship failed because transformation
-logic was missing.
-
-
-Third attempt:
-
-Submitted only the remaining failed relationship
-with the required transformation logic.
-
-Response:
-
-{
-  "totalCount": 1,
-  "successCount": 1,
-  "skippedCount": 0,
-  "failedCount": 0
-}
-
-Second relationship successfully created:
-
-CITIMLNOTIFICATIONBUNDLEDETAILS
-    -> CITIMLEVENTS
-
-Relationship portableIdentifier begins with:
-
-4642ffbe-b883-4935-984...
-
-Full identifier was not captured in the visible
-screenshot.
-
-Final result:
-
-Both intended POC relationships were successfully
-created.
-
-Important lesson:
-
-Always inspect successCount and failedCount.
-
-A batch API response does not automatically mean
-every relationship was created successfully.
-
-Retry only the failed items when appropriate.
-
-
-============================================================
-21. STEP 8 - VERIFY USING METAMANAGER UI
-============================================================
+9. STEP 5 – VERIFY IN METAMANAGER
 
 URL:
 
 https://metamanager.dc-uat2.nam.nsroot.net/admin-tool/relations?env=prod
 
-Open:
-
-Admin Tool
-  -> Relations
-
-The page contains different relationship tabs:
-
-1. DataAsset-to-DataAsset
-2. Dictionary-to-Dictionary
-3. Collection-to-Collection
-4. Attribute-to-Attribute
-5. Provider-to-Attribute
-6. Attribute-to-Collection
-
-For our POC, the correct tab is:
-
-Attribute-to-Attribute
-
-Reason:
-
-Our API created relationships between self attributes.
-
-It did not create Dictionary-to-Dictionary or
-Collection-to-Collection relationships.
-
 Navigation:
 
-1. Select Attribute-to-Attribute.
-2. Navigate to ISG.
-3. Select Olympus.
-4. Find CitiMLTest.
-5. Expand CitiMLTest.
+Relations
+  → Attribute-to-Attribute
+  → ISG
+  → Olympus
+  → CitiMLTest
+  → Collection
+  → Blue attribute icon
 
-Three purple collection icons appear:
+Verified both relationships with:
 
-CITIMLEVENTS
-CITIMLNOTIFICATIONBUNDLEDETAILS
-CITIMLTRADENOTIFICATION
-
-Expand a collection using its left-side arrow.
-
-Inside the collection, a blue attribute icon appears
-with the same name.
-
-Click the BLUE attribute icon.
-
-
-Verification 1:
-
-Select:
-
-CitiMLTest
-  -> CITIMLNOTIFICATIONBUNDLEDETAILS
-  -> CITIMLNOTIFICATIONBUNDLEDETAILS (blue attribute)
-
-Observed:
-
-Relation Status: Active
-From Label: Lineage Parent
-To Label: Lineage Child
+Status: Active
+From: Lineage Parent
+To: Lineage Child
 Relation Type: LINEAGE (ANY)
 
-Attribute From:
+Dictionary-to-Dictionary and Collection-to-Collection
+showed no rows because we created attribute-level
+relationships.
 
-ISG > Olympus > CitiMLTest >
-CITIMLTRADENOTIFICATION >
-CITIMLTRADENOTIFICATION
 
-Attribute To:
+10. SWAGGER DOCUMENTATION
 
-ISG > Olympus > CitiMLTest >
-CITIMLNOTIFICATIONBUNDLEDETAILS >
-CITIMLNOTIFICATIONBUNDLEDETAILS
+UAT Swagger:
 
-Result:
+https://swagger.saas.dc-uat.nam.nsroot.net/swagger-ui/index.html
 
-First relationship verified successfully.
+Select the required definition from the top-right
+dropdown.
 
+Dictionary APIs:
+- Create dictionary
+- Retrieve dictionary
+- Create concepts and attributes
 
-Verification 2:
+System Info APIs:
+- Retrieve lineage reasons
+- Search existing relationships
+- Retrieve lineage graph
 
-Select:
+Configuration APIs:
+- Create attribute relationships
 
-CitiMLTest
-  -> CITIMLEVENTS
-  -> CITIMLEVENTS (blue attribute)
+Exact Configuration Swagger definition name
+is pending confirmation.
 
-Observed:
 
-Relation Status: Active
-From Label: Lineage Parent
-To Label: Lineage Child
-Relation Type: LINEAGE (ANY)
+11. DATA CATALOG BROWSER
 
-Attribute From:
-
-ISG > Olympus > CitiMLTest >
-CITIMLNOTIFICATIONBUNDLEDETAILS >
-CITIMLNOTIFICATIONBUNDLEDETAILS
-
-Attribute To:
-
-ISG > Olympus > CitiMLTest >
-CITIMLEVENTS >
-CITIMLEVENTS
-
-Result:
-
-Second relationship verified successfully.
-
-Hover over Attribute From and Attribute To to view
-their complete paths if the columns truncate them.
-
-The selected attribute appeared to show its incoming
-relationship.
-
-Therefore, seeing one row does not necessarily mean
-the complete hierarchy contains only one relationship.
-
-Both POC relationships were verified individually.
-
-No relationships were created manually through the
-MetaManager UI.
-
-
-============================================================
-22. COMPARISON WITH EXISTING CITIML IMPLEMENTATION
-============================================================
-
-We also inspected relationships in the existing
-CITIML dictionary.
-
-Existing relationship:
-
-Attribute From:
-
-ISG > Olympus > CITIML >
-CITIMLNOTIFICATIONBUNDLEDETAILS >
-CITIMLNOTIFICATIONBUNDLEDETAILS
-
-Attribute To:
-
-ISG > Olympus > CITIML >
-CITIMLEVENTS >
-CITIMLEVENTS
-
-Our POC relationship:
-
-Attribute From:
-
-ISG > Olympus > CitiMLTest >
-CITIMLNOTIFICATIONBUNDLEDETAILS >
-CITIMLNOTIFICATIONBUNDLEDETAILS
-
-Attribute To:
-
-ISG > Olympus > CitiMLTest >
-CITIMLEVENTS >
-CITIMLEVENTS
-
-This confirms our POC follows the same attribute-link
-pattern observed in the existing CITIML dictionary.
-
-Existing CITIML was used for reference only.
-
-All our POC creation operations targeted CitiMLTest.
-
-
-============================================================
-23. WHY COLLECTION-TO-COLLECTION SHOWED ZERO ROWS
-============================================================
-
-We initially checked:
-
-Dictionary-to-Dictionary
-
-Collection-to-Collection
-
-These pages showed no relationship records for our
-test collections.
-
-This was not a relationship creation failure.
-
-Our relationships were created using:
-
-/attributes-symlinks/create
-
-Therefore, they are attribute-level relationships.
-
-The correct verification page is:
-
-Attribute-to-Attribute
-
-Purple icon:
-
-Collection/Concept
-
-Blue icon:
-
-Attribute
-
-Brown database icon:
-
-Dictionary
-
-
-============================================================
-24. DATA CATALOG BROWSER ISSUE
-============================================================
-
-The UAT2 Data Catalog Browser was unavailable
-during testing.
-
-Observed response:
-
-HTTP Status: 503
-
-Status: FAILURE
-
-Error:
-
-Connection refused
-
-Affected request:
-
-https://ui-service.dc-uat2.nam.nsroot.net/help/eems
-
-Reported backend service:
-
-ui-service-vip.icg-lsg-u1-172910.svc.cluster.local
-
-This indicates a backend service connectivity issue.
-
-It is not evidence that our dictionary or lineage
-creation failed.
-
-Because:
-
-1. Dictionary creation succeeded.
-2. Dictionary GET API succeeded.
-3. Both relationship creation requests succeeded.
-4. Both relationships appeared as Active in
-   MetaManager.
-
-Pending:
-
-Verify the graphical lineage/hierarchy using the
-Data Catalog Browser when it becomes accessible.
-
-Do not claim the complete graphical hierarchy is
-verified until this validation is completed.
-
-
-============================================================
-25. OPTIONAL ADDITIONAL API VERIFICATION
-============================================================
-
-These APIs are relevant for further verification.
-
-They have not yet been executed in our POC.
-
-Although these endpoints use POST, they are query
-operations rather than relationship creation.
-
-
-25.1 Search attribute relationships
-
-API group:
-
-System Info APIs
-
-Method:
-
-POST
-
-Full URL:
-
-https://qa.apac.isg.icgservices.citigroup.net/isg/internal/data-highway/system-info-api/v1/attributes-symlinks/search?env=PROD
-
-Reference request:
-
-{
-  "pageable": {
-    "pageNumber": 0,
-    "pageSize": 100
-  },
-  "statuses": [
-    "ACTIVE"
-  ],
-  "symlinkSearchAndParams": [
-    {
-      "business": "ISG",
-      "provider": "Olympus",
-      "dictionary": "CitiMLTest",
-      "concept": "CITIMLNOTIFICATIONBUNDLEDETAILS",
-      "attribute": "CITIMLNOTIFICATIONBUNDLEDETAILS",
-      "searchSide": "BOTH"
-    }
-  ]
-}
-
-Purpose:
-
-Retrieve relationships associated with the middle
-attribute from both source and target directions.
-
-Expected:
-
-Both active POC relationships.
-
-Actual result:
-Not yet tested.
-
-
-25.2 Retrieve lineage graph
-
-API group:
-
-System Info APIs
-
-Method:
-
-POST
-
-Full URL:
-
-https://qa.apac.isg.icgservices.citigroup.net/isg/internal/data-highway/system-info-api/v1/graph/lineage?direction=both&env=PROD
-
-Reference request:
-
-{
-  "request": {
-    "startingNodes": [
-      {
-        "type": "DataModelAttribute",
-        "identifier": {
-          "type": "dataCatalogLocator",
-          "value": {
-            "business": "ISG",
-            "provider": "Olympus",
-            "dictionary": "CitiMLTest",
-            "concept": "CITIMLNOTIFICATIONBUNDLEDETAILS",
-            "attribute": "CITIMLNOTIFICATIONBUNDLEDETAILS"
-          }
-        }
-      }
-    ]
-  }
-}
-
-Purpose:
-
-Retrieve lineage graph nodes and edges surrounding
-the starting attribute.
-
-The response can include transformation nodes as
-well as attribute nodes.
-
-Verify the applicable Swagger schema before executing.
-
-Actual result:
-Not yet tested.
-
-
-============================================================
-26. RELATIONSHIP BETWEEN OUR WORK AND RUPESH'S LINEAGE
-============================================================
-
-There are two different kinds of relationships
-to understand.
-
-A. INTERNAL CITIML HIERARCHY
-
-This is our current POC.
-
-Example:
-
-TradeNotification
-    -> NotificationBundleDetails
-    -> Events
-
-It describes parent-child relationships between
-elements within the same CitiML structure.
-
-
-B. ACTUAL DATA LINEAGE
-
-This describes where data comes from and how it
-flows or is transformed across source and target
-systems or data models.
-
-Illustrative example:
-
-Source trade field
-    -> CitiML trade attribute
-    -> Downstream consumer field
-
-Rupesh's work provides relevant XPath and lineage
-information for the wider integration activity.
-
-Our current POC establishes how to register the
-CitiML metadata and represent its internal hierarchy.
-
-Both activities may use attribute-to-attribute
-relationship APIs.
-
-However, the meaning of the relationships is
-different.
-
-Do not confuse the current XML parent-child links
-with actual source-to-target data movement.
-
-The exact ownership and scope of future end-to-end
-lineage implementation should be confirmed with
-Rajat and Rupesh.
-
-
-============================================================
-27. FUTURE AUTOMATION APPROACH
-============================================================
-
-This is a proposed future approach.
-It is not implemented as part of this POC.
-
-Potential flow:
-
-Existing database / XPath source
-    |
-    v
-Retrieve XPath information
-    |
-    v
-Split XPath into individual nodes
-    |
-    v
-Normalize physical names
-    |
-    v
-Identify unique concepts and attributes
-    |
-    v
-Identify unique parent-child relationships
-    |
-    v
-Generate dictionary JSON
-    |
-    v
-Publish dictionary using Dictionary APIs
-    |
-    v
-Create relationships using Config APIs
-    |
-    v
-Verify using System Info APIs and MetaManager
-
-Example:
-
-Input XPath:
-
-A/B/C
-
-Extracted nodes:
-
-A
-B
-C
-
-Generated concepts:
-
-A
-B
-C
-
-Generated relationships:
-
-A -> B
-B -> C
-
-Things to consider before automation:
-
-- Correct XPath parsing.
-- XML namespaces.
-- Repeated node names in different branches.
-- Unique parent-child relationships.
-- Avoiding duplicate dictionary objects.
-- Avoiding duplicate relationships.
-- Preservation of complete XPath context.
-- Existing metadata updates.
-- Dictionary versioning.
-- API batch limits.
-- Retry handling.
-- Logging and error handling.
-- Approved credentials.
-- Environment configuration.
-
-Do not begin application development until the
-technical approach and requirements are confirmed.
-
-
-============================================================
-28. CURRENT POC COMPLETION STATUS
-============================================================
-
-COMPLETED:
-
-[Completed] Reviewed existing CITIML dictionary.
-
-[Completed] Understood flat collection structure.
-
-[Completed] Selected three sample XPath nodes.
-
-[Completed] Created CitiMLTest dictionary.
-
-[Completed] Created three concepts.
-
-[Completed] Created three self attributes.
-
-[Completed] Retrieved lineage reason types.
-
-[Completed] Created first parent-child relationship.
-
-[Completed] Created second parent-child relationship.
-
-[Completed] Verified dictionary metadata through GET API.
-
-[Completed] Verified first relationship in MetaManager.
-
-[Completed] Verified second relationship in MetaManager.
-
-[Completed] Compared POC relationship pattern with
-            existing CITIML implementation.
-
-PENDING:
-
-[Pending] Confirm exact Configuration APIs Swagger
-          definition URL.
-
-[Pending] Validate graphical lineage in Data Catalog
-          Browser when the UAT2 service is restored.
-
-[Optional] Verify both relationships using the
-           attributes-symlinks/search API.
-
-[Optional] Retrieve lineage graph using graph/lineage API.
-
-[Pending] Discuss flat workaround versus native
-          hierarchical approach with Rajat.
-
-[Pending] Finalize automation requirements.
-
-NOT STARTED / OUTSIDE CURRENT MANUAL POC:
-
-- Java or Python application development.
-- Database integration.
-- Full XSD parsing.
-- Full CitiML dictionary publication.
-- CitiFIX integration.
-- Actual source-to-target lineage implementation.
-- Scheduler or Autosys configuration.
-- Production deployment.
-
-
-============================================================
-29. IMPORTANT QUESTIONS FOR THE NEXT DISCUSSION
-============================================================
-
-1. Should we continue with the existing flat collection
-   and attribute lineage workaround?
-
-2. Does Data Catalog support native hierarchical
-   concepts for our CitiML use case?
-
-3. If native nesting becomes available, how will we
-   migrate the existing flat metadata?
-
-4. Which database or table will provide the complete
-   CitiML XPaths for future automation?
-
-5. How should we handle identical node names that
-   appear under different parents?
-
-6. Should the future integration publish the entire
-   dictionary or update it incrementally?
-
-7. What is the approved approach for detecting
-   previously created relationships?
-
-8. Should parent-child XML relationships continue to
-   use LINEAGE, or will a dedicated relationship type
-   be available?
-
-9. How will the internal CitiML hierarchy connect
-   with the actual source-to-target lineage work?
-
-10. What is the correct Swagger definition and
-    environment for Configuration APIs?
-
-
-============================================================
-30. SUMMARY FOR RAJAT / TECHNICAL DISCUSSION
-============================================================
-
-We completed a manual CitiML hierarchy POC in UAT2
-using three nodes from a sample CitiML XPath.
-
-We created a separate test dictionary, CitiMLTest,
-with three flat concepts and corresponding self
-attributes using the Data Catalog Dictionary API.
-
-We then created two attribute-to-attribute lineage
-relationships using the Config API to represent the
-original parent-child XPath hierarchy.
-
-Both relationships were successfully created and
-verified as Active in the MetaManager UI.
-
-The approach matches the attribute-link pattern
-observed in the existing CITIML dictionary.
-
-Graphical lineage validation through the Data
-Catalog Browser remains pending because the UAT2
-Browser is currently returning HTTP 503.
-
-The next step is to confirm the hierarchy approach
-and discuss automation using the existing XPath
-information.
-
-
-============================================================
-31. SIMPLE END-TO-END UNDERSTANDING
-============================================================
-
-XPath:
-Tells us which nodes belong to which parents.
-
-Dictionary API:
-Creates the nodes and self attributes.
-
-System Info API:
-Provides reference information required for lineage.
-
-Config API:
-Creates relationships between the nodes' attributes.
-
-MetaManager:
-Confirms metadata and relationship creation.
-
-Data Catalog Browser:
-Allows users to discover and navigate the published
-metadata and lineage.
-
-
-Our current result:
-
-One dictionary
-Three flat collections
-Three self attributes
-Two active parent-child relationships
-
-API creation: SUCCESS
-MetaManager verification: SUCCESS
-Graphical Browser verification: PENDING
-
-============================================================
-END OF MASTER REFERENCE
-============================================================
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-https://icgdh-uat.nam.nsroot.net/catalog/home
-
-
-https://metamanager.dc-uat2.nam.nsroot.net/admin-tool/relations?env=prod
-
+URL:
 
 https://catalog.dc-uat2.nam.nsroot.net/browse/ISG/Olympus/dictionary/CitiMLTest/current?buscat=DC_LOB&env=prod
 
+Used to browse metadata and visualize lineage.
+
+Currently returning HTTP 503.
+
+MetaManager verification is successful.
+Graphical lineage verification is pending.
 
 
+12. FINAL POC STATUS
 
-{
-  "attributesSymlinks": [
-    {
-      "attributesFrom": [
-        {
-          "paramName": "citimlNotificationBundleDetails",
-          "attributeLocator": {
-            "business": "ISG",
-            "provider": "Olympus",
-            "dictionary": "CitiMLTest",
-            "concept": "CITIMLNOTIFICATIONBUNDLEDETAILS",
-            "attribute": "CITIMLNOTIFICATIONBUNDLEDETAILS"
-          }
-        }
-      ],
-      "attributesTo": [
-        {
-          "paramName": "citimlEvents",
-          "attributeLocator": {
-            "business": "ISG",
-            "provider": "Olympus",
-            "dictionary": "CitiMLTest",
-            "concept": "CITIMLEVENTS",
-            "attribute": "CITIMLEVENTS"
-          }
-        }
-      ],
-      "relation": {
-        "type": "LINEAGE",
-        "cardinality": "ANY"
-      },
-      "transformationLogic": {
-        "type": "DIRECT",
-        "description": "",
-        "definition": ""
-      },
-      "lineageReason": {
-        "locator": {
-          "portableIdentifier": "33c1090f-9861-41cf-b43b-d51bfecf0d0b"
-        },
-        "comment": "CitiML XPath parent-child relationship POC"
-      },
-      "owner": "YOUR_SOEID"
-    }
-  ]
-}
+Dictionary created     : 1
+Concepts created       : 3
+Self attributes created: 3
+Relationships created  : 2
+
+API verification        : SUCCESS
+MetaManager verification: SUCCESS
+Browser verification    : PENDING
+
+We did not modify the existing CITIML dictionary.
+We used a separate CitiMLTest dictionary.
 
 
+13. FUTURE REQUIREMENT
 
+Retrieve XPaths from the existing source.
+Extract individual nodes.
+Generate dictionary JSON.
+Publish using Dictionary API.
+Create relationships using Config API.
 
-
-
-{
-  "attributesSymlinks": [
-    {
-      "attributesFrom": [
-        {
-          "paramName": "citimlTradeNotification",
-          "attributeLocator": {
-            "business": "ISG",
-            "provider": "Olympus",
-            "dictionary": "CitiMLTest",
-            "concept": "CITIMLTRADENOTIFICATION",
-            "attribute": "CITIMLTRADENOTIFICATION"
-          }
-        }
-      ],
-      "attributesTo": [
-        {
-          "paramName": "citimlNotificationBundleDetails",
-          "attributeLocator": {
-            "business": "ISG",
-            "provider": "Olympus",
-            "dictionary": "CitiMLTest",
-            "concept": "CITIMLNOTIFICATIONBUNDLEDETAILS",
-            "attribute": "CITIMLNOTIFICATIONBUNDLEDETAILS"
-          }
-        }
-      ],
-      "relation": {
-        "type": "LINEAGE",
-        "cardinality": "ANY"
-      },
-      "lineageReason": {
-        "locator": {
-          "portableIdentifier": "33c1090f-9861-41cf-b43b-d51bfecf0d0b"
-        },
-        "comment": "CitiML XPath parent-child relationship POC"
-      },
-      "owner": "YOUR_SOEID"
-    },
-    {
-      "attributesFrom": [
-        {
-          "paramName": "citimlNotificationBundleDetails",
-          "attributeLocator": {
-            "business": "ISG",
-            "provider": "Olympus",
-            "dictionary": "CitiMLTest",
-            "concept": "CITIMLNOTIFICATIONBUNDLEDETAILS",
-            "attribute": "CITIMLNOTIFICATIONBUNDLEDETAILS"
-          }
-        }
-      ],
-      "attributesTo": [
-        {
-          "paramName": "citimlEvents",
-          "attributeLocator": {
-            "business": "ISG",
-            "provider": "Olympus",
-            "dictionary": "CitiMLTest",
-            "concept": "CITIMLEVENTS",
-            "attribute": "CITIMLEVENTS"
-          }
-        }
-      ],
-      "relation": {
-        "type": "LINEAGE",
-        "cardinality": "ANY"
-      },
-      "lineageReason": {
-        "locator": {
-          "portableIdentifier": "33c1090f-9861-41cf-b43b-d51bfecf0d0b"
-        },
-        "comment": "CitiML XPath parent-child relationship POC"
-      },
-      "owner": "YOUR_SOEID"
-    }
-  ]
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-{
-  "dictionary": {
-    "releaseVersion": "v1",
-    "logicalName": "CitiMLTest",
-    "physicalName": "CitiMLTest",
-    "dictionaryType": "PHYSICAL",
-    "description": "CitiML XPath hierarchy POC",
-    "displayName": "CitiMLTest",
-    "concepts": {
-      "CITIMLTRADENOTIFICATION": {
-        "physicalName": "CITIMLTRADENOTIFICATION",
-        "description": "CitiML Trade Notification",
-        "attributes": {
-          "CITIMLTRADENOTIFICATION": {
-            "physicalName": "CITIMLTRADENOTIFICATION",
-            "dataType": "String",
-            "description": "Self attribute for linkage purpose CITIMLTRADENOTIFICATION"
-          }
-        }
-      },
-      "CITIMLNOTIFICATIONBUNDLEDETAILS": {
-        "physicalName": "CITIMLNOTIFICATIONBUNDLEDETAILS",
-        "description": "CitiML Notification Bundle Details",
-        "attributes": {
-          "CITIMLNOTIFICATIONBUNDLEDETAILS": {
-            "physicalName": "CITIMLNOTIFICATIONBUNDLEDETAILS",
-            "dataType": "String",
-            "description": "Self attribute for linkage purpose CITIMLNOTIFICATIONBUNDLEDETAILS"
-          }
-        }
-      },
-      "CITIMLEVENTS": {
-        "physicalName": "CITIMLEVENTS",
-        "description": "CitiML Events",
-        "attributes": {
-          "CITIMLEVENTS": {
-            "physicalName": "CITIMLEVENTS",
-            "dataType": "String",
-            "description": "Self attribute for linkage purpose CITIMLEVENTS"
-          }
-        }
-      }
-    }
-  }
-}
+Currently, only the manual POC is completed.
+Automation is not yet implemented.
