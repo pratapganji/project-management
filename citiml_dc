@@ -1,4 +1,6 @@
 
+https://qa.apac.isg.icgservices.citigroup.net/isg/internal/data-highway/system-info-api/v1/attributes-symlinks/search
+
 {
   "pageable": {
     "pageNumber": 0,
