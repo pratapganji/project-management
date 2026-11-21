@@ -1,0 +1,45 @@
+{
+  "dictionary": {
+    "releaseVersion": "v1",
+    "logicalName": "CitiMLTest",
+    "physicalName": "CitiMLTest",
+    "dictionaryType": "PHYSICAL",
+    "description": "CitiML XPath hierarchy POC",
+    "displayName": "CitiMLTest",
+    "concepts": {
+      "CITIMLTRADENOTIFICATION": {
+        "physicalName": "CITIMLTRADENOTIFICATION",
+        "description": "CitiML Trade Notification",
+        "attributes": {
+          "CITIMLTRADENOTIFICATION": {
+            "physicalName": "CITIMLTRADENOTIFICATION",
+            "dataType": "String",
+            "description": "Self attribute for linkage purpose CITIMLTRADENOTIFICATION"
+          }
+        }
+      },
+      "CITIMLNOTIFICATIONBUNDLEDETAILS": {
+        "physicalName": "CITIMLNOTIFICATIONBUNDLEDETAILS",
+        "description": "CitiML Notification Bundle Details",
+        "attributes": {
+          "CITIMLNOTIFICATIONBUNDLEDETAILS": {
+            "physicalName": "CITIMLNOTIFICATIONBUNDLEDETAILS",
+            "dataType": "String",
+            "description": "Self attribute for linkage purpose CITIMLNOTIFICATIONBUNDLEDETAILS"
+          }
+        }
+      },
+      "CITIMLEVENTS": {
+        "physicalName": "CITIMLEVENTS",
+        "description": "CitiML Events",
+        "attributes": {
+          "CITIMLEVENTS": {
+            "physicalName": "CITIMLEVENTS",
+            "dataType": "String",
+            "description": "Self attribute for linkage purpose CITIMLEVENTS"
+          }
+        }
+      }
+    }
+  }
+}
