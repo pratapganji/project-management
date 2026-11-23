@@ -1,4 +1,16 @@
 
+{
+  "dictionary": {
+    "releaseVersion": "v1",
+    "logicalName": "CitiMLTradeTest2",
+    "physicalName": "CitiMLTradeTest2",
+    "dictionaryType": "PHYSICAL",
+    "description": "CitiML Trade XPath POC",
+    "displayName": "CitiMLTradeTest2",
+    "concepts": {}
+  }
+}
+
 
 
 {
