@@ -1,4 +1,39 @@
 
+
+
+{
+  "dictionary": {
+    "releaseVersion": "v1",
+    "logicalName": "CitiMLTradeTest2",
+    "physicalName": "CitiMLTradeTest2",
+    "dictionaryType": "PHYSICAL",
+    "description": "CitiML Trade XPath hierarchy POC",
+    "displayName": "CitiMLTradeTest2",
+    "concepts": {
+      "citimlTradeNotification/citimlNotificationBundleDetails/citimlPostEventTrades/citimlPostEventTrade/citimlTradeExtensionData": {
+        "physicalName": "citimlTradeNotification/citimlNotificationBundleDetails/citimlPostEventTrades/citimlPostEventTrade/citimlTradeExtensionData",
+        "description": "CitiML Trade b2bType XPath collection",
+        "attributes": {
+          "b2bType": {
+            "physicalName": "b2bType",
+            "dataType": "String",
+            "description": "Final attribute of CitiML Trade b2bType XPath"
+          }
+        }
+      }
+    }
+  }
+}
+
+https://uat.isg.icgservices.citigroup.net/isg/internal/data-highway/dictionary-api/v1/ISG/Olympus/CitiMLTradeTest2?env=PROD
+
+
+
+
+
+
+
+
 Hi Rajat,
 
 As discussed, I have completed the POC for establishing CitiML XPath parent-child relationships in Data Catalog.
