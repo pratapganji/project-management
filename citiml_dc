@@ -1,4 +1,11 @@
 
+We initially encountered a UAT environment mapping issue, which Andri confirmed with his development team. This morning, Rupesh and I created dictionaries using the UAT1 endpoint as suggested by Andri, since UAT2 UI was pointing to UAT1 MetaManager. After the mapping was corrected, those dictionaries were no longer visible in UAT2 UI. We then published the dictionary using the QA APAC (UAT2) endpoint and successfully verified it in UAT2 UI.
+
+
+
+
+
+
 For the CitiML Data Catalog POC, we validated two approaches under Olympus: creating the dictionary, collection, and attribute together, and creating the dictionary first, then adding/updating the collection and attribute. Both approaches worked.
 
 We encountered a UAT environment mapping issue, which Andri confirmed with his development team, and he recommended using UAT1 for testing. We also retried publishing through the QA APAC endpoint.
