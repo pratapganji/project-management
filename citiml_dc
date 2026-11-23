@@ -1,4 +1,15 @@
 
+For the CitiML Data Catalog POC, we validated two approaches under Olympus: creating the dictionary, collection, and attribute together, and creating the dictionary first, then adding/updating the collection and attribute. Both approaches worked.
+
+We encountered a UAT environment mapping issue, which Andri confirmed with his development team, and he recommended using UAT1 for testing. We also retried publishing through the QA APAC endpoint.
+
+RIO publishing is currently blocked by an EEMS 403 access issue. I’m reviewing the access documentation and coordinating with Andri to resolve it.
+
+
+
+
+
+
 CitiML XPath Publishing to Data Catalog
 Proof of Concept — technical execution and validation
 Date: 23 November 2026  |  Provider: ISG / Olympus  |  Scope: Metadata publishing for a sample CitiML XPath
