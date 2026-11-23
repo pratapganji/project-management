@@ -2,6 +2,27 @@
 
 
 {
+  "physicalName": "citimlTradeNotification/citimlNotificationBundleDetails/citimlEvents/citimlEvent/nonpublicExecutionReport/ns1:termination",
+  "logicalName": "CITIMLTERMINATION",
+  "displayName": "CITIMLTERMINATION",
+  "description": "CitiML Trade termination XPath collection",
+  "attributes": {
+    "ns1:effectiveDate": {
+      "physicalName": "ns1:effectiveDate",
+      "dataType": "String",
+      "description": "Effective date attribute"
+    }
+  }
+}
+
+
+
+
+
+
+
+
+{
   "concept": {
     "physicalName": "citimlTradeNotification/citimlNotificationBundleDetails/citimlEvents/citimlEvent/nonpublicExecutionReport/ns1:termination",
     "description": "CitiML Trade termination XPath collection",
