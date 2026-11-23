@@ -1,6 +1,29 @@
 
 
 
+/isg/internal/data-highway/dictionary-api/v1/ISG/Olympus/CitiMLTradeTest2/current/citimlTradeNotification.citimlNotificationBundleDetails.citimlEvents.citimlEvent.nonpublicExecutionReport.ns1:termination
+
+
+
+
+{
+  "logicalName": "citimlTradeNotification.citimlNotificationBundleDetails.citimlEvents.citimlEvent.nonpublicExecutionReport.ns1:termination",
+  "displayName": "citimlTradeNotification/citimlNotificationBundleDetails/citimlEvents/citimlEvent/nonpublicExecutionReport/ns1:termination",
+  "physicalName": "citimlTradeNotification/citimlNotificationBundleDetails/citimlEvents/citimlEvent/nonpublicExecutionReport/ns1:termination",
+  "description": "CitiML Trade termination XPath collection",
+  "attributes": {
+    "ns1:effectiveDate": {
+      "physicalName": "ns1:effectiveDate",
+      "dataType": "String",
+      "description": "Effective date attribute"
+    }
+  }
+}
+
+
+
+
+
 {
   "logicalName": "CITIMLTERMINATION",
   "displayName": "CITIMLTERMINATION",
