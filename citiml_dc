@@ -1,4 +1,124 @@
 
+CitiML XPath Publishing to Data Catalog
+Proof of Concept — technical execution and validation
+Date: 23 November 2026  |  Provider: ISG / Olympus  |  Scope: Metadata publishing for a sample CitiML XPath
+1. Objective
+Prove that CitiML XPath metadata can be represented in Data Catalog using one dictionary, a collection (concept) for the XPath prefix, and an attribute for its final node. Validate both single-request publishing and incremental dictionary/concept operations through SoapUI and Data Catalog UI.
+2. Sample XPath and target structure
+citimlTradeNotification/citimlNotificationBundleDetails/citimlEvents/
+citimlEvent/nonpublicExecutionReport/ns1:termination/ns1:effectiveDate
+The prefix ending at ns1:termination is the collection. ns1:effectiveDate is the attribute within that collection. The collection key and logicalName are dot-delimited; physicalName and displayName retain the original slash-delimited path.
+Entity / field
+Value used in POC
+Provider
+ISG / Olympus
+Dictionary
+CitiMLTradeTest2 (incremental test); separate new dictionary name for create-all test
+Concept key / logicalName
+citimlTradeNotification.citimlNotificationBundleDetails.citimlEvents.citimlEvent.nonpublicExecutionReport.ns1:termination
+Concept physicalName
+citimlTradeNotification/citimlNotificationBundleDetails/citimlEvents/citimlEvent/nonpublicExecutionReport/ns1:termination
+Attribute
+ns1:effectiveDate  |  dataType: String
+3. Test cases and outcomes
+Test
+Operation
+Observed result
+TC01
+Create dictionary with concepts + attributes in one POST
+Dictionary API accepted one-step publishing in Olympus test workflow.
+TC02
+Create empty dictionary; add concept later
+Dictionary created, and collection appeared in catalog.
+TC03
+Update existing concept and attribute
+Updated XPath metadata returned by GET projection=FULL.
+TC04
+Read collection and attribute via UI
+Collection and ns1:effectiveDate visible in the Olympus Data Catalog browser.
+
+4. Approach A — Create everything in one POST
+Use the Dictionary API create operation. The URL dictionary name must exactly match the dictionary logicalName and physicalName in the JSON. The example below is a reusable payload, not a claim that the named example dictionary was newly created.
+POST https://qa.apac.isg.icgservices.citigroup.net
+/isg/internal/data-highway/dictionary-api/v1/ISG/Olympus/CitiMLTradeTest3?env=PROD
+Headers: client_id, client_secret, Content-Type: application/json (use approved credentials; do not place credentials in the document).
+JSON request body
+{
+ "dictionary": {
+   "releaseVersion": "v1",
+   "logicalName": "CitiMLTradeTest3",
+   "physicalName": "CitiMLTradeTest3",
+   "dictionaryType": "PHYSICAL",
+   "description": "CitiML Trade XPath POC",
+   "displayName": "CitiMLTradeTest3",
+   "concepts": {
+     "citimlTradeNotification.citimlNotificationBundleDetails.citimlEvents.citimlEvent.nonpublicExecutionReport.ns1:termination": {
+       "logicalName": "citimlTradeNotification.citimlNotificationBundleDetails.citimlEvents.citimlEvent.nonpublicExecutionReport.ns1:termination",
+       "physicalName": "citimlTradeNotification/citimlNotificationBundleDetails/citimlEvents/citimlEvent/nonpublicExecutionReport/ns1:termination",
+       "displayName": "citimlTradeNotification/citimlNotificationBundleDetails/citimlEvents/citimlEvent/nonpublicExecutionReport/ns1:termination",
+       "description": "CitiML termination XPath collection",
+       "attributes": {
+         "ns1:effectiveDate": {
+           "physicalName": "ns1:effectiveDate",
+           "dataType": "String",
+           "description": "Effective date attribute"
+         }
+       }
+     }
+   }
+ }
+}
+Validation: GET the same dictionary with /current?env=PROD&projection=FULL. Verify the concept key, physicalName, and nested attribute. Use an unused dictionary name when testing a new create request.
+
+5. Approach B — Create dictionary, then add/update concept
+This is the independently tested incremental flow under Olympus. Use it when the dictionary is created before the final XPath list is available.
+Step
+Request / data
+Expected confirmation
+1
+POST /ISG/Olympus/CitiMLTradeTest2?env=PROD with dictionary metadata and "concepts": {}
+Version returned; GET /current shows empty dictionary.
+2
+POST /ISG/Olympus/CitiMLTradeTest2/current/CITIMLTERMINATION?env=PROD with concept body
+Collection created with nested ns1:effectiveDate.
+3
+PUT /ISG/Olympus/CitiMLTradeTest2/current/CITIMLTERMINATION?env=PROD with revised concept body
+Dictionary system version increases.
+4
+GET /ISG/Olympus/CitiMLTradeTest2/current/CITIMLTERMINATION?env=PROD&projection=FULL
+Collection fields and attributes returned.
+5
+GET /ISG/Olympus/CitiMLTradeTest2/current?env=PROD&projection=FULL
+Updated dictionary / concepts returned.
+Representative add/update concept body
+{
+ "logicalName": "CITIMLTERMINATION",
+ "displayName": "CITIMLTERMINATION",
+ "physicalName": "citimlTradeNotification/citimlNotificationBundleDetails/citimlEvents/citimlEvent/nonpublicExecutionReport/ns1:termination",
+ "description": "CitiML Trade termination XPath collection",
+ "attributes": {
+   "ns1:effectiveDate": {
+     "physicalName": "ns1:effectiveDate",
+     "dataType": "String",
+     "description": "Effective date attribute"
+   }
+ }
+}
+A separate test also used the full dotted XPath as the concept identifier. That creates a distinct concept from CITIMLTERMINATION; use one canonical concept-key convention for the actual rollout to avoid duplicates.
+6. Verification evidence and result
+SoapUI returned version responses for dictionary/concept requests, while GET projection=FULL returned the collection and ns1:effectiveDate metadata. Data Catalog browser screenshots showed the collection, its slash-delimited physical XPath, and the nested attribute.
+Result: The two approaches demonstrate how to publish the sample XPath under Olympus without creating separate attribute-to-attribute or concept-to-concept relation records just to represent collection membership.
+7. Test limitations
+The proof covers the supplied sample XPath under Olympus, not all CitiML/CitiFIX XPaths. Environment host/UI mapping must match during verification. Publishing under ISG/RIO returned EEMS_AUTH_403_NOT_AUTHORIZED; RIO API-client permissions remain an outstanding prerequisite and are not validated by the Olympus result.
+Technical POC  |  23 Nov 2026   •   Page
+
+
+
+
+
+
+
+
 
 {
   "dictionary": {
