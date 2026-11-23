@@ -1,4 +1,37 @@
 
+
+{
+  "dictionary": {
+    "releaseVersion": "v1",
+    "logicalName": "CitiMLTradeTest3",
+    "physicalName": "CitiMLTradeTest3",
+    "dictionaryType": "PHYSICAL",
+    "description": "CitiML Trade XPath hierarchy POC",
+    "displayName": "CitiMLTradeTest3",
+    "concepts": {
+      "citimlTradeNotification.citimlNotificationBundleDetails.citimlEvents.citimlEvent.nonpublicExecutionReport.ns1:termination": {
+        "logicalName": "citimlTradeNotification.citimlNotificationBundleDetails.citimlEvents.citimlEvent.nonpublicExecutionReport.ns1:termination",
+        "physicalName": "citimlTradeNotification/citimlNotificationBundleDetails/citimlEvents/citimlEvent/nonpublicExecutionReport/ns1:termination",
+        "displayName": "citimlTradeNotification/citimlNotificationBundleDetails/citimlEvents/citimlEvent/nonpublicExecutionReport/ns1:termination",
+        "description": "CitiML Trade termination XPath collection",
+        "attributes": {
+          "ns1:effectiveDate": {
+            "physicalName": "ns1:effectiveDate",
+            "dataType": "String",
+            "description": "Effective date attribute"
+          }
+        }
+      }
+    }
+  }
+}
+
+
+
+
+
+
+
 Hi Andrii, I successfully created the CitiML XPath dictionary and collections under ISG/Olympus. However, when I try to create the same dictionary under ISG/RIO, I am getting EEMS_AUTH_403_NOT_AUTHORIZED (code 13000).
 
 Could you please confirm whether our current client ID/FID has write access under RIO, or if any additional EEMS permissions are required?
