@@ -1,4 +1,13 @@
 
+
+
+
+/isg/internal/data-highway/dictionary-api/v1/ISG/Olympus/citiMLTest5
+
+
+
+
+
 Hi Andrii, we are working on a CitiFix → Data Catalog integration.
 
 The requirement is to take the latest CitiFix metadata and publish/update it in Data Catalog using the existing Data Catalog APIs. We are not making any changes to the Data Catalog application itself.
