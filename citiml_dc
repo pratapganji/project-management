@@ -1,4 +1,14 @@
 
+Hi Andrii, I successfully created the CitiML XPath dictionary and collections under ISG/Olympus. However, when I try to create the same dictionary under ISG/RIO, I am getting EEMS_AUTH_403_NOT_AUTHORIZED (code 13000).
+
+Could you please confirm whether our current client ID/FID has write access under RIO, or if any additional EEMS permissions are required?
+
+
+
+
+
+
+
 {
   "dictionary": {
     "releaseVersion": "v1",
