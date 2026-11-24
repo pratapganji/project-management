@@ -1,4 +1,19 @@
 
+We reviewed the shared documents. They explain the Domain Data Manager/Delegate roles required for PDA–CDE mapping, but do not provide specific steps to obtain API write access under RIO.
+
+We also checked the CMP EEMS UAT access request process, but couldn’t find RIO (CSI 161090) in the available EEMS domains.
+
+Andri confirmed that our existing Olympus Client ID has write access only under Olympus and that a separate EEMS request is required for RIO.
+
+Could you please help us identify the correct CMP entitlement or team to approach for RIO API access?
+
+
+
+
+
+
+
+
 We initially encountered a UAT environment mapping issue, which Andri confirmed with his development team. This morning, Rupesh and I created dictionaries using the UAT1 endpoint as suggested by Andri, since UAT2 UI was pointing to UAT1 MetaManager. After the mapping was corrected, those dictionaries were no longer visible in UAT2 UI. We then published the dictionary using the QA APAC (UAT2) endpoint and successfully verified it in UAT2 UI.
 
 
