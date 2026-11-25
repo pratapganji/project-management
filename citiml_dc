@@ -1,4 +1,22 @@
 
+String jsonPayload;
+
+try {
+    jsonPayload = objectMapper.writeValueAsString(requestBody);
+} catch (JsonProcessingException ex) {
+    throw new IllegalStateException(
+        "Failed to serialize dictionary request", ex);
+}
+
+return request.body(jsonPayload)
+        .retrieve()
+        .body(Map.class);
+
+
+
+
+
+
 CitiML → Data Catalog Integration – Rajat’s Requirements & Action Items
 
 1. Immediate Tasks – Pratap
