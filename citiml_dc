@@ -1,10 +1,37 @@
 
 
+
+
+
+
+
+
 For CitiML to Data Catalog, I completed the Excel-based bulk publishing POC and resolved the special-character validation issues. Successfully published 1,155 XPaths across 477 collections under the CITIML_TRADE_CASHFLOW dictionary.
 
 I also verified the published dictionary in the Data Catalog UI, where system version 10 is visible.
 
 I checked the Attribute-to-Attribute mapping section in MetaManager. No relationships are currently displayed for the selected attribute. Next, we need to validate the mapping functionality and required permissions.
+
+
+
+For CitiML to Data Catalog integration, I added a new endpoint to read fully qualified XPaths directly from the FO_TRADES Excel file and publish them to Data Catalog.
+
+During testing, I encountered multiple dictionary schema validation errors due to special characters in XPath concept and attribute names.
+
+I updated the sanitization logic to handle these issues, including:
+
+* Removing unwanted spaces and hidden Unicode characters.
+* Replacing double quotes with single quotes.
+* Converting text() to text.
+* Removing asterisks (*).
+* Replacing / with ., and //, ->, and parentheses with underscores.
+
+I also fixed an HTTP 400 validation error caused by invisible characters and non-breaking spaces in attribute names.
+
+After these fixes, I successfully published 1,155 XPaths across 477 collections under the CITIML_TRADE_CASHFLOW dictionary in Olympus and verified the published metadata in Data Catalog.
+
+Next, I’ll continue testing the remaining XPath patterns and documenting any additional limitations or workarounds.
+
 
 
 
