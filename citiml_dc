@@ -1,4 +1,16 @@
 
+
+For CitiML to Data Catalog, I completed the Excel-based bulk publishing POC and resolved the special-character validation issues. Successfully published 1,155 XPaths across 477 collections under the CITIML_TRADE_CASHFLOW dictionary.
+
+I also verified the published dictionary in the Data Catalog UI, where system version 10 is visible.
+
+I checked the Attribute-to-Attribute mapping section in MetaManager. No relationships are currently displayed for the selected attribute. Next, we need to validate the mapping functionality and required permissions.
+
+
+
+
+
+
 Issue: Data Catalog API returned HTTP 400 (DICTIONARY_ERROR) due to hidden Unicode characters and non-breaking spaces in XPath attribute names, such as citimlArrangementBusinessTypeÂ.
 
 Fix: Updated sanitizeNameToken() in CatalogueFieldSpecServiceImpl.java to normalize Unicode characters, remove invisible characters, and trim whitespace before publishing concept and attribute names.
