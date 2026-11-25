@@ -1,4 +1,168 @@
 
+CitiML → Data Catalog Integration – Rajat’s Requirements & Action Items
+
+1. Immediate Tasks – Pratap
+
+Rajat asked Pratap to analyze the Trade and Cashflow XPaths from Vishesh’s Excel sheet.
+
+* Review approximately 1,500 fully qualified XPaths.
+* Identify and categorize different XPath patterns.
+* Check special characters, including single/double quotes, slashes, dots, namespaces, predicates and functions.
+* Test different XPath patterns using the Data Catalog API.
+* Document successful scenarios, failures, limitations and workarounds.
+* Analyze the Schema Browser field-specification table, particularly pass-through expressions and transformation logic.
+* Provide at least one example for every identified XPath/expression category.
+* Share the findings with Rajat and Rupesh by November 26.
+
+Important: For Day 0, use Excel as the source, not the database.
+
+2. Sojoy’s Use Case – High Priority
+
+* Obtain the final 17–18 CitiML XPaths from Girish.
+* Complete the RIO manual dictionary publishing POC through MetaManager.
+* Identify the process for obtaining RIO Client ID, Client Secret, FID and required EEMS permissions.
+* Publish the XPaths under RIO once access is available.
+* Validate attribute-to-attribute mapping between existing Olympus attributes and the newly published CitiML attributes.
+* Test the mapping using Excel/manual publishing, with Olympus available for preliminary POC testing.
+* Coordinate with Girish and Vishesh for the second set of requirements where source attribute mappings are missing.
+
+Target: Complete UAT by November 27, followed by production deployment.
+
+3. Day 0 – Excel-Based CitiML Publishing
+
+Rajat wants an initial publishing solution using Vishesh’s Excel sheet.
+
+Dictionary categorization includes Trade/Cashflow, Collateral, MTM, Position and other CitiML categories.
+
+The first target dictionary is:
+
+CITIML_TRADE_CASHFLOW
+
+Required functionality:
+
+1. Read fully qualified CitiML XPaths from Excel.
+2. Validate and normalize supported XPath patterns.
+3. Convert each XPath into the Data Catalog structure.
+4. Store the full XPath prefix as the collection.
+5. Store the final XPath node as the attribute.
+6. Create dictionary JSON payloads.
+7. Publish metadata using the Data Catalog API.
+8. Validate the published metadata in Data Catalog.
+
+Ad Hoc XPath Publishing
+
+Rajat also wants the ability to add new XPaths to an existing dictionary without deploying new application code.
+
+Expected workflow:
+
+GET current dictionary → Add new collection/attribute → POST complete updated dictionary → Publish new version
+
+Important observations:
+
+* Each POST can create a new dictionary version.
+* Publishing only the new collection can cause previously published collections to be missing from the new version.
+* PUT/PATCH are not currently available as working, documented update mechanisms for this flow.
+* Always retrieve and preserve the existing dictionary metadata before publishing a new version.
+
+4. Day 1 – Database-Based Automation
+
+Day 1 is the long-term strategic solution.
+
+Rajat wants to automate publishing directly from database metadata instead of relying on Excel.
+
+Required activities:
+
+* Analyze Schema Browser field-specification tables.
+* Identify direct, pass-through, conditional and transformation-based XPath expressions.
+* Coordinate with Girish, Vishesh, DMT and Mahesh to determine how fully qualified XPaths can be standardized.
+* Create an intermediate staging table or database view containing cleaned, publishable metadata.
+* Separate XPath processing/transformation from Data Catalog publishing.
+* Build an API service to read the standardized metadata and publish dictionaries.
+* Implement weekly incremental publishing.
+* Retrieve the current dictionary version, apply additions or updates, and republish the complete dictionary as a new version.
+
+Day 1 requires further analysis and stakeholder coordination. It is not part of the immediate November 27 UAT target.
+
+5. RIO Access Dependencies
+
+Two separate access requirements exist.
+
+Manual publishing access:
+
+* Obtain appropriate MetaManager roles through CMP for RIO (CSI 161090).
+* Validate dictionary, collection and attribute publishing.
+* Determine the additional permissions required for attribute-to-attribute mapping.
+
+API publishing access:
+
+* Determine the correct EEMS onboarding and authorization process.
+* Obtain an approved RIO-specific Client ID and Client Secret, potentially using an application FID.
+* Confirm the authentication method and API write permissions.
+* Resolve the existing EEMS_AUTH_403_NOT_AUTHORIZED issue.
+
+Current Olympus credentials cannot be assumed to have write permission under RIO.
+
+6. Immediate Deliverables
+
+By November 26:
+
+* Excel XPath categorization.
+* Database pass-through/expression categorization.
+* Special-character testing results.
+* Issues and workarounds.
+* Consolidated task list shared with Rajat and Rupesh.
+
+By November 27:
+
+* Target UAT completion of Sojoy’s initial use case, subject to access, mapping availability and successful validation.
+
+Production:
+
+* December 1 was mentioned as the internal target.
+* December 4–5 was discussed as a revised possible production window.
+
+7. Responsibilities
+
+Pratap
+
+* Trade/Cashflow XPath categorization and analysis.
+* Special-character testing and documentation.
+* CitiML dictionary publishing and incremental update POC.
+* Support RIO access investigation and attribute mapping.
+
+Rupesh
+
+* Collaborate on CitiML publishing activities.
+* Share existing POC implementation and findings.
+* Lead CitiFIX dictionary publishing.
+* Coordinate the consolidated CitiML task list with Pratap.
+
+Girish / Vishesh
+
+* Provide final XPaths, additional mappings and clarification on source expressions.
+
+Rajat
+
+* Review the technical plan, task assignments, challenges and delivery timelines.
+
+8. Overall Objective
+
+Rajat wants the team to deliver three things:
+
+1. Immediate: Publish Sojoy’s required CitiML XPaths and complete attribute mappings.
+2. Day 0: Provide an Excel-based bulk publishing solution with an API for adding individual XPaths.
+3. Day 1: Build a standardized, database-driven integration with weekly automated updates.
+
+The current priority for Pratap is completing XPath analysis, supporting the RIO publishing POC, and working with Rupesh on the Day 0 solution.
+
+
+
+
+
+
+
+
+
     Analyze the approximately 1,500 Trade/Cashflow XPaths from Vishesh’s Excel.
 * Categorize XPath types and test special-character handling.
 * Develop API-based bulk dictionary publishing.
