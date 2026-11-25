@@ -1,4 +1,37 @@
 
+
+
+private String sanitizeNameToken(String value) {
+    if (value == null) {
+        return "";
+    }
+
+    String cleaned = value
+            .replace("\u00C2\u00A0", " ")
+            .replace("\u00A0", " ")
+            .replace("\u202F", " ")
+            .replace("\u200B", "")
+            .replace("\uFEFF", "")
+            .trim();
+
+    return cleaned
+            .replace("text()", "text")
+            .replace("\\", "_")
+            .replace("//", "_")
+            .replace("-->", "_")
+            .replace("*", "")
+            .replace("/", ".")
+            .replace("(", "_")
+            .replace(")", "_")
+            .trim();
+}
+
+
+
+
+
+
+
 String jsonPayload;
 
 try {
